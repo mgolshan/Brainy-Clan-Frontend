@@ -1,0 +1,28 @@
+{
+  "app": {
+    "title": "Brainy Clan",
+    "tagline": "Apprendre et jouer ensemble en famille."
+  },
+  "tabs": {
+    "home": "Accueil",
+    "play": "Jouer",
+    "family": "Famille",
+    "profile": "Profil"
+  },
+  "common": {
+    "comingSoon": "Bientôt disponible"
+  },
+  "home": {
+    "backendStatus": "État du serveur",
+    "checking": "Vérification…",
+    "connected": "Connecté",
+    "notReachable": "Injoignable",
+    "apiUrl": "URL de l'API : {{url}}"
+  },
+  "auth": {
+    "joinTitle": "Rejoindre avec un code d'invitation",
+    "joinHint": "Demande le code d'invitation à un parent de ta famille.",
+    "codePlaceholder": "Code d'invitation",
+    "joinButton": "Rejoindre"
+  }
+}
