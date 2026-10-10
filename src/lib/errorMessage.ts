@@ -1,0 +1,52 @@
+import type { TFunction } from 'i18next';
+
+import { ApiError } from '@/api/client';
+
+/**
+ * User-facing message for any error. Contract error codes map to translated strings;
+ * validation errors fall back to the first field message from the server (already localized
+ * by Laravel), then to the server `message`.
+ */
+export function errorMessage(error: unknown, t: TFunction): string {
+  if (!(error instanceof ApiError)) return t('errors.unknown');
+  switch (error.code) {
+    case 'network_error':
+      return t('errors.network');
+    case 'timeout':
+      return t('errors.timeout');
+    case 'unauthenticated':
+      return t('errors.unauthenticated');
+    case 'invalid_credentials':
+      return t('errors.invalidCredentials');
+    case 'forbidden':
+      return t('errors.forbidden');
+    case 'member_limit_reached':
+      return t('errors.memberLimitReached');
+    case 'category_not_allowed':
+      return t('errors.categoryNotAllowed');
+    case 'no_family':
+      return t('errors.noFamily');
+    case 'already_in_family':
+      return t('errors.alreadyInFamily');
+    case 'invite_invalid':
+      return t('errors.inviteInvalid');
+    case 'session_not_active':
+      return t('errors.sessionNotActive');
+    case 'second_chance_unavailable':
+      return t('errors.secondChanceUnavailable');
+    case 'app_update_required':
+      return t('errors.updateRequired');
+    case 'goal_limit_reached':
+      return t('errors.goalLimitReached');
+    case 'not_found':
+      return t('errors.notFound');
+    case 'validation_failed': {
+      const first = Object.values(error.fieldErrors)[0]?.[0];
+      return first ?? error.message ?? t('errors.validation');
+    }
+    default:
+      if (error.status === 429) return t('errors.rateLimited');
+      if (error.status >= 500) return t('errors.server');
+      return error.message || t('errors.unknown');
+  }
+}

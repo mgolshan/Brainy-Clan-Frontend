@@ -1,24 +1,153 @@
 import '@/i18n';
 
 import { QueryClientProvider } from '@tanstack/react-query';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { useFonts } from 'expo-font';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider as NavThemeProvider } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from 'react-native';
+import { useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import { StyleSheet, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-import { queryClient } from '@/api/queryClient';
+import { queryClient, wireQueryClientToDevice } from '@/api/queryClient';
+import { AppThemeProvider } from '@/features/app/AppThemeProvider';
+import { useMinVersionGate } from '@/features/app/useHealth';
+import { useLocaleSync } from '@/features/app/useLocaleSync';
+import { useMe } from '@/features/auth/hooks';
+import { useAnswerQueue, useAnswerQueueSync } from '@/features/play/answerQueue';
+import { useAppStatus } from '@/store/appStatus';
+import { useSession } from '@/store/session';
+import { ErrorState, Loading, useTheme } from '@/ui';
+import { themeFonts } from '@/ui/themes/fonts';
+
+void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 export default function RootLayout() {
-  const scheme = useColorScheme();
+  const [fontsLoaded, fontError] = useFonts(themeFonts);
+
+  useEffect(() => {
+    wireQueryClientToDevice();
+  }, []);
+
+  useEffect(() => {
+    if (fontsLoaded || fontError) SplashScreen.hide();
+  }, [fontsLoaded, fontError]);
+
+  // Keep the native splash up until the fonts are ready (falls back to system fonts on error).
+  if (!fontsLoaded && !fontError) return null;
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider value={scheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="(auth)" />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </QueryClientProvider>
+    <GestureHandlerRootView style={styles.flex}>
+      <QueryClientProvider client={queryClient}>
+        <AppThemeProvider>
+          <RootNavigator />
+        </AppThemeProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
+
+/**
+ * Auth guard routing. Exactly one group is reachable at a time:
+ * update required → update screen; signed out → (auth); signed in without a family →
+ * (onboarding); signed in with a family → tabs + play/family screens.
+ */
+function RootNavigator() {
+  const theme = useTheme();
+  const { t } = useTranslation();
+  const hydrated = useSession((s) => s.hydrated);
+  const token = useSession((s) => s.token);
+  const me = useMe();
+  const updateFlag = useAppStatus((s) => s.updateRequired);
+  const minVersionGate = useMinVersionGate();
+
+  useLocaleSync(me.data?.user.locale);
+  useAnswerQueueSync(!!token);
+
+  // Drop every cached server response (and queued answers) once the token disappears.
+  const hadToken = useRef(false);
+  useEffect(() => {
+    if (token) {
+      hadToken.current = true;
+      return;
+    }
+    queryClient.clear();
+    if (hadToken.current) useAnswerQueue.getState().clear();
+    hadToken.current = false;
+  }, [token]);
+
+  const navTheme = useMemo(() => {
+    const base = theme.scheme === 'dark' ? DarkTheme : DefaultTheme;
+    return {
+      ...base,
+      colors: {
+        ...base.colors,
+        primary: theme.colors.primary,
+        background: theme.colors.background,
+        card: theme.colors.tabBar,
+        text: theme.colors.text,
+        border: theme.colors.border,
+        notification: theme.colors.danger,
+      },
+    };
+  }, [theme]);
+
+  const updateRequired = updateFlag || minVersionGate;
+  const signedIn = !!token;
+  const hasFamily = !!me.data?.family;
+  const waitingForMe = signedIn && !me.data;
+
+  let blocking: ReactNode = null;
+  if (!hydrated || (waitingForMe && me.isPending)) {
+    blocking = <Loading label={t('common.loading')} />;
+  } else if (waitingForMe && me.isError && !updateRequired) {
+    blocking = <ErrorState error={me.error} onRetry={() => void me.refetch()} />;
+  }
+
+  return (
+    <NavThemeProvider value={navTheme}>
+      {blocking ? (
+        <View style={[styles.flex, styles.center, { backgroundColor: theme.colors.background }]}>
+          {blocking}
+        </View>
+      ) : (
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: theme.colors.background },
+            animation: theme.reducedMotion ? 'none' : 'default',
+          }}>
+          <Stack.Protected guard={updateRequired}>
+            <Stack.Screen name="update-required" />
+          </Stack.Protected>
+          <Stack.Protected guard={!updateRequired && !signedIn}>
+            <Stack.Screen name="(auth)" />
+          </Stack.Protected>
+          <Stack.Protected guard={!updateRequired && signedIn && !hasFamily}>
+            <Stack.Screen name="(onboarding)" />
+          </Stack.Protected>
+          <Stack.Protected guard={!updateRequired && signedIn && hasFamily}>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="play/[session]" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="category/[id]" />
+            <Stack.Screen name="member/[id]" />
+            <Stack.Screen name="invite" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="goals/index" />
+            <Stack.Screen name="goals/[id]" />
+            <Stack.Screen name="goals/new" options={{ presentation: 'modal' }} />
+          </Stack.Protected>
+          <Stack.Protected guard={__DEV__}>
+            <Stack.Screen name="dev/themes" />
+          </Stack.Protected>
+        </Stack>
+      )}
+      <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />
+    </NavThemeProvider>
+  );
+}
+
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  center: { alignItems: 'center', justifyContent: 'center', padding: 24 },
+});

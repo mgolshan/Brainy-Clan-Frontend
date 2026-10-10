@@ -3,7 +3,8 @@
 Brainy Clan is a family learning/quiz app. **This repo is the mobile/web client**: React Native +
 Expo (one codebase for iOS, Android and web). The backend is the separate **Brainy-Clan-Backend**
 Laravel repo: REST API under `/api/v1`, auth with Laravel Sanctum Bearer tokens, health check at
-`/up`. In development it runs in Docker on the developer's Windows PC at `http://<PC-LAN-IP>:8080`.
+`GET /api/v1/health`. The API contract is `../Brainy-Clan-Backend/docs/API.md`; `src/api/types.ts`
+is typed from it (never guess shapes; contract changes happen there first). In development it runs in Docker on the developer's Windows PC at `http://<PC-LAN-IP>:8080`.
 
 Design doc: https://claude.ai/code/artifact/47b231d3-1586-470a-865b-5ea4b6349434 (read it fully before starting a build step)
 
@@ -25,17 +26,22 @@ https://docs.expo.dev/llms.txt. Add Expo/RN packages with `npx expo install <pkg
 ## Layout
 
 ```
-app/                 Expo Router routes only (screens + _layout.tsx). No business logic here.
-  (tabs)/            Home, Play, Family, Profile
-  (auth)/            join with invite code
+app/                 Expo Router routes only (thin: render screens from src/features). No logic.
+  _layout.tsx        providers, fonts, auth-guard routing with Stack.Protected
+  (auth)/            welcome, login, register, join     (onboarding)/  create-family
+  (tabs)/            Home, Play, Family, Profile         play/[session], category/[id], member/[id], invite
+  dev/themes.tsx     dev-only theme preview (guarded by __DEV__)
 src/
-  api/               client.ts (typed fetch, Bearer token, ApiError), queryClient.ts
-  config/env.ts      EXPO_PUBLIC_* config (API_URL)
-  features/<name>/   feature folders: family, goals, play, leaderboard, profile
-  challenges/        registry.ts: challenge type key -> renderer component
-  store/             zustand stores (session.ts persists the token in SecureStore)
+  api/               client.ts (fetch, Bearer, X-App-Version, ApiError with contract `code`),
+                     types.ts (from API.md), queryKeys.ts, queryClient.ts
+  config/env.ts      EXPO_PUBLIC_API_URL, APP_VERSION
+  features/<name>/   app, auth, family, profile, home, play (session logic + offline answer queue), dev
+  challenges/        registry.ts (type key -> renderer + payload guard) + MultipleChoice, WisdomCard
+  store/             zustand: session.ts (token in SecureStore), preferences.ts, appStatus.ts
   i18n/              i18next setup + locales (en, fr)
-  ui/                theme tokens (light/dark) and shared primitives
+  ui/                ThemeProvider.tsx (useTheme), themes/ (playful, sleek, modern, classic),
+                     components/ (Screen, Text, Button, Card, TextField, Avatar, ProgressBar, ...)
+  lib/               small pure helpers (errors, formatting, labels, version compare)
 ```
 
 Import with the `@/` alias (`@/*` -> `src/*`); route files in `app/` import from `@/...` too.
@@ -44,8 +50,9 @@ Import with the `@/` alias (`@/*` -> `src/*`); route files in `app/` import from
 
 - **Feature folders**: code for a feature (screens' components, hooks, queries, types) lives in
   `src/features/<feature>/`; route files in `app/` stay thin and compose feature components.
-- **Server data goes through TanStack Query** using `src/api/client.ts`; never copy server data
-  into Zustand. Zustand is for client state (session token, UI preferences).
+- **Server data goes through TanStack Query** using `src/api/client.ts` (keys in
+  `src/api/queryKeys.ts`); never copy server data into Zustand. The member policy is read from
+  the `me` query (`usePolicy()`). Zustand is for client state (session token, UI preferences).
 - **Challenge registry mirrors the backend plugin types**: `ChallengeTypeKey` in
   `src/challenges/registry.ts` must match the backend's challenge plugin keys. Add a new type in
   both places; unknown types from the API must be skipped gracefully, never crash.
@@ -54,9 +61,15 @@ Import with the `@/` alias (`@/*` -> `src/*`); route files in `app/` import from
   accordingly. No age thresholds or monetisation rules hard-coded in the client.
 - **All user-facing strings via i18n** (`t('...')`), added to every locale file (en + fr).
   Keys are type-checked against `en.json`.
-- Theme colors/spacing from `src/ui/theme.ts`; support light and dark.
-- Play sessions must later be **offline-tolerant** (queue answers locally, sync when back
-  online); keep session logic out of components so this can be added.
+- **Age-adaptive themes** (`src/ui/themes/`, see docs/PLAN.md): components read colors, type,
+  radius, spacing, touch target and motion only through `useTheme()` — no raw hex values or font
+  names in components. Theme = member `accessibility.theme` → policy `ui_theme` → `modern`
+  (`selectThemeKey`); the app never maps ages to themes. Every theme has light + dark tokens;
+  respect `theme.reducedMotion` (member setting or OS) and the member text scale. Check new UI in
+  all four themes at `/dev/themes`.
+- Play session logic lives in `src/features/play/usePlaySession.ts`, not in components. Answers
+  that fail for network reasons go to the persisted queue (`answerQueue.ts`) and are re-sent when
+  the device is back online.
 - Auth token only in SecureStore via `useSession` – never in AsyncStorage/logs.
 
 ## Commands
@@ -69,7 +82,8 @@ npm run format       # prettier --write .
 npx expo-doctor      # dependency/config health
 ```
 
-Run `npm run typecheck` and `npm run lint` before declaring a task done.
+Run `npm run typecheck`, `npm run lint` and `npm run format:check` before declaring a task done;
+`npx expo export --platform web` must bundle.
 
 ## Native modules / builds
 
@@ -81,7 +95,7 @@ config plugins, never by editing native folders.
 
 ## Environment notes
 
-- Developer machine: Windows 11, PhpStorm, Node 22 LTS. Repo lives at
+- Developer machine: Windows 11, PhpStorm, Node 22 LTS planned (Node 24 currently installed and working). Repo lives at
   `F:\Docker-Projects\Brainy-Clan\Brainy-Clan-Frontend`. Line endings are LF (`.gitattributes`).
 - `EXPO_PUBLIC_API_URL` in `.env` must be the PC's LAN IP (not localhost) so a phone can reach
   the backend. `.env` is git-ignored; `.env.example` is the template.

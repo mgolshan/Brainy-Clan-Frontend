@@ -5,34 +5,184 @@ Milestones are defined in `docs/PLAN.md`.
 
 ## Status
 
-| Milestone | Status | Notes |
-| --- | --- | --- |
-| Scaffold | Done | Expo SDK 57, Expo Router, tabs and join placeholders, core packages, CLAUDE.md |
-| F0 Local environment | Not started | `npm install` not run on Windows yet |
-| F1 App foundation | Not started | Waits for B1 |
-| F2 Accounts, family and invites | Not started | Waits for B2 |
-| F3 Play loop | Not started | Waits for B4 and B5 |
-| F4 Goals and leaderboard | Not started | Waits for B6 |
-| F5 Remaining challenge types | Not started | Waits for B7 |
-| F6 Monetization and notifications | Not started | Waits for B8 |
-| F7 Release | Not started | |
+| Milestone                         | Status                                                                                  | Notes                                                                                                                    |
+| --------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Scaffold                          | Done                                                                                    | Expo SDK 57, Expo Router, tabs and join placeholders, core packages, CLAUDE.md                                           |
+| F0 Local environment              | Done                                                                                    | `npm install` on Node 24, `.env` with LAN IP `192.168.2.23`, expo-doctor 21/21                                           |
+| F1 App foundation                 | Done                                                                                    | `/api/v1` client + typed errors, health, version gate, age-adaptive themes, base UI, `/dev/themes`                       |
+| F2 Accounts, family and invites   | Done (sign-in + Family tab checked on web against the mock; real login payload matches) | Welcome/register/login/join, create family, Family + Profile tabs, member editor, invites                                |
+| F3 Play loop                      | Done (verified against a local contract mock; backend play endpoints not live yet)      | Categories + drill-down, play screen, MC + Wisdom Card, feedback, lives, second chances, redemption, offline queue, Home |
+| F4 Goals and leaderboard          | In progress (code complete, compiles; not yet run in a browser)                         | Goals list, detail (team bar / race, countdown, history), 7-step wizard, Home + Family entry points                      |
+| F5 Remaining challenge types      | Not started                                                                             | Waits for B7                                                                                                             |
+| F6 Monetization and notifications | Not started                                                                             | Waits for B8                                                                                                             |
+| F7 Release                        | Not started                                                                             |                                                                                                                          |
 
 ## Next up
 
-1. Install Node 22 LTS, run `npm install`, create `.env` from `.env.example` with the PC's LAN IP, run `npm start`.
-2. Commit the pending changes (`.gitignore`, `CLAUDE.md`, `docs/`).
-3. Start F1 once backend B1 is done.
+1. **Finish F4 verification.** Start the goals mock (`scratchpad` copy not in the repo — recreate
+   from API.md or use the backend once B6 is live), run `EXPO_PUBLIC_API_URL=<api> npm run web`,
+   and walk through: Home goal card → Goals list → detail (cooperation and competition, reached
+   state + celebration, history, pause/delete) → wizard (all 7 steps, category drill-down, locked
+   categories disabled, per-member targets in race mode, `goal_limit_reached` / policy limit hint).
+   Check all four themes (playful reward banner + race track; sleek/classic stay calm).
+2. Run F2–F4 on a phone against the real backend once B2–B6 endpoints are deployed.
+3. Then F5 (remaining challenge types, waits for B7).
 
 ## Known issues and notes
 
-- Not yet run on a phone; typecheck, lint, Prettier and a web export passed when scaffolded.
+- Not yet run on a phone. Checked on web (Chrome) only: theme preview, welcome/login/register,
+  and the full play loop (login → Home → Play → session → wrong answers → failed → redemption →
+  completed + confetti → offline queue) against a throwaway mock of API.md.
+- Real backend on 2026-10-10: `/health`, `/auth/login`, `/family/invites`, `/categories` respond
+  and match `src/api/types.ts`; `/me/stats`, `/family/leaderboard`, `/play/*` still 404. Home hides
+  the stats card / shows "no points yet" on 404. Requests took ~14 s each (Docker on the F: drive),
+  the client timeout is 15 s (health 10 s) — if the phone shows timeouts, that's why.
+- Web needs CORS on the backend for `http://localhost:8081`.
+- API.md: the Goals section's trailing changelog lines appear duplicated at the end of the file
+  (cosmetic, reported to the backend).
+- Contract gaps from F3 were resolved in API.md (see the contract follow-up log entry); #2
+  (appearance needs a family) is accepted as is.
 - Daily development runs natively on Windows (`npm start`); Docker on Windows often misses file changes from the F: drive.
 - Token storage falls back to `localStorage` on web (not secure); fine until the web version is built.
-- Unused template packages (`@expo/ui`, `expo-symbols`, `expo-glass-effect`, `expo-image`) are still in `package.json`.
+- Node 24 is installed instead of the planned 22 LTS; Expo SDK 57 works with it (expo-doctor clean).
+- `npm audit` reports advisories in transitive dev/build dependencies of the Expo toolchain; not
+  addressed (`npm audit fix --force` would break SDK-pinned versions).
 - `.claude/settings.json` enables Expo's official Claude plugin (from the Expo template).
+
+## How to test
+
+### F1 — theme preview (web or phone, no backend needed)
+
+1. `npm start`, then press `w` (web) or scan the QR code with Expo Go.
+2. Signed out you land on the join screen; tap **Theme preview** (dev builds only), or open
+   `http://localhost:8081/dev/themes` on web.
+3. Flip Playful / Sleek / Modern / Classic, Light / Dark, text size and reduce motion. Tap an
+   answer in the Play section to see correct/wrong feedback; tap **Replay** under Celebration.
+
+### F2 — accounts and family (needs the backend running with B2)
+
+1. Signed out: Welcome → **I'm a parent — create account** → fill the form → **Create family**
+   (time zone and country are pre-filled from the phone) → you land on the tabs.
+2. Or **Sign in** with the seeded demo `mom@brainyclan.test` / `password`.
+3. Family tab (admin): members list, pending invites with codes, **Invite a family member** →
+   nickname + birth year/month + avatar → big code with Share / Copy. Tap a member to edit
+   nickname, avatar, difficulty (Auto or 1–10) and appearance; remove (tap twice).
+4. On a second device/browser: **Join with invite code** → type the code. Adults can switch on
+   "Set an email login"; for a child invite the server rejects email/password with a 422.
+5. Profile tab: edit name/avatar; Appearance → theme picker (Automatic = policy `ui_theme`),
+   text size, reduce motion, calm timers (saved to the server instantly); light/dark (device
+   only); language EN/FR; sign out.
+
+### F3 — play loop (needs backend B4/B5 for real data)
+
+1. Home: greeting, this week's points / today / total / streak, family ranking, **Play now**.
+2. Play tab: category tiles (each its own color in the playful theme); locked ones show
+   "Family plan" + an upgrade hint; categories with sub-scopes open a drill-down with
+   **Play all of …** plus the sub-topics.
+3. Play screen: progress bar toward the target, hearts = blunder cap. Tap an answer → green/red
+   highlight, the correct answer and explanation, **Continue**. Unknown challenge types are
+   skipped (a small note says how many).
+4. Hit the cap → "Out of lives" with only the options the session allows: free second chance
+   (N left today), **Watch a short video** (only when `ad_available`; calls the endpoint with a
+   placeholder reward until AdMob in F6), **Redemption round** (3 easier questions), **End game**.
+5. Reach the target → celebration (confetti in playful, glow in sleek, check in modern, calm
+   check in classic) and **Play again**.
+6. Offline: turn on airplane mode and answer → "Waiting for a connection"; the answer is kept on
+   the device and sent when you're back (or tap **Try again**).
 
 ## Log
 
-### 2026-10-10
-- Created the app with Expo SDK 57: tabs (Home, Play, Family, Profile), a join-with-invite placeholder, API client, TanStack Query, Zustand session store with secure storage, i18n (en, fr), theme tokens, challenge registry types, Docker files.
-- Initial commit `d32c895`. Added the design doc link to `CLAUDE.md`, plus `docs/PLAN.md` and `docs/PROGRESS.md` (not committed).
+### 2026-10-10 — F4 (in progress)
+
+- Types from API.md "Goals (B6)": `GoalPlan`, `GoalProgress`, `GoalHistoryEntry`, `Paginated`,
+  create/update bodies; `Policy.limits.max_active_goals` (`null` = unlimited);
+  `goal_limit_reached` error code + message.
+- `src/features/goals/`: `hooks.ts` (list, detail seeded from the list, infinite history,
+  create/update/delete), `time.ts` (countdown, start-date options), components `GoalCard`,
+  `RewardBanner` (wiggling gift in playful, gradient edge in sleek, framed in modern/classic),
+  `TeamProgress` (cooperation) and `RaceProgress` (competition; avatars race along lanes in playful).
+- Screens/routes: `goals/index` (list; admin "Set a new goal" or upgrade hint when the policy's
+  `max_active_goals` is used), `goals/[id]` (current period, countdown, reward, celebration when
+  reached, scopes/members, history with winners, admin pause/resume/delete), `goals/new` (wizard:
+  name → categories with drill-down → team/race explained → period + start date → target and
+  per-member targets → reward → review). Home shows the main active goal (or a create CTA for
+  admins); Family tab links to Goals. Non-admins are read-only. Strings in en + fr.
+- Weekly leaderboard on Home kept from F3.
+- Checks: typecheck, lint, format:check pass; web export bundles. **Not yet exercised in a
+  browser** (session ended before the smoke test).
+- Note: typed routes (`.expo/types/router.d.ts`) only regenerate when the dev server runs;
+  after adding routes run `npm start` once before `npm run typecheck`.
+
+### 2026-10-10 — Contract follow-up (API.md changelog: `default_ui_theme`, senior text scale, redemption items)
+
+- `Member.default_ui_theme` added to `src/api/types.ts`; the member editor's "Automatic" theme
+  option now previews that member's own default instead of the admin's.
+- Senior `text_scale` default is now 1.0 in the policy; the app only multiplies the member's
+  `text_scale` onto the theme's type scale, so classic's larger type no longer compounds (×1.2,
+  not ×1.44). No code change needed beyond documenting it in `ThemeProvider`.
+- `second-chance` and `redemption` both return all session items; kept merge-by-id (it keeps
+  locally recorded answers) and documented it in `src/features/play/api.ts`.
+- Checks: typecheck, lint, format:check pass; web export bundles.
+
+### 2026-10-10 — F3
+
+- Play tab (`src/features/play/screens/CategoriesScreen.tsx`) with drill-down `category/[id]`;
+  play screen `app/play/[session].tsx` → `PlayScreen.tsx`.
+- Session logic in `src/features/play/usePlaySession.ts` (current item, phases, submit, second
+  chance / redemption / abandon) and `api.ts` (queries + mutations). `answerQueue.ts`: persisted
+  (AsyncStorage) queue for answers that failed with a network error, flushed on reconnect,
+  foreground, launch or **Try again**; scored results are delivered back to the play screen.
+- Challenge registry: `multiple_choice`, `wisdom_card` with payload guards; invalid or unknown
+  items are skipped. `FeedbackPanel`, `Hearts`, `Celebration`/`Confetti`.
+- Home tab (`src/features/home/HomeScreen.tsx`): greeting, `GET /me/stats`, week leaderboard snippet.
+- Fixed while testing: session hydration flag on web, auth stack initial route (welcome),
+  category colors by sibling index, dimmed answer opacity, classic small buttons, sleek backdrop
+  now made of plain Views (cheaper than full-screen gradients).
+- Contract gaps found (API.md not edited; all resolved by the backend later the same day, see above):
+  1. Admins editing another member can't see that member's policy default theme (`Member` has
+     no `ui_theme`), so the "Automatic" option previews the admin's own default.
+  2. `PATCH /me/accessibility` "needs family": a user without a family can't save appearance;
+     the Profile tab says so.
+  3. Seniors: classic theme is ×1.2 by design and the policy also defaults `text_scale: 1.2`, so
+     a senior gets ×1.44. The app applies both (clamped 0.8–1.6 for the member scale) — decide
+     whether one should replace the other.
+  4. `second-chance` / `redemption` responses: unclear whether `items` is the full list or only
+     new items; the app merges by id, so both work.
+  5. Leaderboard has no "current member" flag; the app compares `member_id` with `me.member.id`.
+- Checks: typecheck, lint, format:check pass; `npx expo export --platform web` bundles; expo-doctor 21/21.
+
+### 2026-10-10 — F2
+
+- Routes: `(auth)/welcome|login|register|join`, `(onboarding)/create-family`, `member/[id]`,
+  `invite` (modal); `(tabs)/family`, `(tabs)/profile`. Guards in `app/_layout.tsx`: update
+  required → signed out → no family → app. `GET /me` runs on launch; the policy is read from the
+  `me` query (`usePolicy()`), never copied into Zustand.
+- Hooks: `src/features/auth/hooks.ts` (me, login, register, join, sign out), `src/features/family/hooks.ts`,
+  `src/features/profile/hooks.ts` (optimistic `PATCH /me/accessibility` so the theme switches instantly).
+- Join: email/password only sent when the "set an email login" toggle is on; the server decides (422).
+- Admin-only UI (invites, member editing) hidden unless `member.role === 'admin'`.
+- Sign out (or a 401) clears the token, the query cache and the offline answer queue.
+
+### 2026-10-10 — F0 + F1
+
+- F0: `npm install` (Node 24.14), `.env` from `.env.example` with this PC's Wi-Fi IP, expo-doctor
+  21/21. Removed unused template packages `@expo/ui`, `expo-symbols`, `expo-glass-effect`
+  (kept `expo-image`, now used for question images).
+- Added with `npx expo install`: `@expo-google-fonts/{nunito,space-grotesk,inter,lora,atkinson-hyperlegible}`,
+  `expo-linear-gradient`, `expo-haptics`, `expo-clipboard`, `@react-native-async-storage/async-storage`,
+  `@react-native-community/netinfo`.
+- API: `src/api/types.ts` typed from `../Brainy-Clan-Backend/docs/API.md`; `client.ts` targets
+  `/api/v1`, sends `X-App-Version`, throws `ApiError` with contract `code` + 422 `fieldErrors`;
+  426 flips the "update required" flag, 401 signs out. `queryKeys.ts`; TanStack Query wired to
+  NetInfo + AppState.
+- Health: `GET /api/v1/health` replaces `/up`; `min_app_version` newer than `expo.version` → update screen.
+- Themes: `src/ui/themes/` (playful, sleek, modern, classic; light + dark tokens, fonts, type
+  scale, radius, spacing, touch target, motion, celebration), `ThemeProvider` / `useTheme()`
+  (`src/ui/ThemeProvider.tsx`) applying text scale, reduced motion (member + OS). Theme
+  selection: member `accessibility.theme` → policy `ui_theme` → `modern`.
+- Base components in `src/ui/components/`: Screen, Text, Button, Card, TextField, Avatar,
+  ProgressBar, Badge, Chip/Segmented/ToggleRow/Stepper, ListRow, Hearts, Celebration/Confetti,
+  Loading/EmptyState/ErrorState, PressableScale, Appear. Old `src/ui/theme.ts` and `Screen.tsx` removed.
+- Dev-only `/dev/themes` preview.
+- Auth guard routing skeleton in `app/_layout.tsx` (`Stack.Protected`).
+- Checks: typecheck, lint, format:check pass; `npx expo export --platform web` bundles.

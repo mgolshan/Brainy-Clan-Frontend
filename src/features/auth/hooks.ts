@@ -1,0 +1,99 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
+import { api } from '@/api/client';
+import { queryClient } from '@/api/queryClient';
+import { queryKeys } from '@/api/queryKeys';
+import type {
+  AuthPayload,
+  Envelope,
+  JoinBody,
+  LoginBody,
+  MePayload,
+  RegisterBody,
+} from '@/api/types';
+import { getDeviceInfo } from '@/lib/device';
+import { useSession } from '@/store/session';
+
+/** Store the token and seed the `me` cache from an AuthPayload. */
+function applyAuth(payload: AuthPayload) {
+  const { token, ...me } = payload;
+  queryClient.setQueryData<MePayload>(queryKeys.me, me);
+  useSession.getState().setToken(token);
+}
+
+/**
+ * `GET /me`: user, member, family and the resolved **policy**. Called on launch; the policy is
+ * read from this query everywhere (never copied into Zustand).
+ */
+export function useMe() {
+  const token = useSession((s) => s.token);
+  return useQuery({
+    queryKey: queryKeys.me,
+    queryFn: async ({ signal }) => (await api.get<Envelope<MePayload>>('/me', { signal })).data,
+    enabled: !!token,
+    staleTime: 60_000,
+  });
+}
+
+/** The signed-in member's policy (undefined while loading / signed out). */
+export function usePolicy() {
+  return useMe().data?.policy;
+}
+
+/** True when the signed-in member is a family admin (drives admin-only UI). */
+export function useIsAdmin(): boolean {
+  return useMe().data?.member?.role === 'admin';
+}
+
+export type LoginInput = Omit<LoginBody, 'device_name' | 'platform'>;
+export type RegisterInput = Omit<RegisterBody, 'device_name' | 'platform'>;
+export type JoinInput = Omit<JoinBody, 'device_name' | 'platform'>;
+
+export function useLogin() {
+  return useMutation({
+    mutationFn: async (input: LoginInput) =>
+      (await api.post<Envelope<AuthPayload>>('/auth/login', { ...input, ...getDeviceInfo() })).data,
+    onSuccess: applyAuth,
+  });
+}
+
+export function useRegister() {
+  return useMutation({
+    mutationFn: async (input: RegisterInput) =>
+      (await api.post<Envelope<AuthPayload>>('/auth/register', { ...input, ...getDeviceInfo() }))
+        .data,
+    onSuccess: applyAuth,
+  });
+}
+
+export function useJoin() {
+  return useMutation({
+    mutationFn: async (input: JoinInput) =>
+      (
+        await api.post<Envelope<AuthPayload>>('/auth/join', {
+          ...input,
+          code: input.code.trim().toUpperCase(),
+          ...getDeviceInfo(),
+        })
+      ).data,
+    onSuccess: applyAuth,
+  });
+}
+
+/** Revoke the token server-side (best effort), then forget it locally and drop all cached data. */
+export function useSignOut() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      try {
+        await api.post<void>('/auth/logout', undefined, { timeoutMs: 5000 });
+      } catch {
+        // Offline or token already invalid: signing out locally is what matters.
+      }
+    },
+    onSettled: () => {
+      useSession.getState().clear();
+      client.clear();
+    },
+  });
+}

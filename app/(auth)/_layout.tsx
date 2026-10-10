@@ -1,5 +1,22 @@
 import { Stack } from 'expo-router';
 
+import { useTheme } from '@/ui';
+
+export const unstable_settings = { initialRouteName: 'welcome' };
+
 export default function AuthLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
+  const theme = useTheme();
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: theme.colors.background },
+        animation: theme.reducedMotion ? 'none' : 'default',
+      }}>
+      <Stack.Screen name="welcome" />
+      <Stack.Screen name="login" />
+      <Stack.Screen name="register" />
+      <Stack.Screen name="join" />
+    </Stack>
+  );
 }
