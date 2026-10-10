@@ -5,7 +5,7 @@ Expo (one codebase for iOS, Android and web). The backend is the separate **Brai
 Laravel repo: REST API under `/api/v1`, auth with Laravel Sanctum Bearer tokens, health check at
 `/up`. In development it runs in Docker on the developer's Windows PC at `http://<PC-LAN-IP>:8080`.
 
-Design doc: <link>
+Design doc: https://claude.ai/code/artifact/47b231d3-1586-470a-865b-5ea4b6349434 (read it fully before starting a build step)
 
 ## Stack (locked decisions)
 
@@ -85,3 +85,9 @@ config plugins, never by editing native folders.
   `F:\Docker-Projects\Brainy-Clan\Brainy-Clan-Frontend`. Line endings are LF (`.gitattributes`).
 - `EXPO_PUBLIC_API_URL` in `.env` must be the PC's LAN IP (not localhost) so a phone can reach
   the backend. `.env` is git-ignored; `.env.example` is the template.
+
+## Plan, progress and commits
+
+- Read `docs/PLAN.md` and `docs/PROGRESS.md` at the start of every session; work on the next milestone only.
+- Update `docs/PROGRESS.md` at the end of every session (status table, next up, log entry).
+- Never run `git commit`, `git push` or any history-changing git command. Moe reviews and commits.
