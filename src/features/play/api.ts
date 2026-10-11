@@ -99,7 +99,14 @@ export function useStartSession() {
         .data,
     onSuccess: (payload) => {
       queryClient.setQueryData<SessionPayload>(queryKeys.playSession(payload.session.id), {
-        session: payload.session,
+        // The live backend (2026-10-10) sends `null` counters on a brand-new session; the
+        // contract says numbers, so default them to 0 rather than render "null".
+        session: {
+          ...payload.session,
+          points: payload.session.points ?? 0,
+          mistakes: payload.session.mistakes ?? 0,
+          second_chances_used: payload.session.second_chances_used ?? 0,
+        },
         items: [...payload.items].sort((a, b) => a.position - b.position),
       });
     },

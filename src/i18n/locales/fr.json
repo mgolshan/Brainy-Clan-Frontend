@@ -410,6 +410,7 @@
     "reachedTitle": "Objectif atteint !",
     "thisPeriod": "Cette période",
     "startsOn": "Commence le {{date}}",
+    "pausedHint": "Cet objectif est en pause. Les points ne comptent pas tant qu'il n'est pas relancé.",
     "scopes": "Catégories",
     "membersLabel": "Qui joue",
     "memberTarget": "{{name}} · {{target}} pts",

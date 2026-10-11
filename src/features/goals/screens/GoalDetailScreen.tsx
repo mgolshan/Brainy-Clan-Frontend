@@ -8,7 +8,7 @@ import { useIsAdmin, useMe } from '@/features/auth/hooks';
 import { RaceProgress, TeamProgress } from '@/features/goals/components/GoalProgressViews';
 import { RewardBanner } from '@/features/goals/components/RewardBanner';
 import { useDeleteGoal, useGoal, useGoalHistory, useUpdateGoal } from '@/features/goals/hooks';
-import { formatTimeLeft, useNow } from '@/features/goals/time';
+import { dateInTimeZone, formatPeriodRange, formatTimeLeft, useNow } from '@/features/goals/time';
 import { errorMessage } from '@/lib/errorMessage';
 import { formatDate } from '@/lib/format';
 import {
@@ -32,7 +32,7 @@ function HistoryRow({ entry, goal }: { entry: GoalHistoryEntry; goal: GoalPlan }
   const { t, i18n } = useTranslation();
   const theme = useTheme();
   const winners = entry.entries.filter((e) => entry.winner_member_ids.includes(e.member_id));
-  const range = `${formatDate(entry.starts_at, i18n.language)} – ${formatDate(entry.ends_at, i18n.language)}`;
+  const range = formatPeriodRange(entry.starts_at, entry.ends_at, i18n.language);
   return (
     <View style={[styles.historyRow, { gap: theme.spacing.sm, minHeight: theme.touchTarget }]}>
       <View style={styles.flex}>
@@ -50,11 +50,14 @@ function HistoryRow({ entry, goal }: { entry: GoalHistoryEntry; goal: GoalPlan }
           <Avatar key={w.member_id} avatar={w.avatar} size={30} />
         ))}
       </View>
-      <Badge
-        label={entry.reached ? t('goals.reached') : t('goals.missed')}
-        tone={entry.reached ? 'success' : 'neutral'}
-        icon={entry.reached ? 'trophy' : undefined}
-      />
+      {/* Top-level `reached` is the cooperation result only (API.md); races show the winners. */}
+      {goal.mode === 'cooperation' ? (
+        <Badge
+          label={entry.reached ? t('goals.reached') : t('goals.missed')}
+          tone={entry.reached ? 'success' : 'neutral'}
+          icon={entry.reached ? 'trophy' : undefined}
+        />
+      ) : null}
     </View>
   );
 }
@@ -155,6 +158,9 @@ export function GoalDetailScreen({ id }: { id: number }) {
 
   const g = goal.data;
   const p = g.current_period;
+  // Competition: celebrate the viewer's own target; the reward is decided when the period closes.
+  const mine = p?.entries.find((e) => e.member_id === me?.member?.id);
+  const reached = g.mode === 'cooperation' ? !!p?.reached : !!mine?.reached;
 
   return (
     <Screen
@@ -173,7 +179,7 @@ export function GoalDetailScreen({ id }: { id: number }) {
           : t('goals.modeHelp.competition')}
       </Text>
 
-      {p?.reached ? (
+      {reached ? (
         <Card style={styles.center}>
           <Celebration size={96} />
           <Text variant="heading" align="center">
@@ -182,7 +188,7 @@ export function GoalDetailScreen({ id }: { id: number }) {
         </Card>
       ) : null}
 
-      <RewardBanner reward={g.reward_text} reached={p?.reached} />
+      <RewardBanner reward={g.reward_text} reached={g.mode === 'cooperation' && reached} />
 
       {p ? (
         <Card padding="lg" style={{ gap: theme.spacing.md }}>
@@ -191,7 +197,7 @@ export function GoalDetailScreen({ id }: { id: number }) {
             <Badge label={formatTimeLeft(t, p.ends_at, now)} icon="time-outline" tone="accent" />
           </View>
           <Text variant="caption" tone="muted">
-            {`${formatDate(p.starts_at, i18n.language)} – ${formatDate(p.ends_at, i18n.language)}`}
+            {formatPeriodRange(p.starts_at, p.ends_at, i18n.language)}
           </Text>
           {g.mode === 'cooperation' ? (
             <TeamProgress progress={p} />
@@ -202,7 +208,13 @@ export function GoalDetailScreen({ id }: { id: number }) {
       ) : (
         <Card>
           <Text tone="muted">
-            {t('goals.startsOn', { date: formatDate(`${g.starts_on}T12:00:00`, i18n.language) })}
+            {!g.is_active
+              ? t('goals.pausedHint')
+              : g.starts_on > dateInTimeZone(new Date(now), me?.family?.timezone)
+                ? t('goals.startsOn', {
+                    date: formatDate(`${g.starts_on}T12:00:00`, i18n.language),
+                  })
+                : t('goals.noOpenPeriod')}
           </Text>
         </Card>
       )}
@@ -246,7 +258,7 @@ export function GoalDetailScreen({ id }: { id: number }) {
         </>
       ) : null}
 
-      {p?.reached && theme.celebration === 'confetti' ? <Confetti /> : null}
+      {reached && theme.celebration === 'confetti' ? <Confetti /> : null}
     </Screen>
   );
 }

@@ -432,7 +432,10 @@ export interface GoalPlan {
 }
 
 export interface GoalHistoryEntry extends GoalProgress {
-  /** Competition: top rank; cooperation: everyone when reached, else []. */
+  /**
+   * Competition: everyone tied at rank 1 with more than 0 points (empty when nobody scored);
+   * cooperation: everyone when reached, else [].
+   */
   winner_member_ids: number[];
 }
 

@@ -396,6 +396,7 @@
     "reachedTitle": "Goal reached!",
     "thisPeriod": "This period",
     "startsOn": "Starts {{date}}",
+    "pausedHint": "This goal is paused. Points are not counted until it is resumed.",
     "scopes": "Categories",
     "membersLabel": "Who plays",
     "memberTarget": "{{name}} · {{target}} pts",

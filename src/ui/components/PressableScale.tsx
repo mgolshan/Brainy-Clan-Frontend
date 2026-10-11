@@ -5,6 +5,7 @@ import {
   Pressable,
   type PressableProps,
   type StyleProp,
+  StyleSheet,
   type ViewStyle,
 } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
@@ -22,6 +23,42 @@ export interface PressableScaleProps extends Omit<PressableProps, 'style' | 'chi
  * Pressable that springs down to the theme's `pressScale` (bouncy in playful, subtle in
  * sleek/modern, none in classic or with reduced motion — opacity feedback instead).
  */
+/** Style keys that size/place the element in its parent; they belong on the outer Pressable. */
+const OUTER_KEYS = [
+  'flex',
+  'flexGrow',
+  'flexShrink',
+  'flexBasis',
+  'alignSelf',
+  'margin',
+  'marginHorizontal',
+  'marginVertical',
+  'marginTop',
+  'marginBottom',
+  'marginLeft',
+  'marginRight',
+  'position',
+  'top',
+  'bottom',
+  'left',
+  'right',
+  'zIndex',
+] as const;
+
+function splitStyle(style: StyleProp<ViewStyle>): { outer: ViewStyle; inner: ViewStyle } {
+  const inner: Record<string, unknown> = { ...StyleSheet.flatten(style) };
+  const outer: Record<string, unknown> = {};
+  for (const key of OUTER_KEYS) {
+    if (key in inner) {
+      outer[key] = inner[key];
+      delete inner[key];
+    }
+  }
+  // The inner view fills the outer one when the caller sized it with flex.
+  if ('flex' in outer || 'flexGrow' in outer) inner.flexGrow = 1;
+  return { outer: outer as ViewStyle, inner: inner as ViewStyle };
+}
+
 export function PressableScale({
   style,
   children,
@@ -42,9 +79,12 @@ export function PressableScale({
     usesScale ? { transform: [{ scale: scale.get() }] } : { opacity: pressed.get() ? 0.75 : 1 },
   );
 
+  const { outer, inner } = splitStyle(style);
+
   return (
     <Pressable
       {...rest}
+      style={outer}
       disabled={disabled}
       onPressIn={(e) => {
         if (usesScale) scale.set(withSpring(theme.motion.pressScale, theme.motion.spring));
@@ -60,7 +100,7 @@ export function PressableScale({
         if (haptic && Platform.OS !== 'web') void Haptics.selectionAsync();
         onPress?.(e);
       }}>
-      <Animated.View style={[style, animated]}>{children}</Animated.View>
+      <Animated.View style={[inner, animated]}>{children}</Animated.View>
     </Pressable>
   );
 }

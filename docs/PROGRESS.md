@@ -11,35 +11,34 @@ Milestones are defined in `docs/PLAN.md`.
 | F0 Local environment              | Done                                                                                    | `npm install` on Node 24, `.env` with LAN IP `192.168.2.23`, expo-doctor 21/21                                           |
 | F1 App foundation                 | Done                                                                                    | `/api/v1` client + typed errors, health, version gate, age-adaptive themes, base UI, `/dev/themes`                       |
 | F2 Accounts, family and invites   | Done (sign-in + Family tab checked on web against the mock; real login payload matches) | Welcome/register/login/join, create family, Family + Profile tabs, member editor, invites                                |
-| F3 Play loop                      | Done (verified against a local contract mock; backend play endpoints not live yet)      | Categories + drill-down, play screen, MC + Wisdom Card, feedback, lives, second chances, redemption, offline queue, Home |
-| F4 Goals and leaderboard          | In progress (code complete, compiles; not yet run in a browser)                         | Goals list, detail (team bar / race, countdown, history), 7-step wizard, Home + Family entry points                      |
+| F3 Play loop                      | Done (played against the live backend on web; backend bugs listed in the log)           | Categories + drill-down, play screen, MC + Wisdom Card, feedback, lives, second chances, redemption, offline queue, Home |
+| F4 Goals and leaderboard          | Done on web against a goals mock (B6 not live yet)                                      | Goals list, detail (team bar / race, countdown, history), 7-step wizard, Home + Family entry points                      |
 | F5 Remaining challenge types      | Not started                                                                             | Waits for B7                                                                                                             |
 | F6 Monetization and notifications | Not started                                                                             | Waits for B8                                                                                                             |
 | F7 Release                        | Not started                                                                             |                                                                                                                          |
 
 ## Next up
 
-1. **Finish F4 verification.** Start the goals mock (`scratchpad` copy not in the repo — recreate
-   from API.md or use the backend once B6 is live), run `EXPO_PUBLIC_API_URL=<api> npm run web`,
-   and walk through: Home goal card → Goals list → detail (cooperation and competition, reached
-   state + celebration, history, pause/delete) → wizard (all 7 steps, category drill-down, locked
-   categories disabled, per-member targets in race mode, `goal_limit_reached` / policy limit hint).
-   Check all four themes (playful reward banner + race track; sleek/classic stay calm).
-2. Run F2–F4 on a phone against the real backend once B2–B6 endpoints are deployed.
+1. Finish the F4 run against the real backend (B6 Goals is live): wizard create (competition,
+   real POST /goals) → pause → delete, and one session to completion as Mom (stats update).
+   Home, goals list and Pizza Friday detail are already verified (2026-10-12 log).
+2. Run F2–F4 on a phone against the real backend.
 3. Then F5 (remaining challenge types, waits for B7).
 
 ## Known issues and notes
 
-- Not yet run on a phone. Checked on web (Chrome) only: theme preview, welcome/login/register,
+- Not yet run on a phone. Checked on web (Chrome) only (F4 also, on 2026-10-11, with a goals mock): theme preview, welcome/login/register,
   and the full play loop (login → Home → Play → session → wrong answers → failed → redemption →
   completed + confetti → offline queue) against a throwaway mock of API.md.
-- Real backend on 2026-10-10: `/health`, `/auth/login`, `/family/invites`, `/categories` respond
-  and match `src/api/types.ts`; `/me/stats`, `/family/leaderboard`, `/play/*` still 404. Home hides
-  the stats card / shows "no points yet" on 404. Requests took ~14 s each (Docker on the F: drive),
-  the client timeout is 15 s (health 10 s) — if the phone shows timeouts, that's why.
+- Real backend on 2026-10-11: `/me/stats`, `/family/leaderboard` and `/play/*` are live (play
+  bugs in the 2026-10-11 log); `/goals` still 404. Requests now take ~0.5–1 s; the very first
+  request after a container start can take ~15 s (client timeout 15 s, health 10 s). A transient
+  nginx 502 happened once while the backend was being worked on.
 - Web needs CORS on the backend for `http://localhost:8081`.
-- API.md: the Goals section's trailing changelog lines appear duplicated at the end of the file
-  (cosmetic, reported to the backend).
+- Goals semantics now defined in API.md (2026-10-11): top-level `reached` is cooperation-only
+  (the app follows this everywhere, incl. history rows), `ends_at` exclusive, first period clipped
+  to `starts_on`, competition `winner_member_ids` = all tied at rank 1 with > 0 points.
+- Testing tip: `npx expo start --web` with `CI=1` disables file watching (no reloads).
 - Contract gaps from F3 were resolved in API.md (see the contract follow-up log entry); #2
   (appearance needs a family) is accepted as is.
 - Daily development runs natively on Windows (`npm start`); Docker on Windows often misses file changes from the F: drive.
@@ -91,6 +90,57 @@ Milestones are defined in `docs/PLAN.md`.
    the device and sent when you're back (or tap **Try again**).
 
 ## Log
+
+### 2026-10-12 — Goals against the real backend (partial, time-boxed)
+
+- Contract check vs the 2026-10-11 API.md clarifications: types match. Fixed the goal history row,
+  which showed a Reached/Missed badge from the top-level `reached` for competition goals too (now
+  cooperation-only; races show the winners). Updated the `winner_member_ids` doc comment. 422 for
+  malformed answers and dropped void redemption items need no app change (the app never sends
+  malformed responses and only renders the `items` it gets).
+- Verified in Chrome against http://localhost:8080 as Mom: Home shows real stats (week 10, today
+  1, total 26, streak 1), the Pizza Friday card (team 26/100, reward) and the weekly ranking
+  (team 90); goals list; Pizza Friday detail (Oct 5 – Oct 11, i.e. exclusive `ends_at` handled,
+  per-member bars, scopes, members, manage actions). Values match the API responses.
+- Not done (time box): wizard create/pause/delete and a full play session. No backend bugs seen.
+
+### 2026-10-11 — F4 verified on web, F3 against the live backend
+
+- F4 walked through in Chrome against a goals mock (Node proxy to the live backend that
+  implements `/goals*` in memory per API.md and sets `limits.max_active_goals`; kept in the session
+  scratchpad, not the repo): Home goal card → list → cooperation detail (reached, confetti in playful,
+  history with "Show more" pagination) → race detail → pause (paused section) → wizard (all 7
+  steps, sub-topic drill-down, race with per-member target and an excluded member, reward, review,
+  create → correct `POST /goals` body) → limit hint on the list and wizard. Themes: modern (Mom),
+  playful (Sam token, read-only), sleek (Alex token), classic (Mom with `theme: classic`, reset after).
+- Fixed: `PressableScale` put the caller's style on the inner view only, so `flex: 1` was ignored
+  and wizard category rows squeezed the checkbox next to the label — layout keys (flex, alignSelf,
+  margins, position) now go on the outer `Pressable` (applies app-wide).
+- Fixed: period ranges showed the next day (exclusive `ends_at`) and daily periods showed two dates
+  — `formatPeriodRange` in `src/features/goals/time.ts`.
+- Fixed: paused goals said "Starts soon" / "Starts <past date>" — now "This goal is paused…".
+- Fixed: race mode showed "Reward earned", a green bar and "Goal reached!" to every member as soon
+  as anyone hit their target — now based on the viewer's own entry (see contract gap).
+- Fixed: medals/ribbons for everybody when all members have 0 points.
+- Fixed: wizard start dates ("Today" etc.) were device-local; now computed in the family time zone
+  (`startDateOptions(now, family.timezone)`), so `starts_on ≥ today` can't fail across zones.
+- F3 against the live backend (child token via API, Mom in the UI): create → answers → 409 on a
+  repeated answer → failed → redemption (wrong) → `redemption_available: false` → free second
+  chance → abandon → 409 on answer after abandon. The UI session starts and scores correctly.
+- App-side guard: `useStartSession` defaults `null` counters to 0 (backend bug 1 below).
+- Backend bugs / gaps found (not fixed, backend repo):
+  1. `POST /play/sessions` returns `"points": null, "mistakes": null, "second_chances_used": null`
+     on a new session (expected `0`; `GET` and the answer responses return numbers).
+  2. `POST /play/sessions/{id}/answers` with a `choice_id` that is not among the item's choices
+     (e.g. `"zz"`) is accepted and counted as a mistake (200, `is_correct: false`); expected 422
+     `validation_failed`.
+  3. After a failed redemption round (first wrong answer ends it), the remaining redemption items
+     stay `answered: false, is_redemption: true` in every later `items` list. The app ignores them
+     outside the redemption phase, but the contract should say whether they're voided.
+  4. A wrong redemption answer doesn't increase `answered` (stays 3) — confirm that's intended.
+  5. `second-chance` while `active` returns 409 `session_not_active` (the contract only lists 403
+     `second_chance_unavailable`); fine, but worth documenting.
+- Checks: typecheck, lint, format:check pass.
 
 ### 2026-10-10 — F4 (in progress)
 

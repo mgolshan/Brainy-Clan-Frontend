@@ -33,6 +33,17 @@ the OS "reduce motion" setting). Components read tokens only through `useTheme()
 
 - **API format:** `{ data: ... }` envelopes, snake_case, error `code` (see the contract).
 - **Avatars** are keys from a fixed set rendered as emoji/illustrations in the app.
+- **Goals display (2026-10-11):** cooperation shows the team's `reached` and "Reward earned"; a
+  race celebrates only the viewer's own target (`entries[].reached`) and shows the reward without
+  "earned", since the top scorer wins when the period closes. Period ranges treat `ends_at` as
+  exclusive; the wizard's start dates are computed in the family time zone.
+- **API reference (2026-10-11):** besides the contract (`../Brainy-Clan-Backend/docs/API.md`),
+  the backend serves full generated OpenAPI docs (Scramble) at `<API>/docs/api` (JSON at
+  `/docs/api.json`). Use them to check request/response details; the contract still wins.
+- **Social sign-in: Google and Facebook (2026-10-11, requested by Moe):** adults only (welcome,
+  sign-in and register screens; never on the invite/child flow). The app signs in natively with
+  the provider and sends the token to `POST /auth/social/{provider}` (backend milestone B6b).
+  Setup instructions must ship with the feature in the README. See milestone F4b.
 
 ## Working rules
 
@@ -74,6 +85,19 @@ the OS "reduce motion" setting). Components read tokens only through `useTheme()
 
 - Goal setup wizard: scopes with sub-scopes, mode, period, target, reward.
 - Progress, leaderboard (competition) or team total (cooperation), streaks, history.
+
+### F4b — Social sign-in: Google and Facebook [B6b]
+
+- "Continue with Google" / "Continue with Facebook" on welcome, sign-in and register (adults only),
+  branded per the providers' guidelines, styled for every theme.
+- Packages (check current SDK-compatible versions with `npx expo install`): Google via
+  `@react-native-google-signin/google-signin` (native) or `expo-auth-session`; Facebook via
+  `react-native-fbsdk-next` or `expo-auth-session`. Native sign-in needs an **EAS development
+  build** (not Expo Go), so this milestone may move the app to a dev build earlier than F6.
+- Config plugins in `app.json` (client IDs, URL schemes); web uses the browser redirect flow.
+- **README setup guide** (step by step for Moe): where to get each client ID, SHA-1 / key hashes
+  for Android, bundle ID for iOS, redirect URIs for web, `.env` keys, and how to test.
+- Sign in with Apple is required on iOS once Google/Facebook exist (App Store guideline 4.8).
 
 ### F5 — Remaining challenge types [B7]
 

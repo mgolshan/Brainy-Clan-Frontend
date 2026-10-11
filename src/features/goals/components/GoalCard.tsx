@@ -23,8 +23,14 @@ export function GoalCard({ goal, meId, onPress, featured }: GoalCardProps) {
   const mine = p?.entries.find((e) => e.member_id === meId);
   const leader = p?.entries[0];
 
+  // Cooperation: the team reached the target. Competition: the bar shows the viewer's own target
+  // (or the leader's), and the reward goes to the top scorer when the period closes, so "reached"
+  // here is about the entry shown, never a reward already won.
+  const shown = goal.mode === 'competition' ? (mine ?? leader) : undefined;
+  const reached = goal.mode === 'cooperation' ? !!p?.reached : !!shown?.reached;
+
   let value = 0;
-  let caption = t('goals.noOpenPeriod');
+  let caption = goal.is_active ? t('goals.noOpenPeriod') : t('goals.pausedHint');
   if (p) {
     if (goal.mode === 'cooperation') {
       value = p.target_points ? p.team_total / p.target_points : 0;
@@ -56,7 +62,7 @@ export function GoalCard({ goal, meId, onPress, featured }: GoalCardProps) {
         <Text variant={featured ? 'heading' : 'title'} style={styles.flex} numberOfLines={2}>
           {goal.name}
         </Text>
-        {p?.reached ? <Badge label={t('goals.reached')} tone="success" icon="checkmark" /> : null}
+        {reached ? <Badge label={t('goals.reached')} tone="success" icon="checkmark" /> : null}
         {!goal.is_active ? <Badge label={t('goals.paused')} /> : null}
       </View>
       <View style={styles.badges}>
@@ -70,7 +76,7 @@ export function GoalCard({ goal, meId, onPress, featured }: GoalCardProps) {
         <>
           <ProgressBar
             value={value}
-            color={p.reached ? theme.colors.success : undefined}
+            color={reached ? theme.colors.success : undefined}
             label={caption}
           />
           {goal.mode === 'competition' && p.entries.length > 0 ? (
@@ -86,7 +92,11 @@ export function GoalCard({ goal, meId, onPress, featured }: GoalCardProps) {
           {caption}
         </Text>
       )}
-      <RewardBanner reward={goal.reward_text} reached={p?.reached} compact={!featured} />
+      <RewardBanner
+        reward={goal.reward_text}
+        reached={goal.mode === 'cooperation' && p?.reached}
+        compact={!featured}
+      />
     </Card>
   );
 }

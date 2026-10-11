@@ -65,7 +65,7 @@ function RaceLane({ entry, isMe }: { entry: GoalProgressEntry; isMe: boolean }) 
       <View accessible accessibilityLabel={a11y} style={{ gap: 4 }}>
         <View style={styles.between}>
           <Text weight="bold">
-            {entry.rank <= 3 ? `${MEDALS[entry.rank - 1]} ` : `${entry.rank}. `}
+            {entry.rank <= 3 && entry.points > 0 ? `${MEDALS[entry.rank - 1]} ` : `${entry.rank}. `}
             {name}
           </Text>
           <Text weight="bold">{`${entry.points}/${entry.target}`}</Text>
@@ -105,7 +105,7 @@ function RaceLane({ entry, isMe }: { entry: GoalProgressEntry; isMe: boolean }) 
       accessibilityLabel={a11y}
       style={[styles.row, { gap: theme.spacing.sm, minHeight: theme.touchTarget }]}>
       <View style={styles.rank}>
-        {entry.rank === 1 ? (
+        {entry.rank === 1 && entry.points > 0 ? (
           <Icon name="ribbon" color={theme.key === 'sleek' ? c.secondary : c.accent} size={24} />
         ) : (
           <Text weight="bold" tone="muted">

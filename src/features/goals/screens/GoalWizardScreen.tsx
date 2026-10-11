@@ -221,14 +221,16 @@ export function GoalWizardScreen() {
   const categories = useCategories();
   const family = useFamily();
   const create = useCreateGoal();
-  const dates = useMemo(() => startDateOptions(), []);
+  const timeZone = family.data?.family.timezone;
+  const dates = useMemo(() => startDateOptions(new Date(), timeZone), [timeZone]);
 
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [mode, setMode] = useState<GoalMode>('cooperation');
   const [period, setPeriod] = useState<GoalPeriodType>('weekly');
-  const [startsOn, setStartsOn] = useState(dates.today);
+  const [startChoice, setStartChoice] = useState<keyof typeof dates>('today');
+  const startsOn = dates[startChoice];
   const [target, setTarget] = useState('100');
   const [excluded, setExcluded] = useState<Set<number>>(new Set());
   const [overrides, setOverrides] = useState<Record<number, string>>({});
@@ -436,18 +438,18 @@ export function GoalWizardScreen() {
           <View style={styles.wrap}>
             <Chip
               label={t('goals.wizard.today')}
-              selected={startsOn === dates.today}
-              onPress={() => setStartsOn(dates.today)}
+              selected={startChoice === 'today'}
+              onPress={() => setStartChoice('today')}
             />
             <Chip
               label={t('goals.wizard.tomorrow')}
-              selected={startsOn === dates.tomorrow}
-              onPress={() => setStartsOn(dates.tomorrow)}
+              selected={startChoice === 'tomorrow'}
+              onPress={() => setStartChoice('tomorrow')}
             />
             <Chip
               label={t('goals.wizard.nextMonday')}
-              selected={startsOn === dates.nextMonday}
-              onPress={() => setStartsOn(dates.nextMonday)}
+              selected={startChoice === 'nextMonday'}
+              onPress={() => setStartChoice('nextMonday')}
             />
           </View>
           {errors.field('starts_on') ? (
