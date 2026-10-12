@@ -5,12 +5,14 @@ import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider as NavThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { queryClient, wireQueryClientToDevice } from '@/api/queryClient';
+import { useChallengeDrafts } from '@/challenges/drafts';
 import { AppThemeProvider } from '@/features/app/AppThemeProvider';
 import { useMinVersionGate } from '@/features/app/useHealth';
 import { useLocaleSync } from '@/features/app/useLocaleSync';
@@ -22,6 +24,10 @@ import { ErrorState, Loading, useTheme } from '@/ui';
 import { themeFonts } from '@/ui/themes/fonts';
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
+
+// Web social sign-in: when this page is the provider's popup returning to /oauth-callback, hand
+// the result to the opener window and close (no-op otherwise).
+if (Platform.OS === 'web') WebBrowser.maybeCompleteAuthSession();
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts(themeFonts);
@@ -73,7 +79,10 @@ function RootNavigator() {
       return;
     }
     queryClient.clear();
-    if (hadToken.current) useAnswerQueue.getState().clear();
+    if (hadToken.current) {
+      useAnswerQueue.getState().clear();
+      useChallengeDrafts.getState().clear();
+    }
     hadToken.current = false;
   }, [token]);
 
@@ -133,10 +142,12 @@ function RootNavigator() {
             <Stack.Screen name="category/[id]" />
             <Stack.Screen name="member/[id]" />
             <Stack.Screen name="invite" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="sign-in-code/[id]" options={{ presentation: 'modal' }} />
             <Stack.Screen name="goals/index" />
             <Stack.Screen name="goals/[id]" />
             <Stack.Screen name="goals/new" options={{ presentation: 'modal' }} />
           </Stack.Protected>
+          <Stack.Screen name="oauth-callback" />
           <Stack.Protected guard={__DEV__}>
             <Stack.Screen name="dev/themes" />
           </Stack.Protected>

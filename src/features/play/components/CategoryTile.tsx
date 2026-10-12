@@ -75,7 +75,14 @@ export function CategoryTile({ category, onPress, index }: CategoryTileProps) {
 
 const styles = StyleSheet.create({
   tile: { flex: 1, gap: 8, justifyContent: 'space-between' },
-  top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  // Wraps: on a narrow tile the plan badge goes under the icon instead of past the edge.
+  top: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 6,
+  },
   emojiBubble: {
     width: 52,
     height: 52,

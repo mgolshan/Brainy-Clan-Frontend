@@ -40,6 +40,20 @@ the OS "reduce motion" setting). Components read tokens only through `useTheme()
 - **API reference (2026-10-11):** besides the contract (`../Brainy-Clan-Backend/docs/API.md`),
   the backend serves full generated OpenAPI docs (Scramble) at `<API>/docs/api` (JSON at
   `/docs/api.json`). Use them to check request/response details; the contract still wins.
+- **Social sign-in libraries (2026-10-11):** Google on iOS/Android via
+  `react-native-nitro-google-signin` (MIT, Credential Manager on Android, returns an ID token; the
+  free `@react-native-google-signin/google-signin` tier sits on Google's legacy Android SDK), Google
+  on web and Facebook everywhere via `expo-auth-session` (browser flow, standard access token; no
+  Facebook SDK in a family app). Needs an EAS development build (`expo-dev-client`, `eas.json`,
+  `app.config.ts` reads client IDs from env); `npm start` stays on Expo Go, `npm run start:dev-client`
+  for the dev build. Buttons hide when a provider isn't configured. **Sign in with Apple** is
+  required before the iOS release (guideline 4.8) — add an `apple` provider then.
+- **Member sign-in without email (2026-10-11, requested by Moe):** children sign in on a new
+  device with a one-time code an admin issues from their phone (Family → member → "Sign in on
+  another device": big code + countdown, 15 min). Signed-out screens get "I have a sign-in code".
+  The member editor lets an admin add/change/remove a member's email login when the policy
+  allows (`email_login_allowed`), and lists the member's devices with "Sign out". Profile gets
+  "Set password" once the member has an email. Milestone F2b.
 - **Social sign-in: Google and Facebook (2026-10-11, requested by Moe):** adults only (welcome,
   sign-in and register screens; never on the invite/child flow). The app signs in natively with
   the provider and sends the token to `POST /auth/social/{provider}` (backend milestone B6b).
@@ -85,6 +99,12 @@ the OS "reduce motion" setting). Components read tokens only through `useTheme()
 
 - Goal setup wizard: scopes with sub-scopes, mode, period, target, reward.
 - Progress, leaderboard (competition) or team total (cooperation), streaks, history.
+
+### F2b — Member sign-in without email [B2b]
+
+- "I have a sign-in code" screen (`POST /auth/code`); admin "Sign in on another device" code screen
+  with countdown and share; member editor: email login field and devices list with sign-out;
+  Profile: set/change password when `user.email` is set.
 
 ### F4b — Social sign-in: Google and Facebook [B6b]
 

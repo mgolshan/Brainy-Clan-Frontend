@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import type { ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   KeyboardAvoidingView,
@@ -8,6 +8,7 @@ import {
   ScrollView,
   StyleSheet,
   View,
+  type RefreshControlProps,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
@@ -18,6 +19,16 @@ import { Icon } from '@/ui/components/Icon';
 import { PressableScale } from '@/ui/components/PressableScale';
 import { Text } from '@/ui/components/Text';
 import { useTheme } from '@/ui/ThemeProvider';
+
+/** What `Screen` hands to a `list` renderer. */
+export interface ScreenListParts {
+  /** Title block + `children`: render it as the list header. */
+  header: ReactElement;
+  /** Screen padding for the list content. */
+  contentContainerStyle: ViewStyle;
+  /** Pull-to-refresh, when `onRefresh` is set. */
+  refreshControl?: ReactElement<RefreshControlProps>;
+}
 
 export interface ScreenProps {
   title?: string;
@@ -38,6 +49,11 @@ export interface ScreenProps {
   contentStyle?: StyleProp<ViewStyle>;
   /** Hide the decorative background (play screen draws its own). */
   plain?: boolean;
+  /**
+   * Render a virtualized list (FlashList) instead of the ScrollView, for unbounded lists. It gets
+   * the title block + children as its header; never nest a list inside the default ScrollView.
+   */
+  list?: (parts: ScreenListParts) => ReactNode;
 }
 
 /** Concentric translucent circles: a cheap radial glow that works on every platform. */
@@ -158,6 +174,7 @@ export function Screen({
   edges = ['top'],
   contentStyle,
   plain,
+  list,
 }: ScreenProps) {
   const theme = useTheme();
   const { t } = useTranslation();
@@ -228,27 +245,35 @@ export function Screen({
     alignSelf: 'center',
   };
 
+  const refreshControl = onRefresh ? (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor={theme.colors.primary}
+      colors={[theme.colors.primary]}
+    />
+  ) : undefined;
+
   return (
     <SafeAreaView edges={edges} style={[styles.safe, { backgroundColor: theme.colors.background }]}>
       {plain ? null : <Backdrop />}
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        {scroll ? (
+        {list ? (
+          <View style={[styles.flex, styles.column]}>
+            {list({
+              header: <View style={{ gap: s.md, paddingBottom: s.md }}>{content}</View>,
+              contentContainerStyle: { padding: s.lg, paddingBottom: s.xxl },
+              refreshControl,
+            })}
+          </View>
+        ) : scroll ? (
           <ScrollView
-            style={styles.flex}
+            style={[styles.flex, Platform.OS === 'web' ? webStableGutter : undefined]}
             contentContainerStyle={[padding, styles.grow, contentStyle]}
             keyboardShouldPersistTaps="handled"
-            refreshControl={
-              onRefresh ? (
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={onRefresh}
-                  tintColor={theme.colors.primary}
-                  colors={[theme.colors.primary]}
-                />
-              ) : undefined
-            }>
+            refreshControl={refreshControl}>
             {content}
           </ScrollView>
         ) : (
@@ -274,10 +299,19 @@ export function Screen({
   );
 }
 
+/**
+ * Web: always reserve the scrollbar's gutter. Otherwise a desktop scrollbar appearing or
+ * disappearing (content crossing the viewport height) changes the content width, which re-sizes
+ * width-measured grids (Sudoku, word search), which changes the height again: a layout loop that
+ * re-renders every cell several times per tap. No effect with overlay scrollbars (phones).
+ */
+const webStableGutter = { scrollbarGutter: 'stable' } as unknown as ViewStyle;
+
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   flex: { flex: 1 },
   grow: { flexGrow: 1 },
+  column: { width: '100%', maxWidth: 640, alignSelf: 'center' },
   header: { marginBottom: 4 },
   headerRow: {
     flexDirection: 'row',

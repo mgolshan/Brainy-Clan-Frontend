@@ -5,17 +5,19 @@ import { queryClient } from '@/api/queryClient';
 import { queryKeys } from '@/api/queryKeys';
 import type {
   AuthPayload,
+  CodeSignInBody,
   Envelope,
   JoinBody,
   LoginBody,
   MePayload,
   RegisterBody,
 } from '@/api/types';
+import { normalizeCode } from '@/lib/code';
 import { getDeviceInfo } from '@/lib/device';
 import { useSession } from '@/store/session';
 
 /** Store the token and seed the `me` cache from an AuthPayload. */
-function applyAuth(payload: AuthPayload) {
+export function applyAuth(payload: AuthPayload) {
   const { token, ...me } = payload;
   queryClient.setQueryData<MePayload>(queryKeys.me, me);
   useSession.getState().setToken(token);
@@ -48,6 +50,7 @@ export function useIsAdmin(): boolean {
 export type LoginInput = Omit<LoginBody, 'device_name' | 'platform'>;
 export type RegisterInput = Omit<RegisterBody, 'device_name' | 'platform'>;
 export type JoinInput = Omit<JoinBody, 'device_name' | 'platform'>;
+export type CodeSignInInput = Omit<CodeSignInBody, 'device_name' | 'platform'>;
 
 export function useLogin() {
   return useMutation({
@@ -72,7 +75,24 @@ export function useJoin() {
       (
         await api.post<Envelope<AuthPayload>>('/auth/join', {
           ...input,
-          code: input.code.trim().toUpperCase(),
+          code: normalizeCode(input.code),
+          ...getDeviceInfo(),
+        })
+      ).data,
+    onSuccess: applyAuth,
+  });
+}
+
+/**
+ * `POST /auth/code`: sign in on this device with a one-time sign-in code an admin issued
+ * (children have no email/password). Signs in exactly like join.
+ */
+export function useCodeSignIn() {
+  return useMutation({
+    mutationFn: async (input: CodeSignInInput) =>
+      (
+        await api.post<Envelope<AuthPayload>>('/auth/code', {
+          code: normalizeCode(input.code),
           ...getDeviceInfo(),
         })
       ).data,

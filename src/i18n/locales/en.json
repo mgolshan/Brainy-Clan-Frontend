@@ -43,7 +43,12 @@
     "validation": "Please check the highlighted fields.",
     "rateLimited": "Too many attempts. Please wait a minute.",
     "server": "The server had a problem. Please try again later.",
-    "goalLimitReached": "Your plan's limit of active goals is reached. Pause a goal or upgrade to the Family plan."
+    "goalLimitReached": "Your plan's limit of active goals is reached. Pause a goal or upgrade to the Family plan.",
+    "signInCodeInvalid": "This sign-in code is unknown, already used or expired. Ask your parent for a new one.",
+    "socialTokenInvalid": "We couldn't verify your Google or Facebook account. Please try again.",
+    "socialSignupIncomplete": "Please tell us your birth year and month to finish creating your account.",
+    "socialAccountTaken": "This account is already connected to another Brainy Clan user.",
+    "lastSignInMethod": "This is your only way to sign in. Set a password or connect another account first."
   },
   "update": {
     "title": "Time for an update",
@@ -157,8 +162,8 @@
       "title": "Out of lives",
       "body": "You reached {{points}} of {{target}} points. Want another go?",
       "secondChance": "Get a second chance",
-      "free_one": "Use a free second chance ({{count}} left today)",
-      "free_other": "Use a free second chance ({{count}} left today)",
+      "free_one": "Free second chance ({{count}} left)",
+      "free_other": "Free second chance ({{count}} left)",
       "ad": "Watch a short video",
       "redemption": "Redemption round",
       "redemptionHint": "Answer 3 easier questions correctly to keep playing.",
@@ -172,7 +177,9 @@
     "outOfItems": {
       "title": "No more questions right now",
       "body": "Try again in a moment, or pick another category."
-    }
+    },
+    "worth_one": "Worth {{count}} point",
+    "worth_other": "Worth {{count}} points"
   },
   "dev": {
     "themesTitle": "Theme preview",
@@ -193,7 +200,8 @@
     "createAccount": "I'm a parent — create account",
     "signIn": "Sign in",
     "joinWithCode": "Join with invite code",
-    "joinHint": "Kids and family members: ask the parent who set up Brainy Clan for your code."
+    "joinHint": "Kids and family members: ask the parent who set up Brainy Clan for your code.",
+    "haveSignInCode": "I have a sign-in code"
   },
   "login": {
     "title": "Welcome back",
@@ -410,7 +418,7 @@
     "resume": "Resume goal",
     "delete": "Delete goal",
     "deleteConfirm": "Tap again to delete",
-    "deleteHint": "Changes start with the next period. Deleting keeps the history.",
+    "deleteHint": "Changes start with the next period. Pausing keeps the goal listed; deleting removes it for everyone.",
     "left": {
       "days_one": "{{count}} day {{hours}} h left",
       "days_other": "{{count}} days {{hours}} h left",
@@ -468,6 +476,163 @@
       "reviewEachTarget_one": "{{count}} point each",
       "reviewEachTarget_other": "{{count}} points each",
       "noReward": "No reward set — you can still play for bragging rights."
+    },
+    "gone": {
+      "title": "This goal was deleted",
+      "body": "An admin removed it. Its points still count in your stats.",
+      "action": "Back to goals"
     }
+  },
+  "codeSignIn": {
+    "title": "Sign in with a code",
+    "subtitle": "Already in a family? Ask your parent for a sign-in code on their phone.",
+    "codeLabel": "Sign-in code",
+    "codeHint": "8 letters and numbers. Spaces and dashes don't matter.",
+    "submit": "Sign in",
+    "help": "Your parent opens Brainy Clan → Family → your name → “Sign in on another device”. The code works for 15 minutes.",
+    "newHere": "First time? Use your invite code instead"
+  },
+  "signInCode": {
+    "title": "Sign in on another device",
+    "intro": "Make a one-time code so {{name}} can sign in on a new phone or tablet — no email or password needed.",
+    "create": "Make a sign-in code",
+    "codeFor": "Sign-in code for {{name}}",
+    "expiresIn": "Expires in {{time}} · one use",
+    "expired": "This code has expired. Make a new one.",
+    "howToTitle": "How to use it",
+    "step1": "On the other device, open Brainy Clan.",
+    "step2": "Tap “I have a sign-in code”.",
+    "step3": "Type the 8 letters and numbers. Done!",
+    "share": "Share code",
+    "copy": "Copy code",
+    "copied": "Copied!",
+    "newCode": "New code",
+    "newCodeHint": "A new code makes the old one stop working.",
+    "shareMessage": "Sign in to Brainy Clan as {{name}}: open the app, tap “I have a sign-in code” and enter {{code}}. It works for 15 minutes."
+  },
+  "memberLogin": {
+    "title": "Sign-in & devices",
+    "signInOnDevice": "Sign in on another device",
+    "signInOnDeviceHint": "Get a code for a new phone or tablet.",
+    "email": "Email login",
+    "emailHint": "Lets {{name}} sign in with email and a password. They choose the password on their own device (Profile → Set password).",
+    "emailNone": "No email login — {{name}} signs in with a code.",
+    "emailSave": "Save email",
+    "emailSaved": "Email login saved.",
+    "removeEmail": "Remove email login",
+    "removeEmailConfirm": "Tap again to remove",
+    "removeEmailHint": "Removing it also deletes the password. {{name}} can still sign in with a code.",
+    "passwordSet": "Password set",
+    "passwordNotSet": "No password yet"
+  },
+  "devices": {
+    "webBrowser": "Web browser",
+    "title": "Signed-in devices",
+    "myTitle": "My devices",
+    "none": "No signed-in devices.",
+    "thisDevice": "This device",
+    "lastSeen": "Last seen {{when}}",
+    "neverSeen": "Not used yet",
+    "signOut": "Sign out",
+    "signOutConfirm": "Tap again",
+    "signedOutHint": "Signing a device out ends the session there. It can sign in again with a code or password.",
+    "platforms": {
+      "ios": "iPhone / iPad",
+      "android": "Android",
+      "web": "Web"
+    }
+  },
+  "password": {
+    "title": "Password",
+    "set": "Set password",
+    "change": "Change password",
+    "setHint": "Choose a password to sign in with {{email}} on other devices.",
+    "current": "Current password",
+    "new": "New password",
+    "confirm": "Repeat new password",
+    "mismatch": "The passwords don't match.",
+    "save": "Save password",
+    "saved": "Password saved."
+  },
+  "challenge": {
+    "check": "Check",
+    "sudoku": {
+      "title": "Sudoku {{size}}×{{size}}",
+      "rules": "Fill every row, column and box with the numbers 1 to {{size}}, each once.",
+      "clash": "Some numbers appear twice in a row, column or box.",
+      "ready": "All cells are filled. Check your grid!",
+      "fillAll": "Tap a cell, then a number. Fill every cell to check.",
+      "cell": "Row {{row}}, column {{col}}: {{value}}",
+      "empty": "empty",
+      "given": "given",
+      "solutionHint": "Here is the solution. Green cells are where your grid was different.",
+      "mineHint": "This is the grid you sent.",
+      "showSolution": "Solution",
+      "showMine": "My grid",
+      "noteDigit": "Note {{digit}}",
+      "notesOn": "Notes on",
+      "notesOff": "Notes",
+      "erase": "Erase"
+    },
+    "math": {
+      "timeUp": "Time's up, but you can still answer",
+      "secondsLeft_one": "{{count}} second left",
+      "secondsLeft_other": "{{count}} seconds left",
+      "yourAnswer": "Your answer: {{value}}",
+      "fractionHint": "Write fractions with / (like 3/4).",
+      "delete": "Delete",
+      "minus": "Plus or minus",
+      "fractionBar": "Fraction bar",
+      "decimalPoint": "Decimal point"
+    },
+    "word": {
+      "anagramTitle": "Unscramble the word",
+      "hint": "Hint: {{hint}}",
+      "slots": "Your word: {{word}}",
+      "emptySlot": "Empty slot",
+      "usedLetter": "{{letter}}, used",
+      "shuffle": "Shuffle",
+      "backspace": "Back",
+      "missingTitle": "Fill in the missing letters",
+      "missingSlot": "Missing letter {{n}} of {{total}}",
+      "searchTitle": "Find the hidden words",
+      "searchHelp": "Drag across a word, or tap its first and last letter. Words can go in any direction.",
+      "foundWord": "{{word}}, found",
+      "toFind": "{{word}}, to find",
+      "gridLabel": "Letter grid, {{rows}} rows and {{cols}} columns",
+      "cell": "Row {{row}}, column {{col}}, {{letter}}",
+      "cellInWord": "Row {{row}}, column {{col}}, {{letter}}, part of {{words}}",
+      "cellHint": "Choose the first letter of a word, then its last letter.",
+      "firstChosen": "{{letter}} chosen as the first letter. Now choose the last letter.",
+      "selectionCleared": "Selection cleared",
+      "foundAnnounce": "Found {{word}}! {{found}} of {{total}} words found.",
+      "notAWord": "That's not one of the words. Try again!",
+      "progress": "{{found}} of {{total}} words found",
+      "giveUp": "Give up",
+      "giveUpConfirm": "Tap again to give up",
+      "giveUpHint": "Giving up counts as a mistake.",
+      "missedHint": "Dashed red bands show the words you didn't find."
+    }
+  },
+  "social": {
+    "continueWith": "Continue with {{provider}}",
+    "or": "or",
+    "failed": "{{provider}} sign-in didn't work. Please try again.",
+    "birthTitle": "Tell us your birth year and month",
+    "birthBody": "One last step to create your account with {{provider}}. Accounts with Google or Facebook are for adults; we only use this to set up the right experience.",
+    "continue": "Create account",
+    "cancel": "Cancel",
+    "devFake": "Dev: buttons use a fake {{provider}} token (EXPO_PUBLIC_SOCIAL_FAKE)."
+  },
+  "signInMethods": {
+    "title": "Sign-in methods",
+    "hint": "Connect Google or Facebook to sign in with one tap on any device.",
+    "connected": "Connected",
+    "notConnected": "Not connected",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "confirmDisconnect": "Tap again",
+    "unavailable": "Not available in this version of the app",
+    "connectedToast": "{{provider}} is connected."
   }
 }

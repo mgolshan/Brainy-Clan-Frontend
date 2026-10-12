@@ -12,9 +12,13 @@ import {
   type ThemeKey,
   type WisdomCardPayload,
 } from '@/api/types';
-import type { ChallengeResult } from '@/challenges/registry';
+import { getChallenge, type ChallengeResult } from '@/challenges/registry';
+import { useChallengeDrafts, draftKey } from '@/challenges/drafts';
 import { MultipleChoice } from '@/challenges/MultipleChoice';
 import { WisdomCard } from '@/challenges/WisdomCard';
+import { SocialButton } from '@/features/auth/social/SocialButton';
+import { OrDivider } from '@/features/auth/social/SocialSignIn';
+import { CHALLENGE_SAMPLES, scoreSample } from '@/features/dev/challengeSamples';
 import { CategoryTile } from '@/features/play/components/CategoryTile';
 import { FeedbackPanel } from '@/features/play/components/FeedbackPanel';
 import {
@@ -49,6 +53,7 @@ const SAMPLE_MC: SessionItem<MultipleChoicePayload> = {
   position: 1,
   type: 'multiple_choice',
   is_redemption: false,
+  points: 1,
   answered: false,
   payload: {
     question: 'What is the capital of Peru?',
@@ -67,6 +72,7 @@ const SAMPLE_WISDOM: SessionItem<WisdomCardPayload> = {
   position: 2,
   type: 'wisdom_card',
   is_redemption: false,
+  points: 1,
   answered: false,
   payload: {
     card: {
@@ -102,6 +108,46 @@ const SAMPLE_CATEGORIES = [
   { slug: 'history', name: 'History', icon: 'landmark', is_locked: true, children: [] },
 ] as const;
 
+/** One F5 challenge sample with a local verdict, feedback and reset. */
+function ChallengeSample({ item }: { item: SessionItem }) {
+  const theme = useTheme();
+  const [result, setResult] = useState<ChallengeResult | null>(null);
+  const [round, setRound] = useState(0);
+  const def = getChallenge(item.type);
+  if (!def || !def.isValidPayload(item.payload)) return null;
+  const Challenge = def.component;
+  const reset = () => {
+    useChallengeDrafts.getState().remove(draftKey(item.type, item.id));
+    setResult(null);
+    setRound((n) => n + 1);
+  };
+  return (
+    <View style={{ gap: theme.spacing.sm }}>
+      <Card padding={def.wide ? 'xs' : 'lg'}>
+        <Challenge
+          key={round}
+          item={item}
+          result={result}
+          onSubmit={(response) => {
+            const verdict = scoreSample(item, response);
+            setResult({ ...verdict, submitted: response });
+          }}
+        />
+      </Card>
+      {result ? (
+        <FeedbackPanel
+          isCorrect={result.isCorrect}
+          correctText={def.describeCorrect(item.payload, result.correctResponse)}
+          explanation={null}
+          pointsAwarded={result.isCorrect ? item.points : 0}
+          onContinue={reset}
+          continueLabel="Reset"
+        />
+      ) : null}
+    </View>
+  );
+}
+
 /** The preview content, rendered inside a nested ThemeProvider. */
 function PreviewBody({ controls }: { controls: ReactNode }) {
   const theme = useTheme();
@@ -109,6 +155,7 @@ function PreviewBody({ controls }: { controls: ReactNode }) {
   const [mcResult, setMcResult] = useState<ChallengeResult<ChoiceResponse> | null>(null);
   const [wisdomResult, setWisdomResult] = useState<ChallengeResult<ChoiceResponse> | null>(null);
   const [celebrate, setCelebrate] = useState(0);
+  const [sample, setSample] = useState(0);
   const [lives, setLives] = useState(1);
   const [toggle, setToggle] = useState(true);
   const [stepper, setStepper] = useState<number | null>(4);
@@ -144,6 +191,10 @@ function PreviewBody({ controls }: { controls: ReactNode }) {
           <Button title="Loading" loading size="sm" fullWidth={false} />
         </View>
         <Button title="Disabled" disabled />
+        <OrDivider />
+        <SocialButton provider="google" onPress={() => undefined} />
+        <SocialButton provider="facebook" onPress={() => undefined} />
+        <SocialButton provider="google" loading onPress={() => undefined} />
       </View>
 
       <SectionHeader title={t('dev.cards')} />
@@ -282,6 +333,21 @@ function PreviewBody({ controls }: { controls: ReactNode }) {
       {wisdomResult ? (
         <Button title="Reset" variant="ghost" onPress={() => setWisdomResult(null)} />
       ) : null}
+      <Segmented
+        options={CHALLENGE_SAMPLES.map((sample, i) => ({
+          value: i,
+          label: `${sample.type.replace('_', ' ')}${
+            (sample.payload as { variant?: string; size?: number }).variant
+              ? ` · ${(sample.payload as { variant: string }).variant}`
+              : (sample.payload as { size?: number }).size
+                ? ` ${(sample.payload as { size: number }).size}×`
+                : ''
+          }`,
+        }))}
+        value={sample}
+        onChange={setSample}
+      />
+      <ChallengeSample key={sample} item={CHALLENGE_SAMPLES[sample]} />
 
       <SectionHeader title={t('dev.celebration')} />
       <Card style={styles.center}>

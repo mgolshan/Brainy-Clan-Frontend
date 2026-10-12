@@ -1,8 +1,13 @@
 import type { ComponentType } from 'react';
 
 import type { SessionItem } from '@/api/types';
+import { MathSprint, isMathSprintPayload, readMathValue } from '@/challenges/MathSprint';
 import { MultipleChoice, isMultipleChoicePayload } from '@/challenges/MultipleChoice';
+import { isSudokuPayload } from '@/challenges/sudoku/logic';
+import { Sudoku } from '@/challenges/sudoku/Sudoku';
 import { WisdomCard, isWisdomCardPayload } from '@/challenges/WisdomCard';
+import { isWordPuzzlePayload } from '@/challenges/words/logic';
+import { WordPuzzle, describeWordPuzzle } from '@/challenges/words/WordPuzzle';
 
 /**
  * Challenge types. Must mirror the challenge plugin type keys of the Laravel backend
@@ -35,8 +40,12 @@ export interface ChallengeDefinition<TPayload = unknown, TResponse = unknown> {
   component: ComponentType<ChallengeComponentProps<TPayload, TResponse>>;
   /** Guards against malformed payloads: invalid items are skipped instead of crashing. */
   isValidPayload: (payload: unknown) => payload is TPayload;
-  /** Human-readable correct answer for the feedback panel. */
+  /** Human-readable correct answer for the feedback panel (null: the renderer shows it). */
   describeCorrect: (payload: TPayload, correctResponse: unknown) => string | null;
+  /** Needs the full width (big grids): the play screen uses a slimmer card padding. */
+  wide?: boolean;
+  /** Fast-paced: after a correct answer the session moves on by itself. */
+  quickFlow?: boolean;
 }
 
 function define<P, R>(def: ChallengeDefinition<P, R>): ChallengeDefinition {
@@ -65,6 +74,25 @@ export const challengeRegistry: Partial<Record<ChallengeTypeKey, ChallengeDefini
     component: WisdomCard,
     isValidPayload: isWisdomCardPayload,
     describeCorrect: choiceText,
+  }),
+  sudoku: define({
+    component: Sudoku,
+    isValidPayload: isSudokuPayload,
+    // The solution is drawn in the grid itself.
+    describeCorrect: () => null,
+    wide: true,
+  }),
+  math_sprint: define({
+    component: MathSprint,
+    isValidPayload: isMathSprintPayload,
+    describeCorrect: (_payload, correct) => readMathValue(correct),
+    quickFlow: true,
+  }),
+  word_puzzle: define({
+    component: WordPuzzle,
+    isValidPayload: isWordPuzzlePayload,
+    describeCorrect: describeWordPuzzle,
+    wide: true,
   }),
 };
 

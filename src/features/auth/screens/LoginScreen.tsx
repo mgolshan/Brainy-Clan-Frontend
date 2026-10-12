@@ -3,10 +3,11 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useLogin } from '@/features/auth/hooks';
+import { SocialSignIn } from '@/features/auth/social/SocialSignIn';
 import { formErrors } from '@/lib/formErrors';
 import { Button, Card, Screen, Text, TextField } from '@/ui';
 
-/** Adult sign-in with email + password (`POST /auth/login`). */
+/** Adult sign-in with email + password (`POST /auth/login`) or Google/Facebook. */
 export function LoginScreen() {
   const { t } = useTranslation();
   const login = useLogin();
@@ -21,6 +22,7 @@ export function LoginScreen() {
 
   return (
     <Screen title={t('login.title')} subtitle={t('login.subtitle')} back>
+      <SocialSignIn divider="bottom" />
       <Card style={{ gap: 14 }} padding="lg">
         <TextField
           label={t('forms.email')}
@@ -63,6 +65,11 @@ export function LoginScreen() {
         onPress={() => router.replace('/register')}
       />
       <Button title={t('login.haveCode')} variant="ghost" onPress={() => router.replace('/join')} />
+      <Button
+        title={t('welcome.haveSignInCode')}
+        variant="ghost"
+        onPress={() => router.replace('/code')}
+      />
     </Screen>
   );
 }

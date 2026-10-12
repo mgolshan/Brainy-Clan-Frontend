@@ -5,9 +5,12 @@ import { View } from 'react-native';
 
 import type { Accessibility, AvatarKey, Member } from '@/api/types';
 import { useIsAdmin, useMe, usePolicy } from '@/features/auth/hooks';
+import { DevicesList } from '@/features/family/components/DevicesList';
+import { MemberEmailLogin } from '@/features/family/components/MemberEmailLogin';
 import { useFamily, useRemoveMember, useUpdateMember } from '@/features/family/hooks';
 import { AccessibilityEditor } from '@/features/profile/AccessibilityEditor';
 import { AvatarPicker } from '@/features/profile/AvatarPicker';
+import { goBack } from '@/lib/navigation';
 import { formErrors } from '@/lib/formErrors';
 import { ageBandLabel } from '@/lib/labels';
 import {
@@ -17,6 +20,7 @@ import {
   Card,
   EmptyState,
   ErrorState,
+  ListRow,
   Loading,
   Screen,
   SectionHeader,
@@ -53,7 +57,7 @@ function Editor({ member, ownerUserId }: { member: Member; ownerUserId: number }
         difficulty_override: difficulty,
         accessibility: a11y,
       },
-      { onSuccess: () => router.back() },
+      { onSuccess: () => goBack('/family') },
     );
 
   return (
@@ -127,6 +131,19 @@ function Editor({ member, ownerUserId }: { member: Member; ownerUserId: number }
 
       {errors.general ? <Text tone="danger">{errors.general}</Text> : null}
 
+      <SectionHeader title={t('memberLogin.title')} />
+      <Card padding="sm">
+        <ListRow
+          title={t('memberLogin.signInOnDevice')}
+          subtitle={t('memberLogin.signInOnDeviceHint')}
+          onPress={() =>
+            router.push({ pathname: '/sign-in-code/[id]', params: { id: String(member.id) } })
+          }
+        />
+      </Card>
+      <MemberEmailLogin member={member} />
+      <DevicesList memberId={member.id} />
+
       {!isOwner ? (
         <Card style={{ gap: 8 }}>
           <Text variant="caption" tone="muted">
@@ -142,7 +159,7 @@ function Editor({ member, ownerUserId }: { member: Member; ownerUserId: number }
                 setConfirmRemove(true);
                 return;
               }
-              remove.mutate(member.id, { onSuccess: () => router.back() });
+              remove.mutate(member.id, { onSuccess: () => goBack('/family') });
             }}
           />
           {remove.error ? <ErrorState error={remove.error} /> : null}

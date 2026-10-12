@@ -324,7 +324,18 @@ export function PlayScreen({ sessionId }: { sessionId: number }) {
       {(phase === 'question' || phase === 'feedback' || phase === 'waitingOffline') &&
       currentItem &&
       Challenge ? (
-        <Card padding="lg" key={currentItem.id}>
+        <Card
+          padding={definition?.wide ? 'xs' : 'lg'}
+          key={currentItem.id}
+          style={{ gap: theme.spacing.sm }}>
+          {(currentItem.points ?? 1) > 1 ? (
+            <View
+              style={styles.worth}
+              accessible
+              accessibilityLabel={t('play.worth', { count: currentItem.points })}>
+              <Badge label={`+${currentItem.points}`} tone="accent" icon="star" />
+            </View>
+          ) : null}
           <Challenge
             item={currentItem}
             onSubmit={(response) => void play.submit(response)}
@@ -450,4 +461,5 @@ const styles = StyleSheet.create({
   stats: { flexDirection: 'row', justifyContent: 'space-around', alignSelf: 'stretch' },
   stat: { alignItems: 'center', gap: 2 },
   bigEmoji: { fontSize: 52 },
+  worth: { flexDirection: 'row', justifyContent: 'flex-end' },
 });

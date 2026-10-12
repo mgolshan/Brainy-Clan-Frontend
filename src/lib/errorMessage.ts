@@ -30,6 +30,16 @@ export function errorMessage(error: unknown, t: TFunction): string {
       return t('errors.alreadyInFamily');
     case 'invite_invalid':
       return t('errors.inviteInvalid');
+    case 'sign_in_code_invalid':
+      return t('errors.signInCodeInvalid');
+    case 'social_token_invalid':
+      return t('errors.socialTokenInvalid');
+    case 'social_signup_incomplete':
+      return t('errors.socialSignupIncomplete');
+    case 'social_account_taken':
+      return t('errors.socialAccountTaken');
+    case 'last_sign_in_method':
+      return t('errors.lastSignInMethod');
     case 'session_not_active':
       return t('errors.sessionNotActive');
     case 'second_chance_unavailable':

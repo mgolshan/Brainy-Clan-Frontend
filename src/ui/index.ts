@@ -22,7 +22,7 @@ export { Icon, type IconName } from '@/ui/components/Icon';
 export { Divider, ListRow } from '@/ui/components/ListRow';
 export { PressableScale } from '@/ui/components/PressableScale';
 export { ProgressBar } from '@/ui/components/ProgressBar';
-export { Screen, type ScreenProps } from '@/ui/components/Screen';
+export { Screen, type ScreenListParts, type ScreenProps } from '@/ui/components/Screen';
 export { EmptyState, ErrorState, Loading } from '@/ui/components/States';
 export { Overline, Text, fontFor, type TextProps } from '@/ui/components/Text';
 export { TextField } from '@/ui/components/TextField';

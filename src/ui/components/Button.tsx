@@ -142,8 +142,9 @@ export function Button({
             variant={textVariant}
             weight="bold"
             color={colors.fg}
-            numberOfLines={1}
-            style={theme.key === 'sleek' ? styles.sleekLabel : undefined}>
+            numberOfLines={2}
+            align="center"
+            style={[styles.label, theme.key === 'sleek' ? styles.sleekLabel : undefined]}>
             {title}
           </Text>
           {iconRight ? (
@@ -154,8 +155,11 @@ export function Button({
     </View>
   );
 
+  // minHeight: a long title (French, large text, classic on a narrow phone) wraps to a second
+  // line and the button grows, instead of being cut off.
   const faceBase: ViewStyle = {
-    height,
+    minHeight: height,
+    paddingVertical: 4,
     borderRadius: radius,
     paddingHorizontal: size === 'sm' ? theme.spacing.md : theme.spacing.lg,
     alignItems: 'center',
@@ -251,7 +255,16 @@ export function Button({
 const styles = StyleSheet.create({
   full: { alignSelf: 'stretch' },
   inline: { alignSelf: 'flex-start' },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  // maxWidth + a shrinking label: a long title wraps inside the button instead of overflowing
+  // both edges on a narrow phone.
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    maxWidth: '100%',
+  },
+  label: { flexShrink: 1 },
   shine: { position: 'absolute', height: '38%', backgroundColor: 'rgba(255,255,255,0.18)' },
   sleekLabel: { letterSpacing: 0.2 },
 });

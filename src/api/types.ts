@@ -22,6 +22,11 @@ export type ApiErrorCode =
   | 'no_family'
   | 'already_in_family'
   | 'invite_invalid'
+  | 'sign_in_code_invalid'
+  | 'social_token_invalid'
+  | 'social_signup_incomplete'
+  | 'social_account_taken'
+  | 'last_sign_in_method'
   | 'session_not_active'
   | 'second_chance_unavailable'
   | 'app_update_required'
@@ -120,6 +125,18 @@ export interface Member {
   default_ui_theme: ThemeKey;
   status: MemberStatus;
   joined_at: string;
+  /**
+   * Email login (`null` = signs in with codes only). Only present for the member themself and
+   * for admins (omitted otherwise).
+   */
+  email?: string | null;
+  /** Whether the email login has a password yet. Same visibility as `email`. */
+  has_password?: boolean;
+  /**
+   * The member's band policy lets an admin give them an email login. Same visibility as
+   * `email`.
+   */
+  email_login_allowed?: boolean;
 }
 
 export interface Policy {
@@ -131,6 +148,8 @@ export interface Policy {
   ads_allowed: boolean;
   purchases_allowed: boolean;
   collect_email: boolean;
+  /** An admin may give a member of this band an email login. */
+  email_login_allowed: boolean;
   difficulty: { min: number; max: number; default: number };
   second_chance: {
     free_per_day: number;
@@ -195,6 +214,40 @@ export interface JoinBody extends DeviceInfo {
   password?: string;
 }
 
+/** `POST /auth/code`: sign in with an admin-issued one-time sign-in code. */
+export interface CodeSignInBody extends DeviceInfo {
+  code: string;
+}
+
+/** Social sign-in providers (`/auth/social/{provider}`, `/me/social-accounts/{provider}`). */
+export type SocialProvider = 'google' | 'facebook';
+
+/**
+ * `POST /auth/social/{provider}` (adults only). `token`: Google **ID token** / Facebook **access
+ * token**. Birth data only for a first-time sign-up (after 422 `social_signup_incomplete`).
+ */
+export interface SocialSignInBody extends DeviceInfo {
+  token: string;
+  birth_year?: number;
+  birth_month?: number;
+  display_name?: string;
+  locale?: string;
+}
+
+/** A Google/Facebook account linked to the signed-in user (`GET /me/social-accounts`). */
+export interface SocialAccount {
+  provider: SocialProvider;
+  email: string | null;
+  linked_at: string;
+}
+
+/** `PUT /me/password`; `current_password` only when the member already `has_password`. */
+export interface UpdatePasswordBody {
+  password: string;
+  password_confirmation: string;
+  current_password?: string;
+}
+
 export interface UpdateMeBody {
   display_name?: string;
   avatar?: AvatarKey;
@@ -243,6 +296,26 @@ export interface UpdateMemberBody {
   birth_month?: number;
   role?: MemberRole;
   accessibility?: Partial<Accessibility>;
+  /** Adds, changes or removes (`null`) the member's email login. */
+  email?: string | null;
+}
+
+/** `POST /family/members/{member}/sign-in-codes` (valid 15 minutes, single use). */
+export interface SignInCode {
+  code: string;
+  member_id: number;
+  expires_at: string;
+}
+
+/** A signed-in device of a member (`GET /family/members/{member}/devices`). */
+export interface MemberDevice {
+  id: number;
+  name: string;
+  platform: Platform | (string & {});
+  app_version: string | null;
+  last_seen_at: string | null;
+  /** The device making this request. */
+  is_current: boolean;
 }
 
 export interface Invite {
@@ -316,6 +389,8 @@ export interface SessionItem<TPayload = unknown> {
   position: number;
   type: string;
   is_redemption: boolean;
+  /** What a correct answer is worth (1 for most types; bigger puzzles more). */
+  points: number;
   payload: TPayload;
   answered: boolean;
 }
@@ -371,6 +446,72 @@ export interface WisdomCardPayload {
 
 export interface ChoiceResponse {
   choice_id: string;
+}
+
+/** `sudoku`: 0 = empty cell. `box` = [rows, cols] of one box. */
+export interface SudokuPayload {
+  size: 4 | 6 | 9;
+  box: [number, number];
+  grid: number[][];
+}
+
+/** `sudoku` response and correct_response (the full grid / the solution). */
+export interface SudokuResponse {
+  grid: number[][];
+}
+
+export type MathAnswerFormat = 'integer' | 'decimal' | 'fraction';
+
+export interface MathSprintPayload {
+  question: string;
+  answer_format: MathAnswerFormat;
+  /** Advisory countdown; `null` = no timer. Answering late still counts. */
+  time_limit_ms: number | null;
+}
+
+/** `math_sprint` response and correct_response (fractions as "3/4"). */
+export interface MathSprintResponse {
+  value: string;
+}
+
+export interface AnagramPayload {
+  variant: 'anagram';
+  letters: string[];
+  hint: string | null;
+}
+
+export interface MissingLetterPayload {
+  variant: 'missing_letter';
+  /** `_` = one missing letter (maybe several). */
+  pattern: string;
+  hint: string | null;
+}
+
+export interface WordSearchPayload {
+  variant: 'word_search';
+  grid: string[][];
+  words: string[];
+}
+
+export type WordPuzzlePayload = AnagramPayload | MissingLetterPayload | WordSearchPayload;
+
+/** [row, col], zero-based. */
+export type GridCell = [number, number];
+
+export interface WordPlacement {
+  word: string;
+  start: GridCell;
+  end: GridCell;
+}
+
+/** `anagram` / `missing_letter` response and correct_response. */
+export interface WordResponse {
+  word: string;
+}
+
+/** `word_search` response and correct_response (all placements). */
+export interface WordSearchResponse {
+  found: WordPlacement[];
 }
 
 // ---------------------------------------------------------------------------

@@ -54,7 +54,7 @@ function LeaderRow({ entry, isMe }: { entry: LeaderboardEntry; isMe: boolean }) 
         )}
       </View>
       <Avatar avatar={entry.avatar} size={40} ring={isMe} />
-      <Text weight={isMe ? 'bold' : 'medium'} style={styles.flex} numberOfLines={1}>
+      <Text weight={isMe ? 'bold' : 'medium'} style={styles.flex} numberOfLines={2}>
         {isMe ? t('family.you', { name: entry.nickname }) : entry.nickname}
       </Text>
       <Text weight="bold">

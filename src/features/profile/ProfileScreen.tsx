@@ -7,8 +7,11 @@ import type { AvatarKey } from '@/api/types';
 import { API_URL, APP_VERSION } from '@/config/env';
 import { useHealth } from '@/features/app/useHealth';
 import { useMe, useSignOut } from '@/features/auth/hooks';
+import { SignInMethods } from '@/features/auth/social/SignInMethods';
+import { DevicesList } from '@/features/family/components/DevicesList';
 import { AccessibilityEditor } from '@/features/profile/AccessibilityEditor';
 import { AvatarPicker } from '@/features/profile/AvatarPicker';
+import { PasswordForm } from '@/features/profile/PasswordForm';
 import { useUpdateAccessibility, useUpdateMe } from '@/features/profile/hooks';
 import i18n, { supportedLanguages, type AppLanguage } from '@/i18n';
 import { errorMessage } from '@/lib/errorMessage';
@@ -117,6 +120,18 @@ export function ProfileScreen() {
         )}
       </Card>
 
+      {user.email ? (
+        <>
+          <SectionHeader title={t('password.title')} />
+          <Card padding="lg">
+            <PasswordForm email={user.email} hasPassword={member?.has_password ?? true} />
+          </Card>
+        </>
+      ) : null}
+
+      {/* Social sign-in is for bands that may self-register (adults); the policy decides. */}
+      {policy.collect_email ? <SignInMethods /> : null}
+
       <SectionHeader title={t('profile.appearance')} />
       <Card padding="lg" style={{ gap: 14 }}>
         {member ? (
@@ -163,6 +178,13 @@ export function ProfileScreen() {
           options={supportedLanguages.map((lang) => ({ value: lang, label: LANGUAGE_NAMES[lang] }))}
         />
       </Card>
+
+      {member ? (
+        <>
+          <SectionHeader title={t('devices.myTitle')} />
+          <DevicesList memberId={member.id} />
+        </>
+      ) : null}
 
       <SectionHeader title={t('profile.about')} />
       <Card padding="sm">

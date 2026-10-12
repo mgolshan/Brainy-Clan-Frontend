@@ -116,7 +116,7 @@ function RaceLane({ entry, isMe }: { entry: GoalProgressEntry; isMe: boolean }) 
       <Avatar avatar={entry.avatar} size={40} ring={isMe} />
       <View style={[styles.flex, { gap: 4 }]}>
         <View style={styles.between}>
-          <Text weight={isMe ? 'bold' : 'medium'} numberOfLines={1} style={styles.flex}>
+          <Text weight={isMe ? 'bold' : 'medium'} numberOfLines={2} style={styles.flex}>
             {name}
           </Text>
           <Text variant="label" weight="bold">{`${entry.points} / ${entry.target}`}</Text>

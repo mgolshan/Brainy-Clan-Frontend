@@ -1,6 +1,7 @@
+import { useCallback } from 'react';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { api } from '@/api/client';
+import { ApiError, api } from '@/api/client';
 import { queryKeys } from '@/api/queryKeys';
 import type {
   CreateGoalBody,
@@ -71,14 +72,46 @@ export function useUpdateGoal(id: number) {
   });
 }
 
+/** Drop a plan from the cached list (it was deleted, here or elsewhere). */
+export function useForgetGoal() {
+  const client = useQueryClient();
+  return useCallback(
+    (id: number) => {
+      client.setQueryData<GoalPlan[]>(queryKeys.goals, (list) => list?.filter((g) => g.id !== id));
+      // Only the list: a prefix invalidation would refetch the open detail and hit the 404.
+      void client.invalidateQueries({ queryKey: queryKeys.goals, exact: true });
+    },
+    [client],
+  );
+}
+
+/**
+ * `DELETE /goals/{plan}` is a soft delete: the plan vanishes from `GET /goals` and its detail
+ * answers 404. The cached list drops it at once; the detail and history caches are removed once
+ * no screen shows them (the detail screen navigates away on success).
+ */
 export function useDeleteGoal(id: number) {
-  const done = useInvalidateGoals();
+  const client = useQueryClient();
+  const forget = useForgetGoal();
   return useMutation({
     mutationFn: async () => {
-      await api.delete(`/goals/${id}`);
+      try {
+        await api.delete(`/goals/${id}`);
+      } catch (error) {
+        // Already deleted (another admin, another device): same outcome.
+        if (!(error instanceof ApiError && error.status === 404)) throw error;
+      }
     },
-    onSuccess: () => done(),
+    onSuccess: () => {
+      forget(id);
+      client.removeQueries({ queryKey: queryKeys.goal(id), type: 'inactive' });
+    },
   });
+}
+
+/** True when a goal request failed because the plan no longer exists (deleted). */
+export function isGoalGone(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 404;
 }
 
 /** The goal to feature on Home: first active plan with an open period. */

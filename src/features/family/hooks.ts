@@ -13,6 +13,8 @@ import type {
   LeaderboardPeriod,
   MePayload,
   Member,
+  MemberDevice,
+  SignInCode,
   UpdateFamilyBody,
   UpdateMemberBody,
 } from '@/api/types';
@@ -127,6 +129,44 @@ export function useDeleteInvite() {
     onSuccess: (inviteId) => {
       client.setQueryData<Invite[]>(queryKeys.invites, (prev) =>
         prev?.filter((i) => i.id !== inviteId),
+      );
+    },
+  });
+}
+
+/** `POST /family/members/{member}/sign-in-codes` (admin): one-time code for a new device. */
+export function useIssueSignInCode(memberId: number) {
+  return useMutation({
+    mutationFn: async () =>
+      (await api.post<Envelope<SignInCode>>(`/family/members/${memberId}/sign-in-codes`)).data,
+  });
+}
+
+/**
+ * `GET /family/members/{member}/devices` (admin, or the member themself). One request per
+ * screen for the whole list.
+ */
+export function useMemberDevices(memberId: number | undefined) {
+  return useQuery({
+    queryKey: queryKeys.memberDevices(memberId ?? 0),
+    queryFn: async ({ signal }) =>
+      (await api.get<Envelope<MemberDevice[]>>(`/family/members/${memberId}/devices`, { signal }))
+        .data,
+    enabled: memberId !== undefined,
+  });
+}
+
+/** `DELETE /family/members/{member}/devices/{device}`: signs that device out. */
+export function useSignOutDevice(memberId: number) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (deviceId: number) => {
+      await api.delete(`/family/members/${memberId}/devices/${deviceId}`);
+      return deviceId;
+    },
+    onSuccess: (deviceId) => {
+      client.setQueryData<MemberDevice[]>(queryKeys.memberDevices(memberId), (prev) =>
+        prev?.filter((d) => d.id !== deviceId),
       );
     },
   });

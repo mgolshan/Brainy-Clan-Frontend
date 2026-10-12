@@ -68,12 +68,17 @@ function ThemeOption({ themeKey, autoTheme, selected, onPress }: ThemeOptionProp
             />
           ))}
         </View>
+        {/* In the corner of the preview, so the name gets the full width (e.g. "Automatique"). */}
+        {selected ? (
+          <View style={[styles.check, { backgroundColor: theme.colors.surface }]}>
+            <Icon name="checkmark-circle" size={20} color={theme.colors.primary} />
+          </View>
+        ) : null}
       </View>
       <View style={styles.optionLabel}>
-        <Text variant="label" weight="bold" numberOfLines={1} style={styles.flex}>
+        <Text variant="label" weight="bold" numberOfLines={2} style={styles.flex}>
           {label}
         </Text>
-        {selected ? <Icon name="checkmark-circle" size={20} color={theme.colors.primary} /> : null}
       </View>
       {!themeKey ? (
         <Text variant="caption" tone="muted" numberOfLines={1}>
@@ -115,7 +120,7 @@ export function AccessibilityEditor({
       </Text>
       <View style={styles.grid} accessibilityRole="radiogroup">
         {([null, ...THEME_KEYS] as (ThemeKey | null)[]).map((key) => (
-          <View key={key ?? 'auto'} style={styles.cell}>
+          <View key={key ?? 'auto'} style={key ? styles.cell : styles.autoCell}>
             <ThemeOption
               themeKey={key}
               autoTheme={autoTheme}
@@ -168,10 +173,14 @@ export function AccessibilityEditor({
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   cell: { flexBasis: '30%', flexGrow: 1, minWidth: 96 },
+  // Wider minimum: on a phone "Automatic" / "Automatique" gets a row of its own instead of
+  // breaking mid-word.
+  autoCell: { flexBasis: '30%', flexGrow: 1, minWidth: 150 },
   option: { padding: 8, gap: 6 },
   swatch: { height: 64, padding: 8, justifyContent: 'space-between' },
   dots: { flexDirection: 'row', gap: 4 },
   dot: { width: 14, height: 14 },
+  check: { position: 'absolute', top: 4, right: 4, borderRadius: 999 },
   optionLabel: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   flex: { flex: 1 },
   note: { flexDirection: 'row', gap: 8, padding: 10, alignItems: 'flex-start' },

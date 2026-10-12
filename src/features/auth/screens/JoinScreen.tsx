@@ -3,10 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text as RNText, View } from 'react-native';
 
 import { useJoin } from '@/features/auth/hooks';
+import { CODE_LENGTH, normalizeCode } from '@/lib/code';
 import { formErrors } from '@/lib/formErrors';
 import { Button, Card, Screen, Text, TextField, ToggleRow, useTheme } from '@/ui';
-
-const CODE_ALPHABET = /[^ABCDEFGHJKLMNPQRSTUVWXYZ23456789]/g;
 
 /**
  * Join a family with an invite code (`POST /auth/join`). Children only type the code. An adult
@@ -23,7 +22,7 @@ export function JoinScreen() {
   const [password, setPassword] = useState('');
   const errors = formErrors(join.error, t, ['code', 'email', 'password']);
 
-  const ready = code.length >= 8 && (!withLogin || (email.trim() && password));
+  const ready = code.length === CODE_LENGTH && (!withLogin || (email.trim() && password));
 
   const submit = () => {
     if (!ready) return;
@@ -39,13 +38,12 @@ export function JoinScreen() {
         <TextField
           label={t('join.codeLabel')}
           value={code}
-          onChangeText={(v) => setCode(v.toUpperCase().replace(CODE_ALPHABET, '').slice(0, 8))}
+          onChangeText={(v) => setCode(normalizeCode(v))}
           autoCapitalize="characters"
           autoCorrect={false}
           autoComplete="off"
           placeholder="K7QM4XPA"
           large
-          maxLength={8}
           error={errors.field('code')}
           hint={t('join.codeHint')}
         />

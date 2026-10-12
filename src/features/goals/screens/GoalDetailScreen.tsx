@@ -1,5 +1,5 @@
-import { router } from 'expo-router';
-import { useState } from 'react';
+import { FlashList } from '@shopify/flash-list';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
@@ -7,9 +7,17 @@ import type { GoalHistoryEntry, GoalPlan } from '@/api/types';
 import { useIsAdmin, useMe } from '@/features/auth/hooks';
 import { RaceProgress, TeamProgress } from '@/features/goals/components/GoalProgressViews';
 import { RewardBanner } from '@/features/goals/components/RewardBanner';
-import { useDeleteGoal, useGoal, useGoalHistory, useUpdateGoal } from '@/features/goals/hooks';
+import {
+  isGoalGone,
+  useDeleteGoal,
+  useForgetGoal,
+  useGoal,
+  useGoalHistory,
+  useUpdateGoal,
+} from '@/features/goals/hooks';
 import { dateInTimeZone, formatPeriodRange, formatTimeLeft, useNow } from '@/features/goals/time';
 import { errorMessage } from '@/lib/errorMessage';
+import { goBack } from '@/lib/navigation';
 import { formatDate } from '@/lib/format';
 import {
   Avatar,
@@ -18,7 +26,6 @@ import {
   Card,
   Celebration,
   Confetti,
-  Divider,
   EmptyState,
   ErrorState,
   Loading,
@@ -62,40 +69,10 @@ function HistoryRow({ entry, goal }: { entry: GoalHistoryEntry; goal: GoalPlan }
   );
 }
 
-function History({ goal }: { goal: GoalPlan }) {
-  const { t } = useTranslation();
-  const history = useGoalHistory(goal.id);
-  if (history.isPending) return <Loading fill={false} />;
-  if (history.isError)
-    return <ErrorState error={history.error} onRetry={() => void history.refetch()} />;
-  const rows = history.data.pages.flatMap((p) => p.data);
-  if (rows.length === 0) {
-    return (
-      <Card>
-        <Text tone="muted">{t('goals.noHistory')}</Text>
-      </Card>
-    );
-  }
-  return (
-    <>
-      <Card padding="sm">
-        {rows.map((row, i) => (
-          <View key={row.period_id}>
-            {i > 0 ? <Divider /> : null}
-            <HistoryRow entry={row} goal={goal} />
-          </View>
-        ))}
-      </Card>
-      {history.hasNextPage ? (
-        <Button
-          title={t('goals.loadMore')}
-          variant="ghost"
-          loading={history.isFetchingNextPage}
-          onPress={() => void history.fetchNextPage()}
-        />
-      ) : null}
-    </>
-  );
+/** Space between history rows. */
+function HistoryGap() {
+  const theme = useTheme();
+  return <View style={{ height: theme.spacing.xs }} />;
 }
 
 function AdminActions({ goal }: { goal: GoalPlan }) {
@@ -123,7 +100,7 @@ function AdminActions({ goal }: { goal: GoalPlan }) {
             setConfirm(true);
             return;
           }
-          remove.mutate(undefined, { onSuccess: () => router.back() });
+          remove.mutate(undefined, { onSuccess: () => goBack('/goals') });
         }}
       />
       <Text variant="caption" tone="muted">
@@ -134,16 +111,42 @@ function AdminActions({ goal }: { goal: GoalPlan }) {
   );
 }
 
-/** One goal: current period (team bar or race), countdown, reward, history. */
+/**
+ * One goal: current period (team bar or race), countdown, reward, history. The history is
+ * unbounded (one row per closed period), so the screen is a FlashList: everything above the
+ * history is its header, admin actions its footer, and the next page loads near the end.
+ */
 export function GoalDetailScreen({ id }: { id: number }) {
   const { t, i18n } = useTranslation();
   const theme = useTheme();
   const isAdmin = useIsAdmin();
   const me = useMe().data;
   const goal = useGoal(id);
+  const history = useGoalHistory(id);
   const now = useNow();
+  const forget = useForgetGoal();
+  const gone = goal.isError && isGoalGone(goal.error);
+
+  // Deleted elsewhere (soft delete → 404): drop it from the cached list too.
+  useEffect(() => {
+    if (gone) forget(id);
+  }, [gone, id, forget]);
 
   if (goal.isPending) return <Loading />;
+  if (gone) {
+    return (
+      <Screen back>
+        <EmptyState
+          title={t('goals.gone.title')}
+          body={t('goals.gone.body')}
+          emoji="🗑️"
+          icon="trash-outline"
+          actionLabel={t('goals.gone.action')}
+          onAction={() => goBack('/goals')}
+        />
+      </Screen>
+    );
+  }
   if (goal.isError || !goal.data) {
     return (
       <Screen back>
@@ -161,13 +164,55 @@ export function GoalDetailScreen({ id }: { id: number }) {
   // Competition: celebrate the viewer's own target; the reward is decided when the period closes.
   const mine = p?.entries.find((e) => e.member_id === me?.member?.id);
   const reached = g.mode === 'cooperation' ? !!p?.reached : !!mine?.reached;
+  const historyRows = history.data?.pages.flatMap((page) => page.data) ?? [];
 
   return (
     <Screen
       title={g.name}
       back
-      onRefresh={() => void goal.refetch()}
-      refreshing={goal.isRefetching}>
+      onRefresh={() => {
+        void goal.refetch();
+        void history.refetch();
+      }}
+      refreshing={goal.isRefetching}
+      list={({ header, contentContainerStyle, refreshControl }) => (
+        <FlashList
+          data={historyRows}
+          keyExtractor={(row) => String(row.period_id)}
+          renderItem={({ item }) => (
+            <Card padding="sm">
+              <HistoryRow entry={item} goal={g} />
+            </Card>
+          )}
+          ItemSeparatorComponent={HistoryGap}
+          ListHeaderComponent={header}
+          ListFooterComponent={
+            <View style={{ gap: theme.spacing.md, paddingTop: theme.spacing.md }}>
+              {history.hasNextPage ? (
+                <Button
+                  title={t('goals.loadMore')}
+                  variant="ghost"
+                  loading={history.isFetchingNextPage}
+                  onPress={() => void history.fetchNextPage()}
+                />
+              ) : null}
+              {isAdmin ? (
+                <>
+                  <SectionHeader title={t('goals.manage')} />
+                  <AdminActions goal={g} />
+                </>
+              ) : null}
+            </View>
+          }
+          onEndReached={() => {
+            if (history.hasNextPage && !history.isFetchingNextPage) void history.fetchNextPage();
+          }}
+          onEndReachedThreshold={0.5}
+          contentContainerStyle={contentContainerStyle}
+          refreshControl={refreshControl}
+          keyboardShouldPersistTaps="handled"
+        />
+      )}>
       <View style={styles.badges}>
         <Badge label={t(`goals.mode.${g.mode}`)} tone="primary" />
         <Badge label={t(`goals.period.${g.period_type}`)} />
@@ -249,13 +294,14 @@ export function GoalDetailScreen({ id }: { id: number }) {
       </Card>
 
       <SectionHeader title={t('goals.history')} />
-      <History goal={g} />
-
-      {isAdmin ? (
-        <>
-          <SectionHeader title={t('goals.manage')} />
-          <AdminActions goal={g} />
-        </>
+      {history.isPending ? (
+        <Loading fill={false} />
+      ) : history.isError ? (
+        <ErrorState error={history.error} onRetry={() => void history.refetch()} />
+      ) : historyRows.length === 0 ? (
+        <Card>
+          <Text tone="muted">{t('goals.noHistory')}</Text>
+        </Card>
       ) : null}
 
       {reached && theme.celebration === 'confetti' ? <Confetti /> : null}

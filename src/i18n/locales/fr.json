@@ -43,7 +43,12 @@
     "validation": "Veuillez vérifier les champs indiqués.",
     "rateLimited": "Trop de tentatives. Veuillez patienter une minute.",
     "server": "Le serveur a rencontré un problème. Veuillez réessayer plus tard.",
-    "goalLimitReached": "La limite d'objectifs actifs de votre formule est atteinte. Mettez un objectif en pause ou passez à la formule Famille."
+    "goalLimitReached": "La limite d'objectifs actifs de votre formule est atteinte. Mettez un objectif en pause ou passez à la formule Famille.",
+    "signInCodeInvalid": "Ce code de connexion est inconnu, déjà utilisé ou expiré. Demande un nouveau code à ton parent.",
+    "socialTokenInvalid": "Impossible de vérifier votre compte Google ou Facebook. Veuillez réessayer.",
+    "socialSignupIncomplete": "Indiquez votre année et votre mois de naissance pour terminer la création du compte.",
+    "socialAccountTaken": "Ce compte est déjà associé à un autre utilisateur Brainy Clan.",
+    "lastSignInMethod": "C'est votre seul moyen de connexion. Définissez d'abord un mot de passe ou associez un autre compte."
   },
   "update": {
     "title": "C'est l'heure de la mise à jour",
@@ -166,9 +171,9 @@
       "title": "Plus de vies",
       "body": "Tu as atteint {{points}} points sur {{target}}. On réessaie ?",
       "secondChance": "Obtenir une deuxième chance",
-      "free_one": "Utiliser une deuxième chance gratuite (encore {{count}} aujourd'hui)",
-      "free_many": "Utiliser une deuxième chance gratuite (encore {{count}} aujourd'hui)",
-      "free_other": "Utiliser une deuxième chance gratuite (encore {{count}} aujourd'hui)",
+      "free_one": "Deuxième chance gratuite (encore {{count}})",
+      "free_many": "Deuxième chance gratuite (encore {{count}})",
+      "free_other": "Deuxième chance gratuite (encore {{count}})",
       "ad": "Regarder une courte vidéo",
       "redemption": "Manche de rattrapage",
       "redemptionHint": "Réponds correctement à 3 questions plus faciles pour continuer.",
@@ -182,7 +187,9 @@
     "outOfItems": {
       "title": "Plus de questions pour le moment",
       "body": "Réessaie dans un instant, ou choisis une autre catégorie."
-    }
+    },
+    "worth_one": "Vaut {{count}} point",
+    "worth_other": "Vaut {{count}} points"
   },
   "dev": {
     "themesTitle": "Aperçu des thèmes",
@@ -203,7 +210,8 @@
     "createAccount": "Je suis parent — créer un compte",
     "signIn": "Se connecter",
     "joinWithCode": "Rejoindre avec un code",
-    "joinHint": "Enfants et membres de la famille : demandez votre code au parent qui a configuré Brainy Clan."
+    "joinHint": "Enfants et membres de la famille : demandez votre code au parent qui a configuré Brainy Clan.",
+    "haveSignInCode": "J'ai un code de connexion"
   },
   "login": {
     "title": "Bon retour",
@@ -424,7 +432,7 @@
     "resume": "Reprendre l'objectif",
     "delete": "Supprimer l'objectif",
     "deleteConfirm": "Touchez encore pour supprimer",
-    "deleteHint": "Les changements s'appliquent à la prochaine période. La suppression conserve l'historique.",
+    "deleteHint": "Les changements s'appliquent à la prochaine période. Un objectif en pause reste dans la liste ; la suppression le retire pour tout le monde.",
     "left": {
       "days_one": "Encore {{count}} jour {{hours}} h",
       "days_many": "Encore {{count}} jours {{hours}} h",
@@ -487,6 +495,163 @@
       "reviewEachTarget_many": "{{count}} points chacun",
       "reviewEachTarget_other": "{{count}} points chacun",
       "noReward": "Pas de récompense — on peut quand même jouer pour la gloire."
+    },
+    "gone": {
+      "title": "Cet objectif a été supprimé",
+      "body": "Un administrateur l'a retiré. Ses points comptent toujours dans tes statistiques.",
+      "action": "Retour aux objectifs"
     }
+  },
+  "codeSignIn": {
+    "title": "Se connecter avec un code",
+    "subtitle": "Déjà dans une famille ? Demande un code de connexion à ton parent sur son téléphone.",
+    "codeLabel": "Code de connexion",
+    "codeHint": "8 lettres et chiffres. Les espaces et tirets ne comptent pas.",
+    "submit": "Se connecter",
+    "help": "Ton parent ouvre Brainy Clan → Famille → ton nom → « Se connecter sur un autre appareil ». Le code marche pendant 15 minutes.",
+    "newHere": "Première fois ? Utilise plutôt ton code d'invitation"
+  },
+  "signInCode": {
+    "title": "Se connecter sur un autre appareil",
+    "intro": "Crée un code à usage unique pour que {{name}} se connecte sur un nouveau téléphone ou une tablette — sans courriel ni mot de passe.",
+    "create": "Créer un code de connexion",
+    "codeFor": "Code de connexion pour {{name}}",
+    "expiresIn": "Expire dans {{time}} · une seule fois",
+    "expired": "Ce code a expiré. Crées-en un nouveau.",
+    "howToTitle": "Comment l'utiliser",
+    "step1": "Sur l'autre appareil, ouvre Brainy Clan.",
+    "step2": "Touche « J'ai un code de connexion ».",
+    "step3": "Tape les 8 lettres et chiffres. C'est tout !",
+    "share": "Partager le code",
+    "copy": "Copier le code",
+    "copied": "Copié !",
+    "newCode": "Nouveau code",
+    "newCodeHint": "Un nouveau code désactive l'ancien.",
+    "shareMessage": "Connecte-toi à Brainy Clan en tant que {{name}} : ouvre l'app, touche « J'ai un code de connexion » et entre {{code}}. Valable 15 minutes."
+  },
+  "memberLogin": {
+    "title": "Connexion et appareils",
+    "signInOnDevice": "Se connecter sur un autre appareil",
+    "signInOnDeviceHint": "Obtenir un code pour un nouveau téléphone ou une tablette.",
+    "email": "Connexion par courriel",
+    "emailHint": "Permet à {{name}} de se connecter avec un courriel et un mot de passe, choisi sur son propre appareil (Profil → Définir un mot de passe).",
+    "emailNone": "Pas de connexion par courriel — {{name}} se connecte avec un code.",
+    "emailSave": "Enregistrer le courriel",
+    "emailSaved": "Connexion par courriel enregistrée.",
+    "removeEmail": "Retirer la connexion par courriel",
+    "removeEmailConfirm": "Touche encore pour retirer",
+    "removeEmailHint": "Le mot de passe sera aussi supprimé. {{name}} pourra toujours se connecter avec un code.",
+    "passwordSet": "Mot de passe défini",
+    "passwordNotSet": "Pas encore de mot de passe"
+  },
+  "devices": {
+    "webBrowser": "Navigateur web",
+    "title": "Appareils connectés",
+    "myTitle": "Mes appareils",
+    "none": "Aucun appareil connecté.",
+    "thisDevice": "Cet appareil",
+    "lastSeen": "Vu {{when}}",
+    "neverSeen": "Pas encore utilisé",
+    "signOut": "Déconnecter",
+    "signOutConfirm": "Touche encore",
+    "signedOutHint": "Déconnecter un appareil y termine la session. Il pourra se reconnecter avec un code ou un mot de passe.",
+    "platforms": {
+      "ios": "iPhone / iPad",
+      "android": "Android",
+      "web": "Web"
+    }
+  },
+  "password": {
+    "title": "Mot de passe",
+    "set": "Définir un mot de passe",
+    "change": "Changer le mot de passe",
+    "setHint": "Choisis un mot de passe pour te connecter avec {{email}} sur d'autres appareils.",
+    "current": "Mot de passe actuel",
+    "new": "Nouveau mot de passe",
+    "confirm": "Répète le nouveau mot de passe",
+    "mismatch": "Les mots de passe ne correspondent pas.",
+    "save": "Enregistrer le mot de passe",
+    "saved": "Mot de passe enregistré."
+  },
+  "challenge": {
+    "check": "Vérifier",
+    "sudoku": {
+      "title": "Sudoku {{size}}×{{size}}",
+      "rules": "Remplis chaque ligne, colonne et bloc avec les chiffres de 1 à {{size}}, une seule fois chacun.",
+      "clash": "Certains chiffres apparaissent deux fois dans une ligne, une colonne ou un bloc.",
+      "ready": "Toutes les cases sont remplies. Vérifie ta grille !",
+      "fillAll": "Touche une case, puis un chiffre. Remplis toutes les cases pour vérifier.",
+      "cell": "Ligne {{row}}, colonne {{col}} : {{value}}",
+      "empty": "vide",
+      "given": "donnée",
+      "solutionHint": "Voici la solution. Les cases vertes sont celles où ta grille était différente.",
+      "mineHint": "Voici la grille que tu as envoyée.",
+      "showSolution": "Solution",
+      "showMine": "Ma grille",
+      "noteDigit": "Note {{digit}}",
+      "notesOn": "Notes activées",
+      "notesOff": "Notes",
+      "erase": "Effacer"
+    },
+    "math": {
+      "timeUp": "Le temps est écoulé, mais tu peux encore répondre",
+      "secondsLeft_one": "{{count}} seconde restante",
+      "secondsLeft_other": "{{count}} secondes restantes",
+      "yourAnswer": "Ta réponse : {{value}}",
+      "fractionHint": "Écris les fractions avec / (comme 3/4).",
+      "delete": "Effacer",
+      "minus": "Plus ou moins",
+      "fractionBar": "Barre de fraction",
+      "decimalPoint": "Virgule décimale"
+    },
+    "word": {
+      "anagramTitle": "Remets les lettres dans l'ordre",
+      "hint": "Indice : {{hint}}",
+      "slots": "Ton mot : {{word}}",
+      "emptySlot": "Case vide",
+      "usedLetter": "{{letter}}, utilisée",
+      "shuffle": "Mélanger",
+      "backspace": "Retour",
+      "missingTitle": "Complète les lettres manquantes",
+      "missingSlot": "Lettre manquante {{n}} sur {{total}}",
+      "searchTitle": "Trouve les mots cachés",
+      "searchHelp": "Glisse sur un mot, ou touche sa première puis sa dernière lettre. Les mots vont dans tous les sens.",
+      "foundWord": "{{word}}, trouvé",
+      "toFind": "{{word}}, à trouver",
+      "gridLabel": "Grille de lettres, {{rows}} lignes et {{cols}} colonnes",
+      "cell": "Ligne {{row}}, colonne {{col}}, {{letter}}",
+      "cellInWord": "Ligne {{row}}, colonne {{col}}, {{letter}}, dans {{words}}",
+      "cellHint": "Choisis la première lettre d'un mot, puis sa dernière lettre.",
+      "firstChosen": "{{letter}} choisi comme première lettre. Choisis maintenant la dernière lettre.",
+      "selectionCleared": "Sélection annulée",
+      "foundAnnounce": "{{word}} trouvé ! {{found}} mots trouvés sur {{total}}.",
+      "notAWord": "Ce n'est pas un des mots. Essaie encore !",
+      "progress": "{{found}} mots trouvés sur {{total}}",
+      "giveUp": "Abandonner",
+      "giveUpConfirm": "Touche encore pour abandonner",
+      "giveUpHint": "Abandonner compte comme une erreur.",
+      "missedHint": "Les bandes rouges en pointillés montrent les mots que tu n'as pas trouvés."
+    }
+  },
+  "social": {
+    "continueWith": "Continuer avec {{provider}}",
+    "or": "ou",
+    "failed": "La connexion avec {{provider}} n'a pas fonctionné. Veuillez réessayer.",
+    "birthTitle": "Indiquez votre année et votre mois de naissance",
+    "birthBody": "Dernière étape pour créer votre compte avec {{provider}}. Les comptes Google ou Facebook sont réservés aux adultes ; nous l'utilisons seulement pour adapter l'expérience.",
+    "continue": "Créer le compte",
+    "cancel": "Annuler",
+    "devFake": "Dev : les boutons utilisent un faux jeton {{provider}} (EXPO_PUBLIC_SOCIAL_FAKE)."
+  },
+  "signInMethods": {
+    "title": "Moyens de connexion",
+    "hint": "Associez Google ou Facebook pour vous connecter d'un geste sur n'importe quel appareil.",
+    "connected": "Associé",
+    "notConnected": "Non associé",
+    "connect": "Associer",
+    "disconnect": "Dissocier",
+    "confirmDisconnect": "Touchez encore",
+    "unavailable": "Non disponible dans cette version de l'app",
+    "connectedToast": "{{provider}} est associé."
   }
 }

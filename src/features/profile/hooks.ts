@@ -10,6 +10,7 @@ import type {
   Member,
   UpdateAccessibilityBody,
   UpdateMeBody,
+  UpdatePasswordBody,
   User,
 } from '@/api/types';
 
@@ -65,6 +66,23 @@ export function useUpdateAccessibility() {
           ? { ...prev, members: prev.members.map((m) => (m.id === member.id ? member : m)) }
           : prev,
       );
+    },
+  });
+}
+
+/** `PUT /me/password`: set (first time) or change the email login's password. */
+export function useUpdatePassword() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: UpdatePasswordBody) => {
+      await api.put<void>('/me/password', body);
+    },
+    onSuccess: () => {
+      // `has_password` flips on the member; mark it locally, then confirm from the server.
+      client.setQueryData<MePayload>(queryKeys.me, (prev) =>
+        prev?.member ? { ...prev, member: { ...prev.member, has_password: true } } : prev,
+      );
+      void client.invalidateQueries({ queryKey: queryKeys.me });
     },
   });
 }

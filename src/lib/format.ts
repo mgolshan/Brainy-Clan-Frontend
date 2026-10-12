@@ -21,3 +21,29 @@ export function formatNumber(value: number, locale: string): string {
     return String(value);
   }
 }
+
+/** "5 minutes ago" / "yesterday"; older than a week (or no Intl support) → short date. */
+export function formatRelative(iso: string, locale: string, now = Date.now()): string {
+  const time = new Date(iso).getTime();
+  if (Number.isNaN(time)) return iso;
+  const seconds = Math.round((time - now) / 1000);
+  const abs = Math.abs(seconds);
+  if (abs >= 7 * 86_400) return formatDate(iso, locale);
+  try {
+    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+    if (abs < 60) return rtf.format(0, 'second');
+    if (abs < 3600) return rtf.format(Math.round(seconds / 60), 'minute');
+    if (abs < 86_400) return rtf.format(Math.round(seconds / 3600), 'hour');
+    return rtf.format(Math.round(seconds / 86_400), 'day');
+  } catch {
+    return formatDate(iso, locale);
+  }
+}
+
+/** Remaining time as "14:59" (minutes:seconds), never negative. */
+export function formatClock(ms: number): string {
+  const total = Math.max(0, Math.ceil(ms / 1000));
+  const minutes = Math.floor(total / 60);
+  const seconds = total % 60;
+  return `${minutes}:${String(seconds).padStart(2, '0')}`;
+}

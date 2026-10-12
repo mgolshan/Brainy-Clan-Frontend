@@ -12,21 +12,42 @@ Milestones are defined in `docs/PLAN.md`.
 | F1 App foundation                 | Done                                                                                    | `/api/v1` client + typed errors, health, version gate, age-adaptive themes, base UI, `/dev/themes`                       |
 | F2 Accounts, family and invites   | Done (sign-in + Family tab checked on web against the mock; real login payload matches) | Welcome/register/login/join, create family, Family + Profile tabs, member editor, invites                                |
 | F3 Play loop                      | Done (played against the live backend on web; backend bugs listed in the log)           | Categories + drill-down, play screen, MC + Wisdom Card, feedback, lives, second chances, redemption, offline queue, Home |
-| F4 Goals and leaderboard          | Done on web against a goals mock (B6 not live yet)                                      | Goals list, detail (team bar / race, countdown, history), 7-step wizard, Home + Family entry points                      |
-| F5 Remaining challenge types      | Not started                                                                             | Waits for B7                                                                                                             |
+| F4 Goals and leaderboard          | Done (verified against the real backend 2026-10-11)                                     | Goals list, detail (team bar / race, countdown, history), 7-step wizard, Home + Family entry points                      |
+| F2b Member sign-in without email  | Done (verified on web against the real backend B2b)                                     | Sign-in code screen, admin code screen, member email login, devices list, set/change password                            |
+| F5 Remaining challenge types      | Done (played on web against the real B7 backend 2026-10-11; backend bugs in the log)    | Sudoku (4/6/9), Math Sprint, Word Puzzles (anagram, missing letter, word search); drafts persisted per item              |
+| F4b Social sign-in                | Built, verified on web against a mock (B6b not served yet; no real client IDs yet)      | Google + Facebook buttons, birth step, Profile sign-in methods, dev build setup, README guide                            |
 | F6 Monetization and notifications | Not started                                                                             | Waits for B8                                                                                                             |
 | F7 Release                        | Not started                                                                             |                                                                                                                          |
 
 ## Next up
 
-1. Finish the F4 run against the real backend (B6 Goals is live): wizard create (competition,
-   real POST /goals) → pause → delete, and one session to completion as Mom (stats update).
-   Home, goals list and Pizza Friday detail are already verified (2026-10-12 log).
-2. Run F2–F4 on a phone against the real backend.
-3. Then F5 (remaining challenge types, waits for B7).
+0. F4b with real credentials: Moe follows README "Google and Facebook sign-in setup" (Google
+   Cloud + Meta apps, `.env` / EAS env vars), first EAS development build (`eas init`, then
+   `eas build --profile development`), then test on a phone and on web against B6b once the backend serves
+   `/auth/social/*`. Sign in with Apple is required on iOS before App Store submission (PLAN F4b).
+1. Backend B7 bugs from the 2026-10-11 F5 log (500 on session start, duplicate generated
+   questions, "Simplify" accepting unsimplified fractions) - re-check once fixed.
+2. Run F2-F5 on a phone (Sudoku 9×9 on a 360dp screen, word-search drag inside the scroll view,
+   missing-letter keyboard, app backgrounded mid-puzzle, countdown), including **VoiceOver /
+   TalkBack** on the word search (letters become buttons: first letter, then last letter) and the
+   OS font size at maximum on the puzzles.
+3. Devices list (Profile / member editor) is not paginated by the API; Mom's demo account has
+   13+ devices from test sessions. If real accounts can collect many, ask for pagination in the
+   contract (then a FlashList screen like goal history), or show the newest few + "Show all".
 
 ## Known issues and notes
 
+- Chrome automation on this PC: the controlled window reports `visibilityState: hidden`, so
+  Reanimated entering animations freeze mid-way (scaled cards swallow clicks), drags don't
+  register and the first click after a navigation is often lost. Test with reduced motion on
+  (Profile) and tap-tap instead of drag; screenshots force frames. Not app bugs.
+- Word search with a screen reader: native switches to the accessible mode only while
+  VoiceOver/TalkBack is on (`AccessibilityInfo`); web can't detect screen readers, so on web
+  every letter is always a keyboard-focusable button (Tab / Enter), which means many tab stops.
+  `accessibilityState.selected` isn't exposed on web buttons; the live caption announces the
+  chosen first letter instead. Not yet tried with a real screen reader.
+- Demo tokens: never press **Sign out** in the app while using `demo-sam-child-token` /
+  `demo-alex-teen-token` (it revokes them); clear `brainyclan.session` in localStorage instead.
 - Not yet run on a phone. Checked on web (Chrome) only (F4 also, on 2026-10-11, with a goals mock): theme preview, welcome/login/register,
   and the full play loop (login → Home → Play → session → wrong answers → failed → redemption →
   completed + confetti → offline queue) against a throwaway mock of API.md.
@@ -35,6 +56,9 @@ Milestones are defined in `docs/PLAN.md`.
   request after a container start can take ~15 s (client timeout 15 s, health 10 s). A transient
   nginx 502 happened once while the backend was being worked on.
 - Web needs CORS on the backend for `http://localhost:8081`.
+- Metro on the F: drive sometimes misses file changes (stale module, "is not a function");
+  restart with `npx expo start --web --clear`. The typed-routes generator also briefly listed
+  new `src/` files as routes (`/../src/...`) until the restart.
 - Goals semantics now defined in API.md (2026-10-11): top-level `reached` is cooperation-only
   (the app follows this everywhere, incl. history rows), `ends_at` exclusive, first period clipped
   to `starts_on`, competition `winner_member_ids` = all tied at rank 1 with > 0 points.
@@ -46,6 +70,10 @@ Milestones are defined in `docs/PLAN.md`.
 - Node 24 is installed instead of the planned 22 LTS; Expo SDK 57 works with it (expo-doctor clean).
 - `npm audit` reports advisories in transitive dev/build dependencies of the Expo toolchain; not
   addressed (`npm audit fix --force` would break SDK-pinned versions).
+- `npm start` now runs `expo start --go` (Expo Go, as before). `expo-dev-client` is installed for
+  the EAS development build; use `npm run start:dev-client` for that build. `app.config.ts` adds
+  the env-dependent config on top of `app.json` (Facebook `fb<APP_ID>` scheme, Google iOS URL
+  scheme via the nitro plugin; a placeholder scheme when no iOS client ID is set).
 - `.claude/settings.json` enables Expo's official Claude plugin (from the Expo template).
 
 ## How to test
@@ -89,7 +117,357 @@ Milestones are defined in `docs/PLAN.md`.
 6. Offline: turn on airplane mode and answer → "Waiting for a connection"; the answer is kept on
    the device and sent when you're back (or tap **Try again**).
 
+### F2b - member sign-in without email (needs backend B2b)
+
+1. Admin (Mom): Family -> tap a member -> **Sign-in & devices** -> **Sign in on another device** ->
+   **Make a sign-in code**: big code in two groups of 4, live "Expires in 14:59" countdown,
+   3 kid-friendly steps, **Share code** / **Copy code**, **New code** (the old one stops working).
+   When the countdown reaches 0 the code is struck through and **New code** becomes the main button.
+2. Other device, signed out: Welcome (or Sign in) -> **I have a sign-in code** -> type the code;
+   case, spaces and dashes don't matter (`5pkr-qg2w` works, pasting `K7QM-4XPA` works). A wrong,
+   used or expired code shows a friendly error. Success signs in like join.
+3. Member editor -> **Email login** (shown when the member's `email_login_allowed` is true or they already
+   have one): type an address -> **Save email**; a taken address or a band without
+   `email_login_allowed` shows the server's field error. Badge "Password set" / "No password yet".
+   **Remove email login** -> tap again to confirm (also deletes the password).
+4. Member editor and Profile -> **My devices**: name, "This device", platform, last seen;
+   **Sign out** -> **Tap again** signs that device out (the current device signs out locally too).
+5. Profile -> **Password** (only when the user has an email): **Set password** (no current
+   password asked) or **Change password** (current password required); mismatch hint, server
+   errors per field.
+
+### F4b - Google and Facebook sign-in
+
+Real providers need the README setup (client IDs) and, on phones, the EAS development build;
+the backend needs B6b. Without them:
+
+1. Mock: `node social-mock.js` (session scratchpad; proxies to :8080, fakes `/auth/social/*` and
+   `/me/social-accounts*`; `dev-fake-google-token` = new account, `dev-fake-facebook-token` =
+   linked to Mom; switches via `GET /__mock?noPassword=1&takeGoogle=1&rejectTokens=1&reset=1`).
+2. `EXPO_PUBLIC_API_URL=http://localhost:8091 EXPO_PUBLIC_SOCIAL_FAKE=1 npx expo start --web --clear`
+   (the fake makes both buttons return the fake token; dev only).
+3. Welcome / Sign in / Create account: **Continue with Google** -> "Tell us your birth year and
+   month" -> a year after 2008 shows the field error -> 1988 + a month -> signed in. **Continue
+   with Facebook** -> signed in directly. `rejectTokens=1` -> "We couldn't verify your Google or
+   Facebook account".
+4. Profile -> **Sign-in methods**: Google **Connect** -> connected; **Disconnect** (tap twice);
+   with `noPassword=1` disconnecting the last one -> "This is your only way to sign in...";
+   `takeGoogle=1` -> "already connected to another Brainy Clan user". Children/teens don't see
+   the section (policy `collect_email`).
+5. Without any `EXPO_PUBLIC_GOOGLE_*` / `EXPO_PUBLIC_FACEBOOK_APP_ID` (and no fake) the buttons
+   and the "or" separator are not rendered at all.
+
+### F5 - Sudoku, Math Sprint, Word Puzzles (needs B7, or the mock below)
+
+Without B7: `node f5-mock.js` (session scratchpad; proxies to :8080 and adds four "(mock)"
+categories whose sessions and answers it serves per API.md), then
+`EXPO_PUBLIC_API_URL=http://localhost:8090 npx expo start --web`. Or open `/dev/themes` -> Play
+-> the sample chips (local scoring, no backend).
+
+1. Sudoku: tap a cell, then a number (or type digits; arrows move, `n` toggles notes, Enter
+   checks). Givens are locked; duplicates in a row/column/box turn red; **Notes** adds pencil
+   marks (placing a digit clears it from peers' notes); **Check** only when every cell is filled.
+   Big puzzles show "+5"/"+8" on the card. Wrong -> the solution with green cells where yours
+   differed (your digit struck through in the corner), **Solution / My grid** toggle.
+   Reload the page or background the app mid-puzzle: the grid and notes come back.
+2. Math Sprint: keypad (± for every format, plus `.` for decimals and `/` for fractions), countdown bar
+   (seconds as text with reduce motion, hidden with calm timers); "Time's up" still lets you
+   answer. A correct answer moves on by itself after ~1 s; equivalent fractions count.
+3. Word puzzles: anagram (tap tiles into slots, tap a slot to give a letter back, Shuffle,
+   Back, or type), missing letter (one box per `_`, device keyboard so accents work), word search
+   (drag across a word in any of 8 directions, or tap its first then last letter; found words get
+   a colored band and are struck through; submits itself when all are found; **Give up** -> tap
+   again; missed words appear as dashed red bands).
+4. Offline: answer while offline -> "Waiting for a connection" with that item kept on screen;
+   **Try again** when back -> feedback appears.
+
 ## Log
+
+### 2026-10-11 - Accessibility, classic/French visual pass, FlashList, README
+
+- **Word search playable with a screen reader / keyboard**: every letter is a button
+  (`LetterCell`, label "Row 2, column 3, K" / "…, part of CAT", hint "Choose the first letter
+  of a word, then its last letter"); choose the first, then the last letter (exact cells, no
+  snapping). With VoiceOver/TalkBack on, the drag/tap gesture is switched off and the cells take
+  the touches; otherwise they are inert and the gesture works as before. The status caption
+  (live region) now also says "C chosen as the first letter…" and "Found CAT! 1 of 5 words
+  found." (spoken with `announceForAccessibility` on iOS, which has no live regions). Word chips
+  are `accessible`; the grid label moved into the help text's label. Anagram: used tiles read
+  "R, used" instead of a blank. Sudoku, Math Sprint and missing-letter labels checked (already
+  labelled). Verified on web: keyboard Enter on C then T found CAT with the announcement;
+  pointer tap-tap still works.
+- **Text scale in puzzles**: `useCellFont` (member text scale × OS font scale up to 1.4, capped
+  at a share of the cell) for Sudoku digits, word-search letters, anagram tiles, missing-letter
+  boxes and pad keys. Sudoku 9×9 at 360 px with 120 % text: 30 px cells, 20 px digits, no
+  overflow.
+- **Goal history -> FlashList**: `Screen` got a `list` render prop (title block + children
+  become the list header; screen padding and pull-to-refresh are passed in; no ScrollView
+  around it). The goal detail screen is now one FlashList: details as header, history rows as
+  items (one card per period), "Load more" + admin actions as footer, next page loads near the
+  end (`onEndReached`); pull-to-refresh also refetches the history. Checked on web with 3 faked
+  history pages: pages 1-2 loaded while scrolling, no VirtualizedList warnings. Other lists are
+  bounded (family members, invites, goals); devices are not paginated by the API (Next up).
+- **Classic theme (light + dark) and French at 360 px** (app in a 360 px iframe, overflow and
+  truncation scripted + screenshots) on Profile (password, appearance, devices), member editor
+  (email login, sign-in & devices), sign-in code screen, goal detail, Home, Family and all
+  puzzle samples. Fixes: `Button` titles wrap to a second line (minHeight) instead of being
+  cut ("Change pass…"); device rows and sign-in method rows put the action under the text
+  (names and "Vu il y a…" were squeezed to "Web bro…"); `ListRow` titles 2 lines, subtitles 3;
+  theme picker check moved into the preview's corner and the Automatic tile gets its own row on
+  phones ("Automatiq/ue" broke mid-word); `Badge` never wider than its container ("Formule
+  Famille" overflowed the locked category tile, whose header now wraps); `TextField` input
+  `minWidth: 0` (web pushed the eye icon out of the field); social buttons wrap ("Continuer
+  avec Goo…"); Home ranking and race names wrap ("Mom (vo…"); the web device-name fallback is
+  translated ("Navigateur web"). No missing fr keys; identical en/fr values are brand names or
+  real cognates. Signed-out screens (code entry, login) always use modern, checked earlier.
+- **README** refreshed: prerequisites, `.env`, Expo Go (`npm start`) vs development build
+  (`npm run start:dev-client`), web on 8081 (incl. a localhost API), theme preview, demo logins,
+  sign-in-code and invite flows, demo tokens on web (and why not to sign out with them), checks,
+  project structure; links to the social sign-in setup.
+- Test state restored: Mom's theme / reduced motion / locale reset (theme null, reduced motion
+  off, locale en), Mom's test session logged out; two unused sign-in codes (Alex, Sam) were
+  issued and simply expire.
+- typecheck, lint, format:check green; `npx expo export --platform web` bundles.
+
+### 2026-10-11 - F5 against the real B7 backend, quality and performance pass
+
+- Played on web (Chrome, `#root` narrowed to 360/390 px) against http://localhost:8080 (B7):
+  Sam (playful): 4×4 Sudoku correct (+3, `points_awarded` 3) and wrong (solution diff, struck
+  digit, Solution / My grid), notes + draft survive a reload, session completed with 12/10 points
+  (results 12 / 5 answered / 1 mistake), Home stats matched `/me/stats` (week 55, today 19,
+  total 90, streak 5; the Pizza Friday goal is scoped to World Geography, so it rightly stayed
+  at 36). Fractions: `10/12` for `2/6 + 3/6` correct (equivalent fraction, auto-advance), wrong
+  answer shows `2/3`, mixed math_sprint + multiple choice items, failed -> redemption round
+  (math items) -> back to active. Anagram correct (typed) and wrong (`RED` shown). Missing
+  letter correct/wrong, two blanks. Word search: tap-tap incl. reversed words (server accepts
+  them), auto-submit when all found (+3), give up with dashed missed bands. Mom (modern): 9×9
+  correct (+8) at 360 px; modern dark: notes, clashes, selection readable. Alex (sleek dark):
+  word search give up + missed bands. 6×6 and the rest of the payload/422/409 shapes checked
+  with a script against the API (sudoku 6×6 = 5 points, incomplete grid = mistake, malformed
+  grid / found entry = 422 with a field message, re-answer = 409, payloads stable on re-fetch,
+  equivalent fractions and `7/1` for `7` accepted, decimal answers e.g. `195.5`).
+  No negative answer occurred in the generated sets.
+- Fixed: Sudoku cells are a memoized `SudokuCell` (primitive props, stable `onSelect`), and
+  `submitted` / `solution` are memoized. Dev-only render counter `useRenderCount`
+  (`globalThis.__renderCounts`). Measured on a 9×9: a tap re-rendered **500-700** cell renders
+  before, **21** (first selection) / **38** (moving the selection) after.
+- Fixed (root cause of the above on desktop web): a scrollbar appearing/disappearing changed the
+  measured width -> grid resized -> page height changed -> scrollbar toggled (layout loop, every
+  cell re-rendered ~9 times per tap). `Screen` now sets `scrollbar-gutter: stable` on web.
+- Fixed: long button titles overflowed both edges on a 360-390 px phone ("Use a free second
+  chance (3 left today)"): `Button` label shrinks (native `adjustsFontSizeToFit`) / ellipsizes;
+  shorter strings `play.failed.free` (en + fr). Word search give up: the confirm button says
+  "Tap again to give up", the "counts as a mistake" note moved to the caption
+  (`challenge.word.giveUpHint`, en + fr).
+- Fixed: missing-letter first keystroke. The slots mount after the first layout and `autoFocus`
+  on slot 0 could land late (after early typing), pulling focus back to slot 0. Now an effect
+  focuses the first empty slot once the slots exist, and on web a letter typed while nothing is
+  focused goes to the first empty slot (`useWebKeys`, Enter submits). Web focus ring uses the
+  theme color instead of the browser's black outline.
+- Checked: fr.json has every en.json key; a11y labels exist on Sudoku cells (row, column,
+  value, given, selected), pad keys, notes, anagram tiles/slots, missing-letter slots, math
+  answer + keys, word-search grid and word chips. FlashList: not used anywhere yet and no FlatList either; the lists are short (members <= 7, categories, goals, devices) and render with `map`. The first candidate is goal history (20 per page, grows with "load more") - not converted in this session.
+- **Backend bugs (B7), for the backend agent:**
+  1. `POST /play/sessions` `{ "category_id": 28 }` as Alex (teen, policy difficulty 3-8) ->
+     **500** `SQLSTATE[22003] BIGINT UNSIGNED value is out of range in
+(content_items.difficulty - ?)` from `ORDER BY ABS(content_items.difficulty - 5)` (unsigned
+     column minus the target goes negative). Expected 201. Fix: `ABS(CAST(difficulty AS SIGNED)
+     - ?)`. Same query is used for any category with content difficulties below the member's
+       target. (Sam and Mom could start 28 at the time.)
+  2. Generated math items repeat inside one session: session 39 (Fractions, Sam) had items 398
+     and 400 both `1/3 + 1/3` (plus multiple-choice item 404 "What is 1/3 + 1/3?"). Expected:
+     no duplicate question within a session.
+  3. "Simplify a/b" math items accept unsimplified equivalents: `Simplify 21/24` accepted
+     `14/16` (correct_response `7/8`). The contract says equivalents count, but for a
+     simplify question that makes it trivial; either require lowest terms for these or don't
+     generate them.
+  4. (Question) Sam (child) sees the 9×9 subtree (44-46); fine if intended (Alex/Mom also get
+     "Hard" 47, Sam does not).
+- Not verified: a phone, drag on word search (the automated window can't drag; tap-tap used),
+  French screens visually (keys checked by script), classic theme for the new UI (previous
+  session), negative math answers from the real generator.
+- Test data: reduced motion was switched on for Sam/Alex/Mom during the run and switched back
+  off. Two Mom devices created by this session ("probe", "web test") are still signed in
+  (revoking them was blocked for the agent) - sign them out in Family -> Mom -> devices.
+- Checks: typecheck, lint, format:check pass; `npx expo export --platform web` bundles.
+
+### 2026-10-11 - F4b Google and Facebook sign-in (mock-verified), Math Sprint ±
+
+- Math Sprint (B7 clarification "negative answers in every format"): ± key for decimal and
+  fraction answers too; their bottom row is `± 0 . ⌫` / `± 0 / ⌫` (four narrower keys).
+- **Decisions (for PLAN.md "Social sign-in"):**
+  1. Google on iOS/Android: `react-native-nitro-google-signin` (MIT, config plugin, Android
+     Credential Manager + iOS GoogleSignIn SDK, returns the ID token). Not the free
+     `@react-native-google-signin/google-signin`: its free tier is built on the deprecated legacy
+     Android Google Sign-In SDK (Credential Manager and web are paid "Universal" features).
+     Expo's Google guide lists both. The nitro API mirrors the paid one, so a swap later is small.
+  2. Google on web: OpenID Connect implicit flow (`response_type=id_token` + nonce) in a popup
+     with `expo-auth-session` (generic `useAuthRequest`, not the deprecated provider helpers) ->
+     the same ID token as native. Redirect `<origin>/oauth-callback` (route `app/oauth-callback`,
+     `WebBrowser.maybeCompleteAuthSession()` in the root layout).
+  3. Facebook everywhere (iOS, Android, web): the Facebook Login dialog in the system browser /
+     popup via `expo-auth-session` -> a normal user **access token** (what the contract
+     expects); native redirect `fb<APP_ID>://authorize`. Not `react-native-fbsdk-next`: no web
+     support, and on iOS without App Tracking Transparency consent the SDK falls back to Limited
+     Login, which returns an OIDC authentication token instead of an access token (the contract
+     wouldn't accept it). It also keeps the Facebook SDK (app events, IDFA, client token) out of
+     a family app. Trade-off: no one-tap login through the installed Facebook app.
+  4. Buttons only render when the provider is configured and can run (Expo Go -> hidden, no iOS
+     client ID -> Google hidden on iOS). Dev-only fake provider (`EXPO_PUBLIC_SOCIAL_FAKE=1`,
+     behind `__DEV__`, absent from the production web bundle).
+  5. Visibility of Profile -> Sign-in methods: policy `collect_email` (bands that may
+     self-register = adults/seniors); no age logic in the app.
+  6. The app moves to an EAS **development build** for native sign-in: `expo-dev-client`,
+     `eas.json` (development / development-simulator / preview / production, with EAS
+     environments), `npm start` = Expo Go, `npm run start:dev-client` = dev build.
+- Packages (`npx expo install`): `react-native-nitro-google-signin` 2.3.0 +
+  `react-native-nitro-modules` 0.37.1, `expo-auth-session`, `expo-crypto`, `react-native-svg`,
+  `@expo-google-fonts/google-sans` (Google's button font), `expo-dev-client`.
+- Config: `app.config.ts` (dynamic, on top of `app.json`); `.env.example` gains
+  `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`, `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`,
+  `EXPO_PUBLIC_FACEBOOK_APP_ID` (+ commented `EXPO_PUBLIC_SOCIAL_FAKE`).
+- Code: types (`SocialProvider`, `SocialSignInBody`, `SocialAccount`, 4 error codes + messages),
+  `src/features/auth/social/` (`config`, token hooks `useGoogleToken` (native) /
+  `useGoogleToken.web`, `useFacebookToken`, `useBrowserOAuth`, `useSocialProviders`, `api`
+  (sign in / list / link / unlink), `SocialButton` + `BrandLogos` (inline SVG), `SocialSignIn`
+  (buttons + birth-step modal), `SignInMethods` (Profile), `OAuthCallbackScreen`),
+  `src/ui/brand.ts` (provider-mandated colors, the only hex outside themes), buttons on
+  welcome / login / register, samples on `/dev/themes`, strings en + fr, README setup guide.
+- Branding: Google light/dark button per Google's spec (#FFFFFF/#747775/#1F1F1F,
+  #131314/#8E918F/#E3E3E3), standard "G", Google Sans Medium, "Continue with Google";
+  Facebook #1877F2 with the white "f" logo. Height/shape/text size from the theme (pill in
+  playful, rounded elsewhere; classic keeps its large target).
+- Verified in Chrome (web) against `social-mock.js` (scratchpad) on :8091 -> real backend:
+  fake Google -> 422 `social_signup_incomplete` -> birth step -> 2012 -> field error -> 1988 ->
+  retried with the same token (+ `birth_year`, `birth_month`, `locale`) -> signed in; Facebook
+  (linked) -> signed in; 401 `social_token_invalid` message; Profile connect Google, disconnect
+  (tap twice), `last_sign_in_method` and `social_account_taken` messages. With dummy client IDs
+  (no fake): the Google request is `accounts.google.com/o/oauth2/v2/auth` with
+  `response_type=id_token`, nonce, `prompt=select_account`, redirect
+  `http://localhost:8081/oauth-callback`; Facebook `facebook.com/v23.0/dialog/oauth` with
+  `response_type=token`, `public_profile email`; a blocked popup shows "Google sign-in didn't
+  work"; a simulated popup returning to `/oauth-callback#id_token=...` completed the hand-off
+  (popup closed, token posted, birth step). Without any IDs nothing is rendered. Themes: modern,
+  playful, sleek dark, classic dark.
+- Not verified (needs real credentials / a dev build / B6b): native Google (nitro) and the
+  Facebook browser flow on Android/iOS, the `fb<APP_ID>://authorize` redirect, the real Google /
+  Meta consoles, the real backend endpoints.
+- Contract gaps / questions (API.md not edited):
+  1. Google ID-token audience: Android and web tokens are issued for the **Web** client ID; iOS
+     tokens may carry the iOS client ID. The backend must accept both; document it.
+  2. `SocialAccount.email`: can it be `null` (Facebook account without email / declined
+     permission)? Typed `string | null`.
+  3. Facebook: the app sends a browser-OAuth access token (fine). If the native Facebook SDK is
+     ever used on iOS, Limited Login returns an OIDC JWT instead; the contract would need it.
+  4. New social user without `display_name`: the app doesn't send one (server takes the
+     provider's name?) - confirm. The app sends `locale` only together with the birth data.
+  5. Sign in with Apple (App Store guideline 4.8) needs an `apple` provider in the contract
+     before the iOS release.
+- Checks: typecheck, lint, format:check pass; `npx expo export --platform web` bundles (no
+  `dev-fake` in the output); `npx expo-doctor` 21/21.
+
+### 2026-10-11 - F5 challenge components (mock-verified), contract follow-ups
+
+- Contract updates: `Member.email_login_allowed` (the member editor shows the email login field
+  when it is true or the member already has an email; older APIs fall back to "not a child");
+  `DELETE /goals/{plan}` soft delete: the plan is dropped from the cached list at once (no prefix
+  invalidation that would refetch the open detail), a 404 on delete counts as done, and a goal
+  detail answering 404 shows "This goal was deleted" with **Back to goals** and removes it from
+  the list cache; delete hint text updated. `SessionItem.points` typed; the play card shows
+  "+N" when an item is worth more than 1; feedback uses the server's `points_awarded`.
+- Types from API.md: `SudokuPayload/Response`, `MathSprintPayload/Response`,
+  `AnagramPayload`, `MissingLetterPayload`, `WordSearchPayload`, `WordPlacement`, responses.
+- `src/challenges/`: `sudoku/logic.ts` + `sudoku/Sudoku.tsx`, `MathSprint.tsx`,
+  `words/logic.ts` + `Anagram.tsx`, `MissingLetter.tsx`, `WordSearch.tsx` (gesture-handler Pan
+  raced with Tap), `words/WordPuzzle.tsx` (variant switch); shared `PadKey`, `useMeasuredWidth`,
+  `useWebKeys` (keyboard on web, only when focus is in the challenge or nowhere) and `drafts.ts`
+  (persisted per-item drafts in AsyncStorage, dropped once scored, on sign-out and after 3 days).
+  All registered with payload guards (`isSudokuPayload` checks size 4/6/9, box product, grid
+  bounds; malformed items are skipped like unknown types). Registry gains `wide` (slimmer card
+  padding for grids) and `quickFlow` (Math Sprint: a correct answer auto-continues after 1.2 s in
+  `usePlaySession`). Strings en + fr (`challenge.*`, `play.worth`, `goals.gone`).
+- `usePlaySession`: while an answer is pending or queued offline the screen keeps showing that
+  item (before, the next item was shown, unlocked but ignored, during "Waiting for a connection").
+- `/dev/themes`: Play section has samples for every new type (local scoring, Reset).
+- Verified in Chrome (web, mock on :8090 proxying the real backend, session as Mom = modern;
+  preview in playful, sleek, classic dark): 4×4 correct (+3 from `points_awarded`), 9×9 wrong
+  with solution diff, conflicts + notes, draft survives reload; math correct by keyboard with
+  auto-advance, late answer after "Time's up", equivalent fraction `2/8` for `1/4`, ± key,
+  reduced-motion text countdown; anagram correct/wrong; missing letter correct/wrong; word
+  search by drag (row, reversed column, diagonal), tap-tap reversed word, give up with missed
+  bands, auto-submit when all found; malformed item skipped with the "newer app" note; failed ->
+  redemption round of math items -> back to active; offline answer queued -> Try again -> scored.
+  Phone width: `#root` narrowed to 360/390 px (the Chrome window was maximized, resize had no
+  effect): 9×9 cells about 33 px at 360, pad in two rows.
+- Not verified: the real B7 backend (not serving these types yet), a phone, word-search drag on
+  native inside the ScrollView, sleek dark / modern dark for the new components.
+- Contract gaps / questions for B7 (API.md not edited):
+  1. Word search: must `start`/`end` follow the word's reading direction, or is a reversed
+     placement accepted? The app always sends the reading direction (it matches both ways
+     locally and orients the placement).
+  2. Anagram/missing letter `response.word`: the app sends lowercase (as in the example);
+     accented letters (French) rely on case-insensitive compare being Unicode-aware.
+  3. `math_sprint` negative answers: the app offers ± only for `integer`; say whether `decimal`
+     / `fraction` answers can be negative. (Resolved in API.md: every format; ± added.)
+  4. Do generated items keep their payload stable across `GET /play/sessions/{id}` (needed for
+     the persisted drafts, keyed by item id)?
+- Mock (`f5-mock.js` in the session scratchpad, not the repo): fake categories 9001-9004,
+  generated sudokus (any valid solution accepted), math with rational equivalence, anagrams with
+  several valid words, word searches, a malformed sudoku item, 422 for malformed responses,
+  second chance / redemption / abandon.
+- Checks: typecheck, lint, format:check pass; `npx expo export --platform web` bundles.
+
+### 2026-10-11 - F4 against the real backend, F2b member sign-in without email
+
+- F4 finished against http://localhost:8080 as Mom: the wizard created a race (World Geography,
+  weekly from today, target 20, Sam 10, reward); the `POST /goals` body and the returned plan
+  match (first weekly period clipped to today, a Sunday); pause shows "This goal is paused";
+  delete (tap twice). Played a World Geography session to completion (10/10, celebration); Home
+  then showed today 10 / week 20 / total 36 / streak 1 and Pizza Friday 26 -> 36.
+- Fixed: after deleting a goal (or saving/removing a member) on a screen opened without history
+  (web reload, deep link) `router.back()` was unhandled ("GO_BACK was not handled") and the user
+  stayed on the deleted goal. New `goBack(fallback)` in `src/lib/navigation.ts`.
+- Fixed: answering didn't invalidate goals, so the Home goal card / goal detail kept old progress
+  after playing; `goals` is now invalidated together with stats and leaderboard (only when points
+  were awarded).
+- F2b built per API.md (B2b): types (`Member.email` / `has_password`, `Policy.email_login_allowed`,
+  `SignInCode`, `MemberDevice`, `CodeSignInBody`, `UpdatePasswordBody`, `UpdateMemberBody.email`,
+  error `sign_in_code_invalid`); `src/lib/code.ts` (forgiving `normalizeCode`, `groupCode`; join
+  uses it too and no longer truncates a pasted `XXXX-XXXX`); hooks `useCodeSignIn`,
+  `useIssueSignInCode`, `useMemberDevices` (one request per screen), `useSignOutDevice`,
+  `useUpdatePassword`; screens `(auth)/code` (`CodeSignInScreen`) and the `sign-in-code/[id]`
+  modal (`SignInCodeScreen`); components `family/components/MemberEmailLogin`,
+  `family/components/DevicesList`, `profile/PasswordForm`; Welcome and Login link to the code
+  screen; strings en + fr; `formatRelative` / `formatClock` in `src/lib/format.ts`.
+- The countdown is measured from when the code arrived, capped at the contract's 15 minutes, so a
+  phone with a wrong clock still shows a sensible timer.
+- Email field visibility: the Member object has no `email_login_allowed`, so the editor offers the
+  field to every non-child member (and to anyone who already has an email); the server's 422 on
+  `email` decides. Children without email see "signs in with a code". No age thresholds in the app.
+- Verified on web against the real B2b: issue code -> sign in as Sam with `5pkr qg2w` (playful
+  Home); wrong code error; New code voids the old one (curl 422); Sam's Profile (no password
+  section, My devices, sign out this device -> Welcome). Mom: wrong current password -> field
+  error; change password (re-set to `password`); revoke a device from the list (its token -> 401).
+  Alex (teen): taken email -> field error; new email -> "No password yet"; Alex (sleek) -> **Set
+  password** without current password -> email login works; Mom sees "Password set" -> remove
+  email (tap twice) -> `email: null, has_password: false`; admin revokes Alex's device. Server:
+  child email -> 422 on `email`; child `PUT /me/password` -> 422; child listing another member's
+  devices -> 403. Themes checked: modern, playful, sleek, classic (Mom's theme set to classic via
+  the API and reset to Automatic afterwards).
+- Backend bugs / contract gaps (not fixed; backend repo / API.md):
+  1. `DELETE /goals/{plan}` only sets `is_active: false`; the plan stays in `GET /goals` exactly
+     like a paused one, so the app lists a deleted goal under "Paused" and it can be resumed. The
+     contract needs a way to tell them apart (omit deleted plans from `GET /goals`, or a
+     `deleted_at`).
+  2. Admins can't see another member's `email_login_allowed` (Member has no policy flag). The app
+     falls back to "non-child -> show, server 422 decides"; a `Member.email_login_allowed` would
+     let the editor hide the field for any band the admin disallows.
+  3. Transient while B2b was being deployed: `POST /play/sessions/{id}/answers` -> 500
+     (`RefreshMemberTotals` listener class missing from the autoloader) and one `DELETE /goals`
+     -> 503; both fine a few minutes later.
+- Test data left behind: goal "Claude test race" (deleted = inactive), extra device rows for Mom.
+- Checks: typecheck and lint pass; format:check passes except `docs/PLAN.md` (not edited here);
+  `npx expo export --platform web` bundles.
 
 ### 2026-10-12 — Goals against the real backend (partial, time-boxed)
 

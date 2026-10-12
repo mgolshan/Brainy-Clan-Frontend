@@ -47,9 +47,13 @@ export function applyAnswerResult(sessionId: number, itemId: number, result: Ans
         }
       : prev,
   );
-  // Points changed: home stats and leaderboard are now stale.
-  void queryClient.invalidateQueries({ queryKey: queryKeys.meStats });
-  void queryClient.invalidateQueries({ queryKey: ['family', 'leaderboard'] });
+  // Points changed: home stats, leaderboard and goal progress are now stale (inactive queries
+  // are only marked stale, they refetch when their screen is shown again).
+  if (result.points_awarded > 0) {
+    void queryClient.invalidateQueries({ queryKey: queryKeys.meStats });
+    void queryClient.invalidateQueries({ queryKey: ['family', 'leaderboard'] });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.goals });
+  }
 }
 
 function applySessionPayload(payload: SessionPayload) {

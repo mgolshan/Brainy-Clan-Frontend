@@ -16,6 +16,9 @@ import { flushAnswerQueue, subscribeToFlush, useAnswerQueue } from '@/features/p
 /** Placeholder reward id until AdMob arrives (F6); the server verifies real ones in B8. */
 export const PLACEHOLDER_AD_REWARD = 'dev-placeholder-reward';
 
+/** How long a correct quick-flow answer (Math Sprint) stays on screen before the next item. */
+export const QUICK_FLOW_DELAY_MS = 1200;
+
 export interface AnswerFeedback {
   itemId: number;
   response: unknown;
@@ -89,8 +92,10 @@ export function usePlaySession(sessionId: number) {
 
   const currentItem = useMemo(() => {
     if (feedback) return items.find((it) => it.id === feedback.itemId);
+    // While an answer is pending (or queued offline) keep showing that item, locked.
+    if (pending) return items.find((it) => it.id === pending.itemId);
     return phaseItems.find((it) => !it.answered && !queuedIds.has(it.id));
-  }, [feedback, items, phaseItems, queuedIds]);
+  }, [feedback, pending, items, phaseItems, queuedIds]);
 
   // Measure time_ms from when an item is first shown.
   useEffect(() => {
@@ -153,6 +158,21 @@ export function usePlaySession(sessionId: number) {
   );
 
   const next = useCallback(() => setFeedback(null), []);
+
+  // Quick-flow challenges (Math Sprint): a correct answer moves on by itself while the session
+  // keeps going; wrong answers wait for "Continue" so the correct answer can be read.
+  const feedbackItem = feedback ? items.find((it) => it.id === feedback.itemId) : undefined;
+  const autoAdvance =
+    !!feedback &&
+    feedback.result.is_correct &&
+    !!feedbackItem &&
+    !!getChallenge(feedbackItem.type)?.quickFlow &&
+    (session?.status === 'active' || session?.status === 'redemption');
+  useEffect(() => {
+    if (!autoAdvance) return;
+    const timer = setTimeout(() => setFeedback(null), QUICK_FLOW_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [autoAdvance, feedback]);
 
   const retryQueued = useCallback(() => void flushAnswerQueue(), []);
 

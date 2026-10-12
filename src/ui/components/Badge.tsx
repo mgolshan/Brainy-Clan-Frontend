@@ -47,7 +47,7 @@ export function Badge({ label, tone = 'neutral', icon, color }: BadgeProps) {
         },
       ]}>
       {icon ? <Icon name={icon} size={theme.type.caption.size + 2} color={fg} /> : null}
-      <Text variant="caption" weight="bold" color={fg} numberOfLines={1}>
+      <Text variant="caption" weight="bold" color={fg} numberOfLines={1} style={styles.label}>
         {label}
       </Text>
     </View>
@@ -61,5 +61,8 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingVertical: 3,
     alignSelf: 'flex-start',
+    // Never wider than its container: a long label (French, large text) ellipsizes instead.
+    maxWidth: '100%',
   },
+  label: { flexShrink: 1 },
 });

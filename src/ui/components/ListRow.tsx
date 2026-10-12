@@ -11,6 +11,8 @@ interface ListRowProps {
   subtitle?: string;
   leading?: ReactNode;
   trailing?: ReactNode;
+  /** Shown under the subtitle (e.g. a row action that would squeeze the text as `trailing`). */
+  below?: ReactNode;
   onPress?: () => void;
   /** Show a chevron (default when pressable). */
   chevron?: boolean;
@@ -23,6 +25,7 @@ export function ListRow({
   subtitle,
   leading,
   trailing,
+  below,
   onPress,
   chevron,
   accessibilityHint,
@@ -32,13 +35,16 @@ export function ListRow({
     <>
       {leading}
       <View style={styles.flex}>
-        <Text weight="bold" numberOfLines={1}>
+        <Text weight="bold" numberOfLines={2}>
           {title}
         </Text>
         {subtitle ? (
-          <Text variant="caption" tone="muted" numberOfLines={2}>
+          <Text variant="caption" tone="muted" numberOfLines={3}>
             {subtitle}
           </Text>
+        ) : null}
+        {below ? (
+          <View style={[styles.below, { marginTop: theme.spacing.xs }]}>{below}</View>
         ) : null}
       </View>
       {trailing ? <View>{trailing}</View> : null}
@@ -79,4 +85,5 @@ export function Divider() {
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
   flex: { flex: 1, gap: 2 },
+  below: { alignSelf: 'flex-start' },
 });

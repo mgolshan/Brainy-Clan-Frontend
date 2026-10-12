@@ -110,5 +110,6 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
 const styles = StyleSheet.create({
   wrap: { gap: 6 },
   field: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  input: { flex: 1, paddingVertical: 10, outlineStyle: 'none' } as object,
+  // minWidth 0: a web <input> otherwise keeps its intrinsic width and pushes the eye icon out.
+  input: { flex: 1, minWidth: 0, paddingVertical: 10, outlineStyle: 'none' } as object,
 });

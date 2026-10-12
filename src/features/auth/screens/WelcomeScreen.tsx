@@ -2,11 +2,15 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text as RNText, View } from 'react-native';
 
+import { SocialSignIn } from '@/features/auth/social/SocialSignIn';
 import { Appear, Button, Card, Screen, Text, useTheme, withAlpha } from '@/ui';
 
 const HERO = ['🦉', '🦊', '🐼', '🦁'];
 
-/** Signed-out entry: create an account (parent), sign in, or join with an invite code. */
+/**
+ * Signed-out entry: create an account (parent), sign in (email or Google/Facebook), or join with
+ * an invite / sign-in code.
+ */
 export function WelcomeScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -54,11 +58,18 @@ export function WelcomeScreen() {
           icon="log-in-outline"
           onPress={() => router.push('/login')}
         />
+        <SocialSignIn divider="top" />
         <Button
           title={t('welcome.joinWithCode')}
           variant="secondary"
           icon="key-outline"
           onPress={() => router.push('/join')}
+        />
+        <Button
+          title={t('welcome.haveSignInCode')}
+          variant="ghost"
+          icon="phone-portrait-outline"
+          onPress={() => router.push('/code')}
         />
         <Text variant="caption" tone="muted" align="center">
           {t('welcome.joinHint')}

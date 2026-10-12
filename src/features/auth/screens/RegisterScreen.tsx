@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { BirthDateFields } from '@/features/auth/components/BirthDateFields';
 import { useRegister } from '@/features/auth/hooks';
+import { SocialSignIn } from '@/features/auth/social/SocialSignIn';
 import i18n from '@/i18n';
 import { formErrors } from '@/lib/formErrors';
 import { Button, Card, Screen, Text, TextField } from '@/ui';
@@ -40,6 +41,7 @@ export function RegisterScreen() {
 
   return (
     <Screen title={t('register.title')} subtitle={t('register.subtitle')} back>
+      <SocialSignIn divider="bottom" />
       <Card style={{ gap: 14 }} padding="lg">
         <TextField
           label={t('forms.displayName')}
