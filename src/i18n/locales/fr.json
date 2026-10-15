@@ -653,5 +653,59 @@
     "confirmDisconnect": "Touchez encore",
     "unavailable": "Non disponible dans cette version de l'app",
     "connectedToast": "{{provider}} est associé."
+  },
+  "billing": {
+    "title": "Abonnement",
+    "unlocksTitle": "La formule Famille débloque",
+    "unlockMembers_one": "Plus de {{count}} membre",
+    "unlockMembers_other": "Plus de {{count}} membres",
+    "unlockCategories_one": "Plus de {{count}} catégorie",
+    "unlockCategories_other": "Plus de {{count}} catégories",
+    "unlockGoals_one": "Plus de {{count}} objectif actif",
+    "unlockGoals_other": "Plus de {{count}} objectifs actifs",
+    "upgradeSoon": "Passer à Famille — bientôt",
+    "renewsOn": "Renouvellement le",
+    "expiresOn": "Expire le",
+    "expiredOn": "Expiré le",
+    "store": "Acheté via",
+    "status": {
+      "active": "Actif",
+      "grace": "Problème de paiement",
+      "expired": "Expiré",
+      "none": "Aucun"
+    },
+    "stores": {
+      "app_store": "App Store",
+      "play_store": "Google Play",
+      "stripe": "Web"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Choisissez ce que Brainy Clan vous signale",
+    "entryHint": "Rappels, objectifs et heures calmes",
+    "typesTitle": "M’envoyer",
+    "types": {
+      "goal_reached": "Objectif atteint",
+      "period_closed": "Résultats disponibles",
+      "family_activity": "Activité de la famille",
+      "daily_reminder": "Rappel quotidien"
+    },
+    "typeHints": {
+      "goal_reached": "Quand la famille atteint un objectif ou qu’un membre gagne une course",
+      "period_closed": "Quand une période d’objectif se termine",
+      "family_activity": "Quand un membre de la famille termine une session",
+      "daily_reminder": "Si vous n’avez pas encore joué aujourd’hui"
+    },
+    "reminderTime": "Heure du rappel",
+    "quietTitle": "Heures calmes",
+    "quietHint": "Aucune notification pendant les heures calmes ; elles attendent la fin de cette plage.",
+    "quietFrom": "De",
+    "quietTo": "À",
+    "hour": "Heure",
+    "minute": "Minutes",
+    "timezoneHint": "Les heures suivent le fuseau horaire de la famille.",
+    "unavailable": "Pas encore disponible",
+    "unavailableBody": "Les réglages de notification apparaîtront bientôt ici."
   }
 }

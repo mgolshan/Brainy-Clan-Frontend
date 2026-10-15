@@ -9,6 +9,7 @@ import { useHealth } from '@/features/app/useHealth';
 import { useMe, useSignOut } from '@/features/auth/hooks';
 import { SignInMethods } from '@/features/auth/social/SignInMethods';
 import { DevicesList } from '@/features/family/components/DevicesList';
+import { useNotificationPreferences } from '@/features/notifications/hooks';
 import { AccessibilityEditor } from '@/features/profile/AccessibilityEditor';
 import { AvatarPicker } from '@/features/profile/AvatarPicker';
 import { PasswordForm } from '@/features/profile/PasswordForm';
@@ -24,6 +25,7 @@ import {
   Button,
   Card,
   Divider,
+  Icon,
   ListRow,
   Loading,
   Screen,
@@ -32,6 +34,7 @@ import {
   Text,
   TextField,
   selectAccessibility,
+  useTheme,
 } from '@/ui';
 
 const LANGUAGE_NAMES: Record<AppLanguage, string> = { en: 'English', fr: 'Français' };
@@ -44,6 +47,9 @@ export function ProfileScreen() {
   const updateA11y = useUpdateAccessibility();
   const signOut = useSignOut();
   const health = useHealth();
+  const theme = useTheme();
+  // null = endpoint not deployed yet (404): hide the entry.
+  const notificationPrefs = useNotificationPreferences();
   const colorScheme = usePreferences((s) => s.colorScheme);
   const setColorScheme = usePreferences((s) => s.setColorScheme);
   const [editing, setEditing] = useState(false);
@@ -131,6 +137,17 @@ export function ProfileScreen() {
 
       {/* Social sign-in is for bands that may self-register (adults); the policy decides. */}
       {policy.collect_email ? <SignInMethods /> : null}
+
+      {member && notificationPrefs.data ? (
+        <Card padding="sm">
+          <ListRow
+            title={t('notifications.title')}
+            subtitle={t('notifications.entryHint')}
+            leading={<Icon name="notifications-outline" color={theme.colors.primary} />}
+            onPress={() => router.push('/notifications')}
+          />
+        </Card>
+      ) : null}
 
       <SectionHeader title={t('profile.appearance')} />
       <Card padding="lg" style={{ gap: 14 }}>

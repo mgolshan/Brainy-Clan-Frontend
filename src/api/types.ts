@@ -625,3 +625,47 @@ export interface Leaderboard {
   team_total: number;
   entries: LeaderboardEntry[];
 }
+
+// ---------------------------------------------------------------------------
+// Billing and notifications (B8)
+// ---------------------------------------------------------------------------
+
+export type SubscriptionStatus = 'active' | 'grace' | 'expired' | 'none' | (string & {});
+export type SubscriptionStore = 'app_store' | 'play_store' | 'stripe' | (string & {});
+
+/** `GET /family/subscription` (admin). The tier comes only from RevenueCat webhooks. */
+export interface Subscription {
+  tier: FamilyTier;
+  status: SubscriptionStatus;
+  store: SubscriptionStore | null;
+  product_id: string | null;
+  expires_at: string | null;
+  will_renew: boolean;
+  /** Passed to `Purchases.logIn()` (RevenueCat, later). */
+  revenuecat_app_user_id: string;
+}
+
+export type NotificationType =
+  'goal_reached' | 'period_closed' | 'family_activity' | 'daily_reminder';
+
+/** `GET /me/notification-preferences`. Times are `HH:MM` in the family timezone. */
+export interface NotificationPreferences {
+  types: Record<NotificationType, boolean>;
+  quiet_from: string | null;
+  quiet_to: string | null;
+  reminder_time: string | null;
+}
+
+/** `PATCH /me/notification-preferences`: same shape, all optional. */
+export interface UpdateNotificationPreferencesBody {
+  types?: Partial<Record<NotificationType, boolean>>;
+  quiet_from?: string | null;
+  quiet_to?: string | null;
+  reminder_time?: string | null;
+}
+
+/** `PUT /me/push-token`. */
+export interface PushTokenBody {
+  token: string;
+  platform: string;
+}

@@ -1,9 +1,12 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
+import { queryKeys } from '@/api/queryKeys';
 import type { Invite, Member } from '@/api/types';
 import { useIsAdmin, useMe, usePolicy } from '@/features/auth/hooks';
+import { SubscriptionCard } from '@/features/billing/SubscriptionCard';
 import { useDeleteInvite, useFamily, useInvites } from '@/features/family/hooks';
 import { formatDate } from '@/lib/format';
 import { ageBandLabel, tierLabel } from '@/lib/labels';
@@ -92,6 +95,7 @@ export function FamilyScreen() {
   const isAdmin = useIsAdmin();
   const family = useFamily();
   const invites = useInvites();
+  const client = useQueryClient();
 
   if (family.isPending) return <Loading />;
   if (family.isError) {
@@ -118,7 +122,10 @@ export function FamilyScreen() {
       }
       onRefresh={() => {
         void family.refetch();
-        if (isAdmin) void invites.refetch();
+        if (isAdmin) {
+          void invites.refetch();
+          void client.invalidateQueries({ queryKey: queryKeys.subscription });
+        }
       }}
       refreshing={family.isRefetching}
       headerRight={
@@ -194,6 +201,7 @@ export function FamilyScreen() {
             size="lg"
             onPress={() => router.push('/invite')}
           />
+          <SubscriptionCard />
         </>
       ) : (
         <Text variant="caption" tone="muted" align="center">

@@ -16,22 +16,34 @@ Milestones are defined in `docs/PLAN.md`.
 | F2b Member sign-in without email  | Done (verified on web against the real backend B2b)                                     | Sign-in code screen, admin code screen, member email login, devices list, set/change password                            |
 | F5 Remaining challenge types      | Done (played on web against the real B7 backend 2026-10-11; backend bugs in the log)    | Sudoku (4/6/9), Math Sprint, Word Puzzles (anagram, missing letter, word search); drafts persisted per item              |
 | F4b Social sign-in                | Built, verified on web against a mock (B6b not served yet; no real client IDs yet)      | Google + Facebook buttons, birth step, Profile sign-in methods, dev build setup, README guide                            |
-| F6 Monetization and notifications | Not started                                                                             | Waits for B8                                                                                                             |
+| F6 Monetization and notifications | In progress (typecheck + web bundle only; not yet run against B8)                       | Family plan card, Notifications screen; push, RevenueCat, AdMob not started                                              |
 | F7 Release                        | Not started                                                                             |                                                                                                                          |
 
 ## Next up
 
-0. F4b with real credentials: Moe follows README "Google and Facebook sign-in setup" (Google
+0. F6 (in progress): (a) verify on web against B8 once `GET /family/subscription` and
+   `/me/notification-preferences` are live: Family tab plan card (admin, free + family tiers,
+   grace/expired), Profile → Notifications (toggles, quiet hours, reminder time, optimistic save +
+   rollback), check in all four themes at `/dev/themes` and in French; until then both sections are
+   hidden (404 → `null`). (b) Push registration: `npx expo install expo-notifications expo-device`,
+   config plugin, get the Expo push token (skip in Expo Go / web / without EAS `projectId`),
+   `PUT /me/push-token` after sign-in, `DELETE /me/push-token` in `useSignOut` before logout,
+   deep-link on push `data.type` (`goal_id` → `/goals/[id]`). (c) Admin editing of children's quiet
+   hours (`PATCH /family/members/{member}/notification-preferences`) in the member editor - there is
+   no GET for another member's prefs in the contract yet, ask the backend. (d) RevenueCat purchases
+   (`Purchases.logIn(revenuecat_app_user_id)`, enable the disabled "Upgrade - coming soon" button)
+   and AdMob rewarded ads (`reward_ref`), both need an EAS dev build.
+1. F4b with real credentials: Moe follows README "Google and Facebook sign-in setup" (Google
    Cloud + Meta apps, `.env` / EAS env vars), first EAS development build (`eas init`, then
    `eas build --profile development`), then test on a phone and on web against B6b once the backend serves
    `/auth/social/*`. Sign in with Apple is required on iOS before App Store submission (PLAN F4b).
-1. Backend B7 bugs from the 2026-10-11 F5 log (500 on session start, duplicate generated
+2. Backend B7 bugs from the 2026-10-11 F5 log (500 on session start, duplicate generated
    questions, "Simplify" accepting unsimplified fractions) - re-check once fixed.
-2. Run F2-F5 on a phone (Sudoku 9×9 on a 360dp screen, word-search drag inside the scroll view,
+3. Run F2-F5 on a phone (Sudoku 9×9 on a 360dp screen, word-search drag inside the scroll view,
    missing-letter keyboard, app backgrounded mid-puzzle, countdown), including **VoiceOver /
    TalkBack** on the word search (letters become buttons: first letter, then last letter) and the
    OS font size at maximum on the puzzles.
-3. Devices list (Profile / member editor) is not paginated by the API; Mom's demo account has
+4. Devices list (Profile / member editor) is not paginated by the API; Mom's demo account has
    13+ devices from test sessions. If real accounts can collect many, ask for pagination in the
    contract (then a FlashList screen like goal history), or show the newest few + "Show all".
 
@@ -182,6 +194,23 @@ categories whose sessions and answers it serves per API.md), then
    **Try again** when back -> feedback appears.
 
 ## Log
+
+### 2026-10-14 - F6 start: plan status + notification settings
+
+- Types (`Subscription`, `NotificationPreferences`, update/push-token bodies) from API.md B8; query keys
+  `subscription`, `notificationPreferences`.
+- `src/features/billing`: `useSubscription` (admins, never children; 404 → `null` = hidden) and
+  `SubscriptionCard` on the Family tab: tier, status badge, renews/expires date, store; on the free
+  tier it lists what the Family plan unlocks from `policy.limits` (no hard-coded numbers) and a
+  disabled "Upgrade - coming soon" button (only when `policy.purchases_allowed`).
+- `src/features/notifications`: `useNotificationPreferences` (404 → `null`), optimistic
+  `useUpdateNotificationPreferences` (rollback + refetch on error; server value applied only when no
+  other toggle is in flight). `/notifications` screen (Profile → Notifications, entry hidden while
+  the endpoint 404s): four type toggles, reminder time (shown when the daily reminder is on), quiet
+  hours from/until; times use hour + minute steppers (15-min steps), so they work on web. en + fr.
+- Not verified: nothing run in a browser or against the backend (B8 was being built in parallel);
+  only typecheck, lint, format:check and `expo export --platform web` (green). Push registration not
+  started.
 
 ### 2026-10-11 - Accessibility, classic/French visual pass, FlashList, README
 

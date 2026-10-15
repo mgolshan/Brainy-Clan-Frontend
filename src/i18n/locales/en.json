@@ -634,5 +634,59 @@
     "confirmDisconnect": "Tap again",
     "unavailable": "Not available in this version of the app",
     "connectedToast": "{{provider}} is connected."
+  },
+  "billing": {
+    "title": "Plan",
+    "unlocksTitle": "The Family plan unlocks",
+    "unlockMembers_one": "More than {{count}} family member",
+    "unlockMembers_other": "More than {{count}} family members",
+    "unlockCategories_one": "More than {{count}} category",
+    "unlockCategories_other": "More than {{count}} categories",
+    "unlockGoals_one": "More than {{count}} active goal",
+    "unlockGoals_other": "More than {{count}} active goals",
+    "upgradeSoon": "Upgrade — coming soon",
+    "renewsOn": "Renews on",
+    "expiresOn": "Expires on",
+    "expiredOn": "Expired on",
+    "store": "Purchased via",
+    "status": {
+      "active": "Active",
+      "grace": "Payment issue",
+      "expired": "Expired",
+      "none": "None"
+    },
+    "stores": {
+      "app_store": "App Store",
+      "play_store": "Google Play",
+      "stripe": "Web"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Choose what Brainy Clan tells you about",
+    "entryHint": "Reminders, goals and quiet hours",
+    "typesTitle": "Send me",
+    "types": {
+      "goal_reached": "Goal reached",
+      "period_closed": "Results are in",
+      "family_activity": "Family activity",
+      "daily_reminder": "Daily reminder"
+    },
+    "typeHints": {
+      "goal_reached": "When the family reaches a goal or someone wins a race",
+      "period_closed": "When a goal period ends",
+      "family_activity": "When someone in the family finishes a session",
+      "daily_reminder": "If you haven't played yet today"
+    },
+    "reminderTime": "Reminder time",
+    "quietTitle": "Quiet hours",
+    "quietHint": "No notifications during quiet hours; they wait until quiet hours end.",
+    "quietFrom": "From",
+    "quietTo": "Until",
+    "hour": "Hour",
+    "minute": "Minutes",
+    "timezoneHint": "Times use your family's time zone.",
+    "unavailable": "Not available yet",
+    "unavailableBody": "Notification settings will appear here soon."
   }
 }

@@ -146,6 +146,7 @@ function RootNavigator() {
             <Stack.Screen name="goals/index" />
             <Stack.Screen name="goals/[id]" />
             <Stack.Screen name="goals/new" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="notifications" />
           </Stack.Protected>
           <Stack.Screen name="oauth-callback" />
           <Stack.Protected guard={__DEV__}>
