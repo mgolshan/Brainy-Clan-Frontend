@@ -45,7 +45,7 @@
     "server": "Le serveur a rencontré un problème. Veuillez réessayer plus tard.",
     "goalLimitReached": "La limite d'objectifs actifs de votre formule est atteinte. Mettez un objectif en pause ou passez à la formule Famille.",
     "signInCodeInvalid": "Ce code de connexion est inconnu, déjà utilisé ou expiré. Demande un nouveau code à ton parent.",
-    "socialTokenInvalid": "Impossible de vérifier votre compte Google ou Facebook. Veuillez réessayer.",
+    "socialTokenInvalid": "Impossible de vérifier votre compte Apple, Google ou Facebook. Veuillez réessayer.",
     "socialSignupIncomplete": "Indiquez votre année et votre mois de naissance pour terminer la création du compte.",
     "socialAccountTaken": "Ce compte est déjà associé à un autre utilisateur Brainy Clan.",
     "lastSignInMethod": "C'est votre seul moyen de connexion. Définissez d'abord un mot de passe ou associez un autre compte."
@@ -638,14 +638,14 @@
     "or": "ou",
     "failed": "La connexion avec {{provider}} n'a pas fonctionné. Veuillez réessayer.",
     "birthTitle": "Indiquez votre année et votre mois de naissance",
-    "birthBody": "Dernière étape pour créer votre compte avec {{provider}}. Les comptes Google ou Facebook sont réservés aux adultes ; nous l'utilisons seulement pour adapter l'expérience.",
+    "birthBody": "Dernière étape pour créer votre compte avec {{provider}}. Les comptes Apple, Google ou Facebook sont réservés aux adultes ; nous l'utilisons seulement pour adapter l'expérience.",
     "continue": "Créer le compte",
     "cancel": "Annuler",
     "devFake": "Dev : les boutons utilisent un faux jeton {{provider}} (EXPO_PUBLIC_SOCIAL_FAKE)."
   },
   "signInMethods": {
     "title": "Moyens de connexion",
-    "hint": "Associez Google ou Facebook pour vous connecter d'un geste sur n'importe quel appareil.",
+    "hint": "Associez Apple, Google ou Facebook pour vous connecter d'un geste sur n'importe quel appareil.",
     "connected": "Associé",
     "notConnected": "Non associé",
     "connect": "Associer",
@@ -706,6 +706,16 @@
     "minute": "Minutes",
     "timezoneHint": "Les heures suivent le fuseau horaire de la famille.",
     "unavailable": "Pas encore disponible",
-    "unavailableBody": "Les réglages de notification apparaîtront bientôt ici."
+    "unavailableBody": "Les réglages de notification apparaîtront bientôt ici.",
+    "channelName": "Brainy Clan",
+    "pushTitle": "Les notifications sont désactivées",
+    "pushBody": "Activez-les pour être prévenu des objectifs, des résultats et de votre rappel quotidien.",
+    "pushEnable": "Activer les notifications",
+    "pushBlockedBody": "Les notifications sont bloquées pour Brainy Clan. Vous pouvez les autoriser dans les réglages du téléphone.",
+    "pushOpenSettings": "Ouvrir les réglages",
+    "quietToggle": "Heures calmes",
+    "quietOff": "Pas d'heures calmes : les notifications peuvent arriver à tout moment.",
+    "memberSubtitle": "Notifications de ce membre",
+    "memberEntryHint": "Rappels, objectifs et heures calmes"
   }
 }

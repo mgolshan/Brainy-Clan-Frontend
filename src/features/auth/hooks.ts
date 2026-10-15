@@ -14,6 +14,7 @@ import type {
 } from '@/api/types';
 import { normalizeCode } from '@/lib/code';
 import { getDeviceInfo } from '@/lib/device';
+import { unregisterPushToken } from '@/features/notifications/push';
 import { useSession } from '@/store/session';
 
 /** Store the token and seed the `me` cache from an AuthPayload. */
@@ -105,6 +106,8 @@ export function useSignOut() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: async () => {
+      // While the Bearer token is still valid (best effort, never throws).
+      await unregisterPushToken();
       try {
         await api.post<void>('/auth/logout', undefined, { timeoutMs: 5000 });
       } catch {

@@ -45,7 +45,7 @@
     "server": "The server had a problem. Please try again later.",
     "goalLimitReached": "Your plan's limit of active goals is reached. Pause a goal or upgrade to the Family plan.",
     "signInCodeInvalid": "This sign-in code is unknown, already used or expired. Ask your parent for a new one.",
-    "socialTokenInvalid": "We couldn't verify your Google or Facebook account. Please try again.",
+    "socialTokenInvalid": "We couldn't verify your Apple, Google or Facebook account. Please try again.",
     "socialSignupIncomplete": "Please tell us your birth year and month to finish creating your account.",
     "socialAccountTaken": "This account is already connected to another Brainy Clan user.",
     "lastSignInMethod": "This is your only way to sign in. Set a password or connect another account first."
@@ -619,14 +619,14 @@
     "or": "or",
     "failed": "{{provider}} sign-in didn't work. Please try again.",
     "birthTitle": "Tell us your birth year and month",
-    "birthBody": "One last step to create your account with {{provider}}. Accounts with Google or Facebook are for adults; we only use this to set up the right experience.",
+    "birthBody": "One last step to create your account with {{provider}}. Accounts with Apple, Google or Facebook are for adults; we only use this to set up the right experience.",
     "continue": "Create account",
     "cancel": "Cancel",
     "devFake": "Dev: buttons use a fake {{provider}} token (EXPO_PUBLIC_SOCIAL_FAKE)."
   },
   "signInMethods": {
     "title": "Sign-in methods",
-    "hint": "Connect Google or Facebook to sign in with one tap on any device.",
+    "hint": "Connect Apple, Google or Facebook to sign in with one tap on any device.",
     "connected": "Connected",
     "notConnected": "Not connected",
     "connect": "Connect",
@@ -687,6 +687,16 @@
     "minute": "Minutes",
     "timezoneHint": "Times use your family's time zone.",
     "unavailable": "Not available yet",
-    "unavailableBody": "Notification settings will appear here soon."
+    "unavailableBody": "Notification settings will appear here soon.",
+    "channelName": "Brainy Clan",
+    "pushTitle": "Notifications are off",
+    "pushBody": "Turn them on to hear about goals, results and your daily reminder.",
+    "pushEnable": "Turn on notifications",
+    "pushBlockedBody": "Notifications are blocked for Brainy Clan. You can allow them in your phone's settings.",
+    "pushOpenSettings": "Open settings",
+    "quietToggle": "Quiet hours",
+    "quietOff": "No quiet hours: notifications can arrive at any time.",
+    "memberSubtitle": "Notifications for this member",
+    "memberEntryHint": "Reminders, goals and quiet hours"
   }
 }

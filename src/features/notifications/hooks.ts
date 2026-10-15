@@ -9,24 +9,39 @@ import type {
 } from '@/api/types';
 
 /**
- * `GET /me/notification-preferences` (needs a family).
- * Resolves to `null` on 404 (endpoint not deployed yet) so callers can hide the entry.
+ * Whose preferences: the signed-in member (`/me/...`) or, for admins, another member
+ * (`/family/members/{id}/...`).
  */
-export function useNotificationPreferences() {
+function target(memberId?: number) {
+  return memberId === undefined
+    ? { key: queryKeys.notificationPreferences, path: '/me/notification-preferences' }
+    : {
+        key: queryKeys.memberNotificationPreferences(memberId),
+        path: `/family/members/${memberId}/notification-preferences`,
+      };
+}
+
+/**
+ * `GET /me/notification-preferences` (needs a family), or the admin variant with `memberId`.
+ * For the own preferences a 404 (endpoint not deployed) resolves to `null` so callers can hide
+ * the entry; for a member, 404/403 stay errors (member gone / not an admin).
+ */
+export function useNotificationPreferences(memberId?: number) {
+  const { key, path } = target(memberId);
   return useQuery({
-    queryKey: queryKeys.notificationPreferences,
+    queryKey: key,
     queryFn: async ({ signal }): Promise<NotificationPreferences | null> => {
       try {
-        return (
-          await api.get<Envelope<NotificationPreferences>>('/me/notification-preferences', {
-            signal,
-          })
-        ).data;
+        return (await api.get<Envelope<NotificationPreferences>>(path, { signal })).data;
       } catch (error) {
-        if (error instanceof ApiError && error.status === 404) return null;
+        if (memberId === undefined && error instanceof ApiError && error.status === 404) {
+          return null;
+        }
         throw error;
       }
     },
+    retry: (count, error) =>
+      !(error instanceof ApiError && (error.status === 403 || error.status === 404)) && count < 2,
   });
 }
 
@@ -41,15 +56,14 @@ function applyPatch(
   };
 }
 
-/** `PATCH /me/notification-preferences`, applied optimistically and rolled back on error. */
-export function useUpdateNotificationPreferences() {
+/** `PATCH` the preferences (own or a member's), applied optimistically and rolled back on error. */
+export function useUpdateNotificationPreferences(memberId?: number) {
   const client = useQueryClient();
-  const key = queryKeys.notificationPreferences;
+  const { key, path } = target(memberId);
   return useMutation({
     mutationKey: key,
     mutationFn: async (body: UpdateNotificationPreferencesBody) =>
-      (await api.patch<Envelope<NotificationPreferences>>('/me/notification-preferences', body))
-        .data,
+      (await api.patch<Envelope<NotificationPreferences>>(path, body)).data,
     onMutate: async (body) => {
       await client.cancelQueries({ queryKey: key });
       const previous = client.getQueryData<NotificationPreferences | null>(key);

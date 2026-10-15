@@ -332,6 +332,44 @@ the provider can be tried against a mock backend. It is compiled out of producti
 - **Birth year asked with an error**: the backend answered 422 for the birth data (below the
   adult threshold).
 
+## Sign in with Apple — setup
+
+"Continue with Apple" uses `expo-apple-authentication` (Apple's own native button and sheet). It
+shows **only in an iOS build** (development or production) where `isAvailableAsync()` is true —
+never on Android, web or in Expo Go (Expo Go's tokens are issued for Expo's bundle ID, which the
+backend rejects). App Review requires it on iOS because the app offers Google/Facebook too.
+
+1. **Apple Developer Program** membership (paid, 99 USD/year) — needed for any iOS device build.
+2. **Bundle ID with the capability**: the app's bundle ID is `app.brainyclan` (`app.json` →
+   `ios.bundleIdentifier`). `ios.usesAppleSignIn: true` is already set and the
+   `expo-apple-authentication` plugin adds the `com.apple.developer.applesignin` entitlement.
+   When EAS builds, it syncs the capability to the App ID automatically (or enable "Sign In with
+   Apple" by hand in developer.apple.com → Certificates, IDs & Profiles → Identifiers →
+   `app.brainyclan`). No client ID or env variable is needed in the app.
+3. **Backend**: set `APPLE_CLIENT_IDS=app.brainyclan` in the backend `.env` (the identity token's
+   `aud` is the bundle ID; add the Services ID later for web).
+4. **iOS development build** with EAS (see Step 4 above):
+   ```powershell
+   npx eas-cli@latest device:create          # register the iPhone (first time)
+   npx eas-cli@latest build --profile development --platform ios
+   ```
+   Install it from the build link on the iPhone, then `npm run start:dev-client`.
+5. **Test on an iPhone** signed in to an Apple ID (the simulator works too on a Mac, but a real
+   device is the reliable check): Welcome → **Continue with Apple** → Face ID → the first time
+   you see **Tell us your birth year and month** → you're in. Apple shares the name (sent as
+   `display_name`) and email only on the **first** authorization; to see the first-time flow
+   again, remove the app under iPhone Settings → [your name] → Sign-In & Security → Sign in with
+   Apple. "Hide My Email" gives a `…@privaterelay.appleid.com` address — that's fine. Profile →
+   **Sign-in methods** shows Apple with Apple's own button to connect, and **Disconnect**.
+   Cancelling the Apple sheet does nothing (no error).
+
+How it works: the app makes a random nonce, passes its SHA-256 to Apple, and sends the identity
+token plus the raw `nonce` (and `display_name` on the first sign-in) to
+`POST /auth/social/apple`; the server checks the token's signature, `aud` and nonce.
+
+**Web (later, optional)**: needs a Services ID with the web domain and return URL, and the Apple
+JS redirect flow; not built yet.
+
 ## Troubleshooting
 
 - Phone shows "Can't reach Brainy Clan": allow Node.js and port 8080 through Windows Defender

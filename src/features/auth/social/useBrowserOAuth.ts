@@ -3,7 +3,11 @@ import { useCallback, useMemo } from 'react';
 import { Platform } from 'react-native';
 
 import type { SocialProvider } from '@/api/types';
-import { SocialProviderError, type ProviderTokenSource } from '@/features/auth/social/types';
+import {
+  SocialProviderError,
+  type ProviderCredential,
+  type ProviderTokenSource,
+} from '@/features/auth/social/types';
 
 /** Web redirect target (register `<origin>/oauth-callback` with the provider). */
 export const WEB_REDIRECT_PATH = 'oauth-callback';
@@ -39,12 +43,12 @@ export function useBrowserOAuth({
     discovery,
   );
 
-  const getToken = useCallback(async (): Promise<string | null> => {
+  const getToken = useCallback(async (): Promise<ProviderCredential | null> => {
     const result = await promptAsync();
     if (result.type === 'success') {
       const token = result.params[tokenParam];
       if (!token) throw new SocialProviderError(provider, `No ${tokenParam} in the redirect`);
-      return token;
+      return { token };
     }
     if (result.type === 'error') {
       // e.g. Facebook `error=access_denied` when the user taps "Cancel" on the dialog.

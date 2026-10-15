@@ -21,6 +21,7 @@ export const socialConfig = {
 export const PROVIDER_NAMES: Record<SocialProvider, string> = {
   google: 'Google',
   facebook: 'Facebook',
+  apple: 'Apple',
 };
 
 /** Running inside Expo Go: native sign-in modules and custom URL schemes are unavailable. */
@@ -36,6 +37,10 @@ export const fakeSocial = __DEV__ && process.env.EXPO_PUBLIC_SOCIAL_FAKE === '1'
 
 /** Whether the real provider can run on this platform with the current configuration. */
 export function providerConfigured(provider: SocialProvider): boolean {
+  // Apple: native iOS only (no client ID; the bundle ID is the token audience). Expo Go would
+  // issue tokens for Expo's own bundle ID, which the server rejects. Web (Services ID) is later.
+  // Availability on the device is still checked with `isAvailableAsync()` (useAppleToken).
+  if (provider === 'apple') return Platform.OS === 'ios' && !isExpoGo;
   if (provider === 'google') {
     if (!socialConfig.googleWebClientId) return false;
     if (Platform.OS === 'web') return true;

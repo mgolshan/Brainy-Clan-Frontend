@@ -8,6 +8,7 @@ import type { PlaySession } from '@/api/types';
 import { getChallenge } from '@/challenges/registry';
 import { FeedbackPanel } from '@/features/play/components/FeedbackPanel';
 import { usePlaySession } from '@/features/play/usePlaySession';
+import { askAfterSessionIfUndecided } from '@/features/notifications/usePush';
 import { useStartAndOpen } from '@/features/play/useStartAndOpen';
 import { errorMessage } from '@/lib/errorMessage';
 import {
@@ -277,6 +278,12 @@ export function PlayScreen({ sessionId }: { sessionId: number }) {
         : Haptics.NotificationFeedbackType.Error,
     );
   }, [feedback]);
+
+  // A friendly moment to ask for push permission: right after a completed session (asks only
+  // while the OS has never asked; no-op on web / Expo Go).
+  useEffect(() => {
+    if (phase === 'completed') void askAfterSessionIfUndecided().catch(() => undefined);
+  }, [phase]);
 
   if (phase === 'loading') return <Loading />;
   if (phase === 'error' || !session) {

@@ -10,11 +10,12 @@ import type {
   SocialSignInBody,
 } from '@/api/types';
 import { applyAuth } from '@/features/auth/hooks';
+import type { ProviderCredential } from '@/features/auth/social/types';
 import { getDeviceInfo } from '@/lib/device';
 
 export interface SocialSignInInput {
   provider: SocialProvider;
-  token: string;
+  credential: ProviderCredential;
   /** Only after 422 `social_signup_incomplete` (first-time sign-up). */
   birth?: { birth_year: number; birth_month: number; locale?: string };
 }
@@ -26,15 +27,21 @@ export interface SocialSignInInput {
  */
 export function useSocialSignIn() {
   return useMutation({
-    mutationFn: async ({ provider, token, birth }: SocialSignInInput) => {
-      const body: SocialSignInBody = { token, ...birth, ...getDeviceInfo() };
+    mutationFn: async ({ provider, credential, birth }: SocialSignInInput) => {
+      const body: SocialSignInBody = {
+        token: credential.token,
+        ...(credential.nonce ? { nonce: credential.nonce } : {}),
+        ...(credential.displayName ? { display_name: credential.displayName } : {}),
+        ...birth,
+        ...getDeviceInfo(),
+      };
       return (await api.post<Envelope<AuthPayload>>(`/auth/social/${provider}`, body)).data;
     },
     onSuccess: applyAuth,
   });
 }
 
-/** `GET /me/social-accounts`: Google/Facebook accounts linked to the signed-in adult. */
+/** `GET /me/social-accounts`: Google/Facebook/Apple accounts linked to the signed-in adult. */
 export function useSocialAccounts(enabled = true) {
   return useQuery({
     queryKey: queryKeys.socialAccounts,
@@ -44,12 +51,27 @@ export function useSocialAccounts(enabled = true) {
   });
 }
 
-/** `POST /me/social-accounts/{provider}` with a provider token. 409 `social_account_taken`. */
+/**
+ * `POST /me/social-accounts/{provider}` with a provider token (+ Apple's raw `nonce`).
+ * 409 `social_account_taken`.
+ */
 export function useLinkSocialAccount() {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: async ({ provider, token }: { provider: SocialProvider; token: string }) =>
-      (await api.post<Envelope<SocialAccount>>(`/me/social-accounts/${provider}`, { token })).data,
+    mutationFn: async ({
+      provider,
+      credential,
+    }: {
+      provider: SocialProvider;
+      credential: ProviderCredential;
+    }) => {
+      const body = {
+        token: credential.token,
+        ...(credential.nonce ? { nonce: credential.nonce } : {}),
+      };
+      return (await api.post<Envelope<SocialAccount>>(`/me/social-accounts/${provider}`, body))
+        .data;
+    },
     onSuccess: (account) => {
       client.setQueryData<SocialAccount[]>(queryKeys.socialAccounts, (prev) => [
         ...(prev ?? []).filter((a) => a.provider !== account.provider),

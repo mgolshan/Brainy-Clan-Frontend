@@ -8,19 +8,38 @@ import {
   useSocialAccounts,
   useUnlinkSocialAccount,
 } from '@/features/auth/social/api';
+import { AppleButton } from '@/features/auth/social/AppleButton';
 import { FacebookLogo, GoogleLogo } from '@/features/auth/social/BrandLogos';
 import { PROVIDER_NAMES } from '@/features/auth/social/config';
 import { useSocialProviders } from '@/features/auth/social/useSocialProviders';
 import { errorMessage } from '@/lib/errorMessage';
 import { formatRelative } from '@/lib/format';
-import { Button, Card, Divider, ErrorState, SectionHeader, Text, useTheme } from '@/ui';
+import { Button, Card, Divider, ErrorState, Icon, SectionHeader, Text, useTheme } from '@/ui';
 import { brandColors } from '@/ui/brand';
 
-const ORDER: SocialProvider[] = ['google', 'facebook'];
+const ORDER: SocialProvider[] = ['apple', 'google', 'facebook'];
 
-/** Provider mark on a neutral tile: Google's "G" on white, Facebook's logo in its blue. */
+/**
+ * Provider mark on a neutral tile: Google's "G" on white, Facebook's logo in its blue, Apple's
+ * logo in white on black.
+ */
 function ProviderMark({ provider }: { provider: SocialProvider }) {
   const theme = useTheme();
+  if (provider === 'apple') {
+    return (
+      <View
+        style={[
+          styles.mark,
+          {
+            borderRadius: theme.radius.sm,
+            backgroundColor: brandColors.apple.black,
+            borderColor: theme.colors.border,
+          },
+        ]}>
+        <Icon name="logo-apple" size={24} color={brandColors.apple.white} />
+      </View>
+    );
+  }
   return (
     <View
       style={[
@@ -42,7 +61,7 @@ function ProviderMark({ provider }: { provider: SocialProvider }) {
 
 /**
  * Profile -> "Sign-in methods" (adults only; the caller decides from the policy): linked
- * Google/Facebook accounts with Connect / Disconnect. Disconnecting the only way to sign in
+ * Apple/Google/Facebook accounts with Connect / Disconnect (Apple's own button for connecting). Disconnecting the only way to sign in
  * answers 409 `last_sign_in_method`, shown as a message. Hidden when nothing can be shown.
  */
 export function SignInMethods() {
@@ -71,13 +90,13 @@ export function SignInMethods() {
     // Synchronous from the tap so the web popup isn't blocked.
     source
       .getToken()
-      .then((token) => {
-        if (!token) {
+      .then((credential) => {
+        if (!credential) {
           setBusy(null);
           return;
         }
         link.mutate(
-          { provider, token },
+          { provider, credential },
           {
             onSuccess: () =>
               setMessage({
@@ -159,6 +178,13 @@ export function SignInMethods() {
                         loading={busy === provider}
                         disabled={busy !== null && busy !== provider}
                         onPress={() => disconnect(provider)}
+                      />
+                    ) : provider === 'apple' ? (
+                      <AppleButton
+                        fullWidth={false}
+                        loading={busy === provider}
+                        disabled={!canConnect || (busy !== null && busy !== provider)}
+                        onPress={() => connect(provider)}
                       />
                     ) : (
                       <Button

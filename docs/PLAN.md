@@ -119,6 +119,20 @@ the OS "reduce motion" setting). Components read tokens only through `useTheme()
   for Android, bundle ID for iOS, redirect URIs for web, `.env` keys, and how to test.
 - Sign in with Apple is required on iOS once Google/Facebook exist (App Store guideline 4.8).
 
+### F4c — Sign in with Apple [B6c] (requested by Moe, 2026-10-15)
+
+- Google and Facebook are done (F4b). Add "Sign in with Apple" with `expo-apple-authentication`
+  (iOS native; Apple's own button component, required styling) on welcome, login, register and
+  Profile → Sign-in methods; send the identity token (+ full name on first sign-in, + nonce) to
+  `POST /auth/social/apple`. Web: Apple JS redirect flow with the Services ID (optional, after iOS).
+  Android: hidden (Google/Facebook cover it).
+- Needs an EAS development build on an iPhone and an Apple Developer account
+  (`ios.usesAppleSignIn: true` in the app config).
+- In-app **account deletion** screen (Profile) once the backend has `DELETE /me` — required by the
+  App Store for any app with account creation.
+- **README setup guide** for Moe: Apple Developer capability, bundle ID, Services ID for web,
+  EAS credentials, how to test on a device.
+
 ### F5 — Remaining challenge types [B7]
 
 - Sudoku, Word Puzzles and Math Sprint components (Sudoku and Math Sprint playable offline).

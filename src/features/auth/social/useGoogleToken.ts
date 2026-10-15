@@ -2,7 +2,11 @@ import { useCallback, useMemo } from 'react';
 import { Platform } from 'react-native';
 
 import { providerConfigured, socialConfig } from '@/features/auth/social/config';
-import { SocialProviderError, type ProviderTokenSource } from '@/features/auth/social/types';
+import {
+  SocialProviderError,
+  type ProviderCredential,
+  type ProviderTokenSource,
+} from '@/features/auth/social/types';
 
 type NitroGoogle = typeof import('react-native-nitro-google-signin');
 
@@ -24,7 +28,7 @@ function loadNitro(): NitroGoogle | null {
   return nitro;
 }
 
-async function getGoogleIdToken(): Promise<string | null> {
+async function getGoogleIdToken(): Promise<ProviderCredential | null> {
   const m = loadNitro();
   if (!m) throw new SocialProviderError('google', 'Google sign-in module missing');
   const { GoogleOneTapSignIn, isSuccessResponse, isCancelledResponse, isErrorWithCode } = m;
@@ -43,7 +47,7 @@ async function getGoogleIdToken(): Promise<string | null> {
     if (!isSuccessResponse(response)) {
       throw new SocialProviderError('google', `Google sign-in: ${response.type}`);
     }
-    return response.data.idToken;
+    return { token: response.data.idToken };
   } catch (error) {
     if (error instanceof SocialProviderError) throw error;
     if (isErrorWithCode(error) && error.code === 'SIGN_IN_CANCELLED') return null;

@@ -6,6 +6,8 @@
  * - Google: https://developers.google.com/identity/branding-guidelines (light / dark buttons,
  *   Google Sans Medium, standard multicolor "G" that is never recolored).
  * - Facebook: Meta's Facebook Login button (#1877F2 fill, white "f" logo, white label).
+ * - Apple: the native button draws itself (black / white / white-outline styles); these are only
+ *   for our overlays and the Profile tile (Apple logo in white on black).
  */
 export const brandColors = {
   google: {
@@ -14,4 +16,5 @@ export const brandColors = {
     logo: { red: '#EA4335', blue: '#4285F4', yellow: '#FBBC05', green: '#34A853' },
   },
   facebook: { fill: '#1877F2', pressed: '#166FE5', text: '#FFFFFF', logo: '#FFFFFF' },
+  apple: { black: '#000000', white: '#FFFFFF' },
 } as const;

@@ -6,9 +6,10 @@ import { isApiError } from '@/api/client';
 import type { SocialProvider } from '@/api/types';
 import { BirthDateFields } from '@/features/auth/components/BirthDateFields';
 import { useSocialSignIn } from '@/features/auth/social/api';
+import { AppleButton } from '@/features/auth/social/AppleButton';
 import { fakeSocial, PROVIDER_NAMES } from '@/features/auth/social/config';
 import { SocialButton } from '@/features/auth/social/SocialButton';
-import type { ProviderTokenSource } from '@/features/auth/social/types';
+import type { ProviderCredential, ProviderTokenSource } from '@/features/auth/social/types';
 import { useSocialProviders } from '@/features/auth/social/useSocialProviders';
 import i18n from '@/i18n';
 import { formErrors } from '@/lib/formErrors';
@@ -42,7 +43,7 @@ interface SocialSignInProps {
 }
 
 /**
- * "Continue with Google / Facebook" for adults (welcome, sign-in, register; never the invite or
+ * "Continue with Apple / Google / Facebook" for adults (welcome, sign-in, register; never the invite or
  * child flows). Provider token -> `POST /auth/social/{provider}`; a new account answers 422
  * `social_signup_incomplete`, then a "birth year and month" step retries with the same token.
  * Success signs in like `/auth/login` (the root guard routes on). Renders nothing when no
@@ -54,7 +55,10 @@ export function SocialSignIn({ divider = 'none' }: SocialSignInProps) {
   const signIn = useSocialSignIn();
   const [busy, setBusy] = useState<SocialProvider | null>(null);
   const [providerError, setProviderError] = useState<string | null>(null);
-  const [pending, setPending] = useState<{ provider: SocialProvider; token: string } | null>(null);
+  const [pending, setPending] = useState<{
+    provider: SocialProvider;
+    credential: ProviderCredential;
+  } | null>(null);
   const [year, setYear] = useState('');
   const [month, setMonth] = useState<number | null>(null);
 
@@ -70,19 +74,20 @@ export function SocialSignIn({ divider = 'none' }: SocialSignInProps) {
     // Called synchronously from the tap: on web the provider popup must open right here.
     source
       .getToken()
-      .then((token) => {
-        if (!token) {
+      .then((credential) => {
+        if (!credential) {
           setBusy(null);
           return;
         }
         signIn.mutate(
-          { provider: source.provider, token },
+          { provider: source.provider, credential },
           {
             onError: (error) => {
               if (isApiError(error, 'social_signup_incomplete')) {
                 setYear('');
                 setMonth(null);
-                setPending({ provider: source.provider, token });
+                // Same credential on retry (Apple's name comes only once, so it rides along).
+                setPending({ provider: source.provider, credential });
               }
             },
             onSettled: () => setBusy(null),
@@ -113,15 +118,24 @@ export function SocialSignIn({ divider = 'none' }: SocialSignInProps) {
   return (
     <View style={styles.wrap}>
       {divider === 'top' ? <OrDivider /> : null}
-      {providers.map((source) => (
-        <SocialButton
-          key={source.provider}
-          provider={source.provider}
-          loading={busy === source.provider}
-          disabled={!source.ready || (busy !== null && busy !== source.provider)}
-          onPress={() => start(source)}
-        />
-      ))}
+      {providers.map((source) =>
+        source.provider === 'apple' ? (
+          <AppleButton
+            key={source.provider}
+            loading={busy === source.provider}
+            disabled={!source.ready || (busy !== null && busy !== source.provider)}
+            onPress={() => start(source)}
+          />
+        ) : (
+          <SocialButton
+            key={source.provider}
+            provider={source.provider}
+            loading={busy === source.provider}
+            disabled={!source.ready || (busy !== null && busy !== source.provider)}
+            onPress={() => start(source)}
+          />
+        ),
+      )}
       {general ? (
         <Text tone="danger" variant="caption" accessibilityLiveRegion="polite">
           {general}

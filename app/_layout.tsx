@@ -17,6 +17,8 @@ import { AppThemeProvider } from '@/features/app/AppThemeProvider';
 import { useMinVersionGate } from '@/features/app/useHealth';
 import { useLocaleSync } from '@/features/app/useLocaleSync';
 import { useMe } from '@/features/auth/hooks';
+import { configureNotifications } from '@/features/notifications/push';
+import { useNotificationDeepLinks, usePushRegistration } from '@/features/notifications/usePush';
 import { useAnswerQueue, useAnswerQueueSync } from '@/features/play/answerQueue';
 import { useAppStatus } from '@/store/appStatus';
 import { useSession } from '@/store/session';
@@ -28,6 +30,9 @@ void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 // Web social sign-in: when this page is the provider's popup returning to /oauth-callback, hand
 // the result to the opener window and close (no-op otherwise).
 if (Platform.OS === 'web') WebBrowser.maybeCompleteAuthSession();
+
+// Foreground banners for pushes (no-op on web, in Expo Go and without an EAS project).
+configureNotifications();
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts(themeFonts);
@@ -107,6 +112,9 @@ function RootNavigator() {
   const hasFamily = !!me.data?.family;
   const waitingForMe = signedIn && !me.data;
 
+  usePushRegistration(signedIn);
+  useNotificationDeepLinks(hydrated && !updateRequired && signedIn && hasFamily);
+
   let blocking: ReactNode = null;
   if (!hydrated || (waitingForMe && me.isPending)) {
     blocking = <Loading label={t('common.loading')} />;
@@ -147,6 +155,7 @@ function RootNavigator() {
             <Stack.Screen name="goals/[id]" />
             <Stack.Screen name="goals/new" options={{ presentation: 'modal' }} />
             <Stack.Screen name="notifications" />
+            <Stack.Screen name="member-notifications/[id]" />
           </Stack.Protected>
           <Stack.Screen name="oauth-callback" />
           <Stack.Protected guard={__DEV__}>

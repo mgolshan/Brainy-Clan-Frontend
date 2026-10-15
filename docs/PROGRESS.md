@@ -5,38 +5,46 @@ Milestones are defined in `docs/PLAN.md`.
 
 ## Status
 
-| Milestone                         | Status                                                                                  | Notes                                                                                                                    |
-| --------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Scaffold                          | Done                                                                                    | Expo SDK 57, Expo Router, tabs and join placeholders, core packages, CLAUDE.md                                           |
-| F0 Local environment              | Done                                                                                    | `npm install` on Node 24, `.env` with LAN IP `192.168.2.23`, expo-doctor 21/21                                           |
-| F1 App foundation                 | Done                                                                                    | `/api/v1` client + typed errors, health, version gate, age-adaptive themes, base UI, `/dev/themes`                       |
-| F2 Accounts, family and invites   | Done (sign-in + Family tab checked on web against the mock; real login payload matches) | Welcome/register/login/join, create family, Family + Profile tabs, member editor, invites                                |
-| F3 Play loop                      | Done (played against the live backend on web; backend bugs listed in the log)           | Categories + drill-down, play screen, MC + Wisdom Card, feedback, lives, second chances, redemption, offline queue, Home |
-| F4 Goals and leaderboard          | Done (verified against the real backend 2026-10-11)                                     | Goals list, detail (team bar / race, countdown, history), 7-step wizard, Home + Family entry points                      |
-| F2b Member sign-in without email  | Done (verified on web against the real backend B2b)                                     | Sign-in code screen, admin code screen, member email login, devices list, set/change password                            |
-| F5 Remaining challenge types      | Done (played on web against the real B7 backend 2026-10-11; backend bugs in the log)    | Sudoku (4/6/9), Math Sprint, Word Puzzles (anagram, missing letter, word search); drafts persisted per item              |
-| F4b Social sign-in                | Built, verified on web against a mock (B6b not served yet; no real client IDs yet)      | Google + Facebook buttons, birth step, Profile sign-in methods, dev build setup, README guide                            |
-| F6 Monetization and notifications | In progress (typecheck + web bundle only; not yet run against B8)                       | Family plan card, Notifications screen; push, RevenueCat, AdMob not started                                              |
-| F7 Release                        | Not started                                                                             |                                                                                                                          |
+| Milestone                         | Status                                                                                                                                                       | Notes                                                                                                                                            |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Scaffold                          | Done                                                                                                                                                         | Expo SDK 57, Expo Router, tabs and join placeholders, core packages, CLAUDE.md                                                                   |
+| F0 Local environment              | Done                                                                                                                                                         | `npm install` on Node 24, `.env` with LAN IP `192.168.2.23`, expo-doctor 21/21                                                                   |
+| F1 App foundation                 | Done                                                                                                                                                         | `/api/v1` client + typed errors, health, version gate, age-adaptive themes, base UI, `/dev/themes`                                               |
+| F2 Accounts, family and invites   | Done (sign-in + Family tab checked on web against the mock; real login payload matches)                                                                      | Welcome/register/login/join, create family, Family + Profile tabs, member editor, invites                                                        |
+| F3 Play loop                      | Done (played against the live backend on web; backend bugs listed in the log)                                                                                | Categories + drill-down, play screen, MC + Wisdom Card, feedback, lives, second chances, redemption, offline queue, Home                         |
+| F4 Goals and leaderboard          | Done (verified against the real backend 2026-10-11)                                                                                                          | Goals list, detail (team bar / race, countdown, history), 7-step wizard, Home + Family entry points                                              |
+| F2b Member sign-in without email  | Done (verified on web against the real backend B2b)                                                                                                          | Sign-in code screen, admin code screen, member email login, devices list, set/change password                                                    |
+| F5 Remaining challenge types      | Done (played on web against the real B7 backend 2026-10-11; backend bugs in the log)                                                                         | Sudoku (4/6/9), Math Sprint, Word Puzzles (anagram, missing letter, word search); drafts persisted per item                                      |
+| F4b Social sign-in                | Built, verified on web against a mock (B6b not served yet; no real client IDs yet)                                                                           | Google + Facebook buttons, birth step, Profile sign-in methods, dev build setup, README guide                                                    |
+| F4c Sign in with Apple            | Built (checks green; only verifiable on an iPhone dev build)                                                                                                 | Apple's native button on welcome/login/register + Profile sign-in methods, nonce, birth step, README setup                                       |
+| F6 Monetization and notifications | In progress (plan card + notification settings incl. admin per-member editing verified on web against live B8; push code done, needs a dev build on a phone) | Family plan card, Notifications screen (own + admin per member, "no quiet hours"), push registration + deep links; RevenueCat, AdMob not started |
+| F7 Release                        | Not started                                                                                                                                                  |                                                                                                                                                  |
 
 ## Next up
 
-0. F6 (in progress): (a) verify on web against B8 once `GET /family/subscription` and
-   `/me/notification-preferences` are live: Family tab plan card (admin, free + family tiers,
-   grace/expired), Profile → Notifications (toggles, quiet hours, reminder time, optimistic save +
-   rollback), check in all four themes at `/dev/themes` and in French; until then both sections are
-   hidden (404 → `null`). (b) Push registration: `npx expo install expo-notifications expo-device`,
-   config plugin, get the Expo push token (skip in Expo Go / web / without EAS `projectId`),
-   `PUT /me/push-token` after sign-in, `DELETE /me/push-token` in `useSignOut` before logout,
-   deep-link on push `data.type` (`goal_id` → `/goals/[id]`). (c) Admin editing of children's quiet
-   hours (`PATCH /family/members/{member}/notification-preferences`) in the member editor - there is
-   no GET for another member's prefs in the contract yet, ask the backend. (d) RevenueCat purchases
-   (`Purchases.logIn(revenuecat_app_user_id)`, enable the disabled "Upgrade - coming soon" button)
-   and AdMob rewarded ads (`reward_ref`), both need an EAS dev build.
+0. F6 (in progress): (a) Notification settings verified on web 2026-10-15 (Mom: own adult
+   defaults 21:30–07:00, toggles, reminder time, quiet hours off/on, reload persists; Family → Sam
+   → Notifications child 19:30–07:30, edit + reload; unknown member → "not found"; Sam's own view
+   in playful). Still to check: the other themes and French, and optimistic rollback on a failed save.
+   (b) Push on a phone (code done 2026-10-15, unverified): needs `eas init` (EAS `projectId`)
+   and an EAS dev build; push is silently off on web, in Expo Go, on simulators and without a
+   `projectId`. Check: Profile → Notifications → "Turn on notifications" (OS prompt, then
+   `PUT /me/push-token`), the prompt after the first completed session, token re-send, sign-out
+   sends `DELETE /me/push-token`, taps (`goal_reached`/`period_closed` → goal, `family_activity` →
+   Home, `daily_reminder` → Play) from background and cold start, Android channel. iOS also
+   needs an APNs key in EAS credentials, Android an FCM V1 key.
+   (c) Done 2026-10-15 (admin per-member notification settings).
+   (d) RevenueCat purchases (`Purchases.logIn(revenuecat_app_user_id)`, enable the disabled
+   "Upgrade - coming soon" button) and AdMob rewarded ads (`reward_ref`), both need an EAS dev build.
 1. F4b with real credentials: Moe follows README "Google and Facebook sign-in setup" (Google
    Cloud + Meta apps, `.env` / EAS env vars), first EAS development build (`eas init`, then
    `eas build --profile development`), then test on a phone and on web against B6b once the backend serves
-   `/auth/social/*`. Sign in with Apple is required on iOS before App Store submission (PLAN F4b).
+   `/auth/social/*`.
+   1b. F4c on an iPhone: Moe follows README "Sign in with Apple — setup" (Apple Developer Program,
+   capability on `app.brainyclan`, backend `APPLE_CLIENT_IDS=app.brainyclan`, iOS dev build with
+   EAS) and tests: first sign-in (name → `display_name`, birth step), repeat sign-in, cancel (no
+   error), Hide My Email, Profile → Connect/Disconnect Apple, light/dark button in all themes.
+   Web Apple JS flow (Services ID) is optional/later.
 2. Backend B7 bugs from the 2026-10-11 F5 log (500 on session start, duplicate generated
    questions, "Simplify" accepting unsimplified fractions) - re-check once fixed.
 3. Run F2-F5 on a phone (Sudoku 9×9 on a 360dp screen, word-search drag inside the scroll view,
@@ -194,6 +202,72 @@ categories whose sessions and answers it serves per API.md), then
    **Try again** when back -> feedback appears.
 
 ## Log
+
+### 2026-10-15 - F6 admin notification settings per member + "no quiet hours"
+
+- `useNotificationPreferences(memberId?)` / `useUpdateNotificationPreferences(memberId?)`: without
+  an id `/me/notification-preferences` (404 → `null`, entry hidden); with an id the admin
+  `/family/members/{id}/notification-preferences` (key `memberNotificationPreferences(id)`; 403/404
+  are not retried and show "not allowed" / "not found"). Same optimistic PATCH + rollback.
+- `NotificationsScreen.tsx` now renders a shared `NotificationSettings`; new
+  `MemberNotificationsScreen` at route `app/member-notifications/[id].tsx` (admins only), opened
+  from a "Notifications" row in the member editor.
+- Quiet hours have an on/off switch: off sends both `null` (contract: both null = off, one → 422),
+  hides the time pickers; on restores the last times of this visit or the contract defaults
+  (child 19:30–07:30, others 21:30–07:00). New en/fr strings `quietToggle`, `quietOff`,
+  `memberSubtitle`, `memberEntryHint`.
+- Verified on web against live B8 (see Next up 0a); all changed preferences restored afterwards.
+  typecheck, lint, format:check green; `npx expo export --platform web` bundles.
+
+### 2026-10-15 - F6 push registration + notification deep links
+
+- `npx expo install expo-notifications` (~57.0.23; `expo-device` was already installed); plugin in
+  `app.json` (introspect shows `aps-environment`).
+- `src/features/notifications/push.ts` (native) / `push.web.ts` (no-ops): support check (not Expo
+  Go, real device, EAS `projectId` from `expoConfig.extra.eas` / `easConfig`), foreground banner
+  handler, Android `default` channel, permission read/request, `getExpoPushTokenAsync` →
+  `PUT /me/push-token` (deduped per run), `DELETE /me/push-token` in `useSignOut` before logout
+  (best effort, 4 s), token-change listener, tap listener incl. `getLastNotificationResponseAsync`.
+- `usePush.ts`: `usePushRegistration(signedIn)` (sends the token only if already granted, never
+  prompts), `useNotificationDeepLinks` (enabled once the tabs group is mounted),
+  `usePushPermission` (refreshed on app foreground), `askAfterSessionIfUndecided` (PlayScreen on
+  `completed`; only while the OS has never asked).
+- Notifications screen: "Notifications are off" card with **Turn on notifications**, or **Open
+  settings** when the OS no longer prompts. i18n en + fr.
+- typecheck, lint, format:check green; web export bundles; expo-doctor only the known `ios.icon`
+  false positive. Not run on a device (needs an EAS dev build + `projectId`).
+
+### 2026-10-15 - F4c Sign in with Apple + F6 check against live B8
+
+- `npx expo install expo-apple-authentication` (~57.0.2); `ios.usesAppleSignIn: true` and the
+  plugin in `app.json` (`expo config --type introspect` shows the `com.apple.developer.applesignin`
+  entitlement). `SocialProvider` gains `apple`; `SocialSignInBody.nonce`.
+- Social code extended, not duplicated: token sources now return a `ProviderCredential`
+  (`token`, Apple-only `nonce` and `displayName`); `useSocialSignIn` / `useLinkSocialAccount` send
+  `nonce` (+ `display_name` on sign-in). The credential is kept for the `social_signup_incomplete`
+  birth-step retry, so Apple's one-time name is still sent with the birth data.
+- `useAppleToken`: shown only when `providerConfigured('apple')` (iOS, not Expo Go) and
+  `isAvailableAsync()`; 32 random bytes hex nonce → SHA-256 → `signInAsync({ FULL_NAME, EMAIL })`;
+  `ERR_REQUEST_CANCELED` → `null` (no error); `display_name` = given name (backend also defaults to
+  the first name).
+- `AppleButton`: Apple's `AppleAuthenticationButton` ("Continue with Apple", localized by iOS),
+  BLACK on light / WHITE on dark, height = theme touch target (≥ 44), corner radius from the theme
+  clamped to 0…height/2 (capsule in playful). Apple first in the list (App Review: at least as
+  prominent). Profile → Sign-in methods: Apple row with a black tile + Apple logo and Apple's
+  button to connect. Strings: "Apple, Google or Facebook" in token-invalid, birth step and hint (en+fr).
+- README "Sign in with Apple — setup". Contract gap: backend `.env.example` example uses
+  `com.brainyclan.app`, the app's bundle ID is `app.brainyclan`.
+- F6 on web against the live backend (Mom, already signed in in Chrome): Family tab → **Plan**
+  card shows "Family plan" (tier `family`, status `none` → no badge/dates/store, no unlocks list);
+  Profile → Notifications stays hidden (`/me/notification-preferences` 404); no console errors.
+  Sign-in methods and Apple hidden on web as intended.
+- `npx expo install --fix`: patch updates (expo 57.0.30, expo-router 57.0.28, …).
+- Checks: typecheck, lint, format:check pass; `npx expo export --platform web` bundles.
+  expo-doctor 20/21: the schema check now reports `ios.icon - cannot access file at
+'./assets/expo.icon'` (Icon Composer folder from the template; a newer doctor's asset check
+  expects a file). Not changed: the folder is the valid SDK 57 iOS icon format; revisit if EAS
+  complains.
+- Not verifiable here: everything Apple (needs an iPhone dev build and the Developer Program).
 
 ### 2026-10-14 - F6 start: plan status + notification settings
 

@@ -220,21 +220,24 @@ export interface CodeSignInBody extends DeviceInfo {
 }
 
 /** Social sign-in providers (`/auth/social/{provider}`, `/me/social-accounts/{provider}`). */
-export type SocialProvider = 'google' | 'facebook';
+export type SocialProvider = 'google' | 'facebook' | 'apple';
 
 /**
  * `POST /auth/social/{provider}` (adults only). `token`: Google **ID token** / Facebook **access
- * token**. Birth data only for a first-time sign-up (after 422 `social_signup_incomplete`).
+ * token** / Apple **identity token**. Birth data only for a first-time sign-up (after 422
+ * `social_signup_incomplete`). Apple: `nonce` is the raw nonce whose SHA-256 went to Apple, and
+ * `display_name` carries the name Apple shares only on the first authorization.
  */
 export interface SocialSignInBody extends DeviceInfo {
   token: string;
+  nonce?: string;
   birth_year?: number;
   birth_month?: number;
   display_name?: string;
   locale?: string;
 }
 
-/** A Google/Facebook account linked to the signed-in user (`GET /me/social-accounts`). */
+/** A Google/Facebook/Apple account linked to the signed-in user (`GET /me/social-accounts`). */
 export interface SocialAccount {
   provider: SocialProvider;
   email: string | null;

@@ -1,12 +1,18 @@
+import { useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
+import { Linking, View } from 'react-native';
 
-import type { NotificationType, UpdateNotificationPreferencesBody } from '@/api/types';
+import { ApiError } from '@/api/client';
+import type { AgeBand, NotificationType, UpdateNotificationPreferencesBody } from '@/api/types';
+import { useIsAdmin, useMe } from '@/features/auth/hooks';
+import { useFamily } from '@/features/family/hooks';
 import {
   useNotificationPreferences,
   useUpdateNotificationPreferences,
 } from '@/features/notifications/hooks';
 import { formatTime, pad2, parseTime } from '@/features/notifications/time';
+import { usePushPermission } from '@/features/notifications/usePush';
 import { errorMessage } from '@/lib/errorMessage';
 import {
   Card,
@@ -31,6 +37,13 @@ const TYPES: { key: NotificationType; icon: IconName }[] = [
 ];
 
 const MINUTE_STEP = 15;
+
+/** Contract defaults, used when quiet hours are turned back on. */
+function defaultQuietHours(ageBand: AgeBand | undefined) {
+  return ageBand === 'child'
+    ? { quiet_from: '19:30', quiet_to: '07:30' }
+    : { quiet_from: '21:30', quiet_to: '07:00' };
+}
 
 /** Hour + minute steppers; works the same on web and native. */
 function TimeSelector({
@@ -75,21 +88,69 @@ function TimeSelector({
   );
 }
 
-/** Profile → Notifications: per-type toggles, quiet hours and reminder time (saved at once). */
-export function NotificationsScreen() {
+/**
+ * "Turn on notifications" when this device has not granted push permission yet (hidden on web,
+ * in Expo Go and without an EAS project). When the OS no longer prompts, link to system settings.
+ */
+function PushPermissionCard() {
+  const { t } = useTranslation();
+  const { state, asking, request } = usePushPermission();
+  if (!state || state.status === 'granted' || state.status === 'unsupported') return null;
+  const blocked = !state.canAskAgain;
+  return (
+    <Card>
+      <EmptyState
+        title={t('notifications.pushTitle')}
+        body={blocked ? t('notifications.pushBlockedBody') : t('notifications.pushBody')}
+        icon="notifications-outline"
+        actionLabel={
+          asking
+            ? undefined
+            : blocked
+              ? t('notifications.pushOpenSettings')
+              : t('notifications.pushEnable')
+        }
+        onAction={() => void (blocked ? Linking.openSettings() : request())}
+      />
+    </Card>
+  );
+}
+
+interface SettingsProps {
+  /** Omit for the signed-in member; set for the admin variant. */
+  memberId?: number;
+  ageBand?: AgeBand;
+  title: string;
+  subtitle: string;
+}
+
+/** Per-type toggles, quiet hours and reminder time (saved at once, optimistic). */
+function NotificationSettings({ memberId, ageBand, title, subtitle }: SettingsProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const prefs = useNotificationPreferences();
-  const update = useUpdateNotificationPreferences();
+  const prefs = useNotificationPreferences(memberId);
+  const update = useUpdateNotificationPreferences(memberId);
   const save = (body: UpdateNotificationPreferencesBody) => update.mutate(body);
+  // Quiet hours before they were switched off, restored when switched back on.
+  const [lastQuiet, setLastQuiet] = useState<{ quiet_from: string; quiet_to: string } | null>(null);
 
   if (prefs.isPending) return <Loading />;
   const data = prefs.data;
+  const quietOn = !!data && (data.quiet_from !== null || data.quiet_to !== null);
+  const errorStatus = prefs.error instanceof ApiError ? prefs.error.status : null;
 
   return (
-    <Screen title={t('notifications.title')} subtitle={t('notifications.subtitle')} back>
+    <Screen title={title} subtitle={subtitle} back>
+      {memberId === undefined ? <PushPermissionCard /> : null}
       {prefs.isError ? (
-        <ErrorState error={prefs.error} onRetry={() => void prefs.refetch()} />
+        errorStatus === 403 || errorStatus === 404 ? (
+          <EmptyState
+            title={errorStatus === 403 ? t('errors.forbidden') : t('errors.notFound')}
+            icon="search-outline"
+          />
+        ) : (
+          <ErrorState error={prefs.error} onRetry={() => void prefs.refetch()} />
+        )
       ) : !data ? (
         <Card>
           <EmptyState
@@ -128,20 +189,42 @@ export function NotificationsScreen() {
 
           <SectionHeader title={t('notifications.quietTitle')} />
           <Card padding="lg" style={{ gap: theme.spacing.md }}>
-            <Text variant="caption" tone="muted">
-              {t('notifications.quietHint')}
-            </Text>
-            <TimeSelector
-              label={t('notifications.quietFrom')}
-              value={data.quiet_from}
-              onChange={(quiet_from) => save({ quiet_from })}
+            <ToggleRow
+              icon="moon-outline"
+              label={t('notifications.quietToggle')}
+              description={t('notifications.quietHint')}
+              value={quietOn}
+              onValueChange={(on) => {
+                if (on) {
+                  save(lastQuiet ?? defaultQuietHours(ageBand));
+                  return;
+                }
+                if (data.quiet_from && data.quiet_to) {
+                  setLastQuiet({ quiet_from: data.quiet_from, quiet_to: data.quiet_to });
+                }
+                save({ quiet_from: null, quiet_to: null });
+              }}
             />
-            <Divider />
-            <TimeSelector
-              label={t('notifications.quietTo')}
-              value={data.quiet_to}
-              onChange={(quiet_to) => save({ quiet_to })}
-            />
+            {quietOn ? (
+              <>
+                <Divider />
+                <TimeSelector
+                  label={t('notifications.quietFrom')}
+                  value={data.quiet_from}
+                  onChange={(quiet_from) => save({ quiet_from })}
+                />
+                <Divider />
+                <TimeSelector
+                  label={t('notifications.quietTo')}
+                  value={data.quiet_to}
+                  onChange={(quiet_to) => save({ quiet_to })}
+                />
+              </>
+            ) : (
+              <Text variant="caption" tone="muted">
+                {t('notifications.quietOff')}
+              </Text>
+            )}
           </Card>
 
           {update.error ? (
@@ -155,5 +238,45 @@ export function NotificationsScreen() {
         </>
       )}
     </Screen>
+  );
+}
+
+/** Profile → Notifications: the signed-in member's own settings. */
+export function NotificationsScreen() {
+  const { t } = useTranslation();
+  const ageBand = useMe().data?.member?.age_band;
+  return (
+    <NotificationSettings
+      ageBand={ageBand}
+      title={t('notifications.title')}
+      subtitle={t('notifications.subtitle')}
+    />
+  );
+}
+
+/** Family → member → Notifications: an admin edits another member's settings. */
+export function MemberNotificationsScreen() {
+  const { t } = useTranslation();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const isAdmin = useIsAdmin();
+  const family = useFamily();
+  const member = family.data?.members.find((m) => String(m.id) === id);
+  const memberId = Number(id);
+
+  if (!isAdmin || !Number.isInteger(memberId)) {
+    return (
+      <Screen back>
+        <EmptyState title={t('errors.notFound')} icon="search-outline" />
+      </Screen>
+    );
+  }
+  return (
+    <NotificationSettings
+      key={memberId}
+      memberId={memberId}
+      ageBand={member?.age_band}
+      title={member ? member.nickname : t('notifications.title')}
+      subtitle={t('notifications.memberSubtitle')}
+    />
   );
 }

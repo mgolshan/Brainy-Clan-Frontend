@@ -20,6 +20,7 @@ import {
   Card,
   EmptyState,
   ErrorState,
+  Icon,
   ListRow,
   Loading,
   Screen,
@@ -28,10 +29,12 @@ import {
   Text,
   TextField,
   isThemeKey,
+  useTheme,
 } from '@/ui';
 
 function Editor({ member, ownerUserId }: { member: Member; ownerUserId: number }) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const me = useMe().data;
   const policy = usePolicy();
   const update = useUpdateMember(member.id);
@@ -142,6 +145,21 @@ function Editor({ member, ownerUserId }: { member: Member; ownerUserId: number }
         />
       </Card>
       <MemberEmailLogin member={member} />
+
+      <SectionHeader title={t('notifications.title')} />
+      <Card padding="sm">
+        <ListRow
+          title={t('notifications.title')}
+          subtitle={t('notifications.memberEntryHint')}
+          leading={<Icon name="notifications-outline" color={theme.colors.primary} />}
+          onPress={() =>
+            router.push({
+              pathname: '/member-notifications/[id]',
+              params: { id: String(member.id) },
+            })
+          }
+        />
+      </Card>
       <DevicesList memberId={member.id} />
 
       {!isOwner ? (

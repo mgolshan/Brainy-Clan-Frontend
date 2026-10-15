@@ -10,7 +10,8 @@ import { PressableScale, fontFor, useTheme } from '@/ui';
 import { brandColors } from '@/ui/brand';
 
 interface SocialButtonProps {
-  provider: SocialProvider;
+  /** Apple uses its own native button (AppleButton). */
+  provider: Exclude<SocialProvider, 'apple'>;
   onPress: () => void;
   /** Overrides "Continue with …" (always keep the provider name in it). */
   title?: string;
