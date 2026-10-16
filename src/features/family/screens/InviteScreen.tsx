@@ -6,13 +6,14 @@ import { Platform, Share, StyleSheet, View } from 'react-native';
 
 import type { AvatarKey, Invite } from '@/api/types';
 import { BirthDateFields } from '@/features/auth/components/BirthDateFields';
-import { useCreateInvite } from '@/features/family/hooks';
+import { useCreateInvite, useInvitePreview } from '@/features/family/hooks';
 import { LegalLinks } from '@/features/legal/components';
 import { useLegal } from '@/features/legal/hooks';
 import { AvatarPicker } from '@/features/profile/AvatarPicker';
 import { formatDate } from '@/lib/format';
 import { formErrors } from '@/lib/formErrors';
 import { ageBandLabel } from '@/lib/labels';
+import { useDebouncedValue } from '@/lib/useDebouncedValue';
 import {
   Appear,
   Avatar,
@@ -78,14 +79,17 @@ function InviteCode({ invite }: { invite: Invite }) {
   );
 }
 
+/** How the parental-consent checkbox is shown on the invite form. */
+type ConsentMode = 'hidden' | 'required' | 'optional';
+
 /**
  * Admin: invite a member with nickname + birth year/month (`POST /family/invites`).
  *
- * Parental consent (B9): the server requires `parental_consent: true` when the birth date falls
- * in a band with `is_child`. The app must not compute age bands and there is no server signal
- * before the invite exists, so the consent checkbox is shown for every invite (worded "if this is
- * a child"), is optional on the client, and is sent only when ticked; the server's 422 on
- * `parental_consent` decides and is shown under the checkbox.
+ * Parental consent (B9): once the birth date is complete (debounced), the form asks
+ * `GET /family/invites/preview` and shows the consent checkbox only when the server says
+ * `parental_consent_required` (then Create waits for the tick). If the backend doesn't serve the
+ * preview (404) or it fails, the form falls back to an optional checkbox worded "if this is a
+ * child"; the server's 422 on `parental_consent` always decides and shows the checkbox.
  */
 export function InviteScreen() {
   const { t } = useTranslation();
@@ -104,6 +108,23 @@ export function InviteScreen() {
     'parental_consent',
   ]);
 
+  const birthKey = /^\d{4}$/.test(year) && month !== null ? `${year}-${month}` : null;
+  const settledKey = useDebouncedValue(birthKey, 400);
+  const [settledYear, settledMonth] = (settledKey ?? '').split('-').map(Number);
+  const preview = useInvitePreview(
+    settledKey && settledKey === birthKey ? { year: settledYear, month: settledMonth } : null,
+  );
+  // True until the preview for the date currently typed has answered (or failed).
+  const checking = birthKey !== null && (settledKey !== birthKey || preview.isPending);
+
+  let consentMode: ConsentMode = 'hidden';
+  if (birthKey !== null && !checking) {
+    if (preview.isError || preview.data === null) consentMode = 'optional';
+    else if (preview.data?.parental_consent_required) consentMode = 'required';
+  }
+  if (errors.field('parental_consent') && consentMode === 'hidden') consentMode = 'required';
+  const previewBand = !checking && preview.data ? preview.data.age_band : null;
+
   if (create.data) {
     return (
       <Screen title={t('invite.readyTitle')} back>
@@ -112,7 +133,8 @@ export function InviteScreen() {
     );
   }
 
-  const ready = nickname.trim() && year.length === 4 && month !== null;
+  const ready =
+    !!nickname.trim() && birthKey !== null && !checking && (consentMode !== 'required' || consent);
 
   return (
     <Screen title={t('invite.title')} subtitle={t('invite.subtitle')} back>
@@ -135,16 +157,31 @@ export function InviteScreen() {
           hint={t('invite.birthHint')}
         />
         <AvatarPicker value={avatar} onChange={setAvatar} />
-        <View>
-          <Checkbox
-            label={t('legal.parentalConsent')}
-            description={t('legal.parentalConsentHint')}
-            checked={consent}
-            onChange={setConsent}
-            error={errors.field('parental_consent')}
-          />
-          <LegalLinks legal={legal} />
-        </View>
+        {previewBand ? (
+          <Text variant="caption" tone="muted" accessibilityLiveRegion="polite">
+            {t('invite.ageGroup', { band: ageBandLabel(t, previewBand) })}
+          </Text>
+        ) : null}
+        {consentMode !== 'hidden' ? (
+          <View>
+            <Checkbox
+              label={
+                consentMode === 'required'
+                  ? t('legal.parentalConsentRequired')
+                  : t('legal.parentalConsent')
+              }
+              description={
+                consentMode === 'required'
+                  ? t('legal.parentalConsentRequiredHint')
+                  : t('legal.parentalConsentHint')
+              }
+              checked={consent}
+              onChange={setConsent}
+              error={errors.field('parental_consent')}
+            />
+            <LegalLinks legal={legal} />
+          </View>
+        ) : null}
         {errors.general ? <Text tone="danger">{errors.general}</Text> : null}
         <Button
           title={t('invite.create')}
@@ -153,13 +190,14 @@ export function InviteScreen() {
           loading={create.isPending}
           disabled={!ready}
           onPress={() =>
+            ready &&
             month !== null &&
             create.mutate({
               nickname: nickname.trim(),
               birth_year: Number(year),
               birth_month: month,
               ...(avatar ? { avatar } : {}),
-              ...(consent ? { parental_consent: true } : {}),
+              ...(consentMode !== 'hidden' && consent ? { parental_consent: true } : {}),
             })
           }
         />

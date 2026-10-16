@@ -337,7 +337,8 @@
     "share": "Partager le code",
     "copy": "Copier le code",
     "copied": "Copié !",
-    "shareMessage": "Rejoins notre famille sur Brainy Clan ! Ouvre l'application, touche « Rejoindre avec un code » et entre {{code}} (pour {{name}})."
+    "shareMessage": "Rejoins notre famille sur Brainy Clan ! Ouvre l'application, touche « Rejoindre avec un code » et entre {{code}} (pour {{name}}).",
+    "ageGroup": "Tranche d'âge : {{band}}"
   },
   "member": {
     "difficulty": "Difficulté",
@@ -823,6 +824,11 @@
     "exportFailed": "Impossible d'enregistrer le fichier. Veuillez réessayer.",
     "exportRateLimited": "Vous pouvez télécharger vos données une fois par heure. Réessayez plus tard.",
     "exportUnavailable": "Le téléchargement de vos données n'est pas encore disponible.",
-    "exportNotAllowed": "L'administrateur de votre famille gère vos données. Demandez-lui une copie."
+    "exportNotAllowed": "L'administrateur de votre famille gère vos données. Demandez-lui une copie.",
+    "updated": "Mis à jour",
+    "unchanged": "Aucun changement depuis votre dernière acceptation",
+    "previouslyAccepted": "Vous aviez accepté la version {{version}}",
+    "parentalConsentRequired": "Je suis son parent ou tuteur (ou j'ai sa permission) et j'accepte la Politique de confidentialité pour ses données",
+    "parentalConsentRequiredHint": "Obligatoire pour inviter un enfant."
   }
 }

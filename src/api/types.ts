@@ -191,6 +191,8 @@ export interface LegalDocument {
   version: string;
   /** HTML page (`?lang=fr` for French). */
   url: string;
+  /** Short localized "what changed in this version" text for re-acceptance (`?lang=fr`). */
+  summary: string | null;
 }
 
 /** `GET /legal` (public). */
@@ -201,9 +203,14 @@ export interface LegalInfo {
 
 /** `me.legal`: adults whose accepted versions are older than the current ones must re-accept. */
 export interface MeLegal {
+  /** True for non-child users whose accepted versions differ from the current ones. */
   needs_acceptance: boolean;
+  /** Current versions. */
   terms_version: string;
   privacy_version: string;
+  /** The user's last accepted versions (`null` = never accepted). */
+  accepted_terms_version: string | null;
+  accepted_privacy_version: string | null;
 }
 
 /** `POST /me/legal-acceptance` (must equal the current versions) → 204. */
@@ -213,11 +220,20 @@ export interface LegalAcceptanceBody {
 }
 
 /**
- * `GET /me/export` (adults, 1 per hour): a JSON download of the user's own data. The shape is
- * not part of the contract (profile, memberships, ledger, sessions, goals, consents, devices);
- * the app only saves/shares it as a file.
+ * `GET /me/export` (any non-child user; children get 403; 1 per hour → 429): the user's own data
+ * (right of access). Record contents are server-defined (devices and social accounts without
+ * tokens); the app saves the whole payload as a JSON file and never interprets the records.
  */
-export type MeExport = Record<string, unknown>;
+export interface MeExport {
+  exported_at: string;
+  user: Record<string, unknown>;
+  memberships: Record<string, unknown>[];
+  point_entries: Record<string, unknown>[];
+  sessions: Record<string, unknown>[];
+  goals: Record<string, unknown>[];
+  consents: Record<string, unknown>[];
+  devices: Record<string, unknown>[];
+}
 
 // ---------------------------------------------------------------------------
 // Health
@@ -438,6 +454,17 @@ export interface CreateInviteBody {
    * falls in a band with `is_child`; the server decides.
    */
   parental_consent?: boolean;
+}
+
+/**
+ * `GET /family/invites/preview?birth_year=&birth_month=` (admin): what an invite for this birth
+ * date means, so the form shows the parental-consent checkbox only when needed.
+ */
+export interface InvitePreview {
+  age_band: AgeBand;
+  is_child: boolean;
+  parental_consent_required: boolean;
+  email_login_allowed: boolean;
 }
 
 // ---------------------------------------------------------------------------

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024"><defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#3B8BF5"/><stop offset="1" stop-color="#1D6FD8"/>
+</linearGradient>
+    <mask id="owl-cutouts" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+      <rect width="1024" height="1024" fill="#FFFFFF"/>
+      <circle cx="418" cy="452" r="94" fill="#000000"/>
+      <circle cx="606" cy="452" r="94" fill="#000000"/>
+      <circle cx="434" cy="464" r="50" fill="#FFFFFF"/>
+      <circle cx="590" cy="464" r="50" fill="#FFFFFF"/>
+      <path d="M486 548 L538 548 L512 594 Z" fill="#000000" stroke="#000000" stroke-width="18" stroke-linejoin="round"/>
+      <path d="M448 650 q22 24 44 0 M532 650 q22 24 44 0 M490 712 q22 24 44 0" fill="none" stroke="#000000" stroke-width="14" stroke-linecap="round"/>
+    </mask>
+  </defs><rect width="1024" height="1024" fill="url(#bg)"/><g transform="translate(512 512) scale(0.8) translate(-512 -523)">
+    
+    <ellipse cx="282" cy="610" rx="58" ry="132" transform="rotate(16 282 610)" fill="#E8742A"/>
+    <ellipse cx="742" cy="610" rx="58" ry="132" transform="rotate(-16 742 610)" fill="#E8742A"/>
+    
+    <ellipse cx="450" cy="842" rx="44" ry="20" fill="#FFC83D"/>
+    <ellipse cx="574" cy="842" rx="44" ry="20" fill="#FFC83D"/>
+    
+    <path d="M300 390 L292 206 L438 292 Z" fill="#FF8A3D" stroke="#FF8A3D" stroke-width="44" stroke-linejoin="round"/>
+    <path d="M724 390 L732 206 L586 292 Z" fill="#FF8A3D" stroke="#FF8A3D" stroke-width="44" stroke-linejoin="round"/>
+    
+    <ellipse cx="512" cy="546" rx="268" ry="296" fill="#FF8A3D"/>
+    
+    <ellipse cx="512" cy="672" rx="166" ry="150" fill="#FFE9C9"/>
+    <path d="M448 650 q22 24 44 0 M532 650 q22 24 44 0 M490 712 q22 24 44 0" fill="none" stroke="#F2A15F" stroke-width="14" stroke-linecap="round"/>
+    
+    <circle cx="418" cy="452" r="118" fill="#E8742A"/>
+    <circle cx="606" cy="452" r="118" fill="#E8742A"/>
+    
+    <circle cx="418" cy="452" r="94" fill="#FFFFFF"/>
+    <circle cx="606" cy="452" r="94" fill="#FFFFFF"/>
+    <circle cx="434" cy="464" r="50" fill="#1B2A4A"/>
+    <circle cx="590" cy="464" r="50" fill="#1B2A4A"/>
+    <circle cx="452" cy="442" r="17" fill="#FFFFFF"/>
+    <circle cx="608" cy="442" r="17" fill="#FFFFFF"/>
+    
+    <path d="M486 548 L538 548 L512 594 Z" fill="#FFC83D" stroke="#FFC83D" stroke-width="18" stroke-linejoin="round"/>
+  </g></svg>

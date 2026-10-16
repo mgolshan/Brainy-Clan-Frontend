@@ -125,19 +125,20 @@ npx expo-doctor                   # dependency / config health (occasionally)
 
 ## Scripts
 
-| Command                          | Description                                 |
-| -------------------------------- | ------------------------------------------- |
-| `npm start`                      | Start Metro for Expo Go (`expo start --go`) |
-| `npm run start:dev-client`       | Start Metro for the development build       |
-| `npm run android`                | Start and open on Android                   |
-| `npm run ios`                    | Start and open on iOS (simulator: macOS)    |
-| `npm run web`                    | Start and open in the browser (port 8081)   |
-| `npm run typecheck`              | TypeScript check (`tsc --noEmit`)           |
-| `npm run lint`                   | ESLint via `expo lint`                      |
-| `npm run format`                 | Prettier – format all files                 |
-| `npm run format:check`           | Prettier – check only                       |
-| `npx expo-doctor`                | Check dependencies and config               |
-| `npx expo export --platform web` | Production web bundle into `dist/`          |
+| Command                          | Description                                                                    |
+| -------------------------------- | ------------------------------------------------------------------------------ |
+| `npm start`                      | Start Metro for Expo Go (`expo start --go`)                                    |
+| `npm run start:dev-client`       | Start Metro for the development build                                          |
+| `npm run android`                | Start and open on Android                                                      |
+| `npm run ios`                    | Start and open on iOS (simulator: macOS)                                       |
+| `npm run web`                    | Start and open in the browser (port 8081)                                      |
+| `npm run typecheck`              | TypeScript check (`tsc --noEmit`)                                              |
+| `npm run lint`                   | ESLint via `expo lint`                                                         |
+| `npm run format`                 | Prettier – format all files                                                    |
+| `npm run format:check`           | Prettier – check only                                                          |
+| `npx expo-doctor`                | Check dependencies and config                                                  |
+| `npm run brand:render`           | Re-render icon/splash/favicon PNGs from `assets/brand/owl.svg` (docs/STORE.md) |
+| `npx expo export --platform web` | Production web bundle into `dist/`                                             |
 
 ## Google and Facebook sign-in setup
 

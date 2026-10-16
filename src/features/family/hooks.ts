@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { api } from '@/api/client';
+import { api, ApiError } from '@/api/client';
 import { queryKeys } from '@/api/queryKeys';
 import type {
   CreateFamilyBody,
@@ -9,6 +9,7 @@ import type {
   Family,
   FamilyPayload,
   Invite,
+  InvitePreview,
   Leaderboard,
   LeaderboardPeriod,
   MePayload,
@@ -116,6 +117,33 @@ export function useCreateInvite() {
     mutationFn: async (body: CreateInviteBody) =>
       (await api.post<Envelope<Invite>>('/family/invites', body)).data,
     onSuccess: () => void client.invalidateQueries({ queryKey: queryKeys.invites }),
+  });
+}
+
+/**
+ * `GET /family/invites/preview` (admin) for a complete birth date: whether the invite needs
+ * parental consent (the app never computes age bands). `null` when the backend doesn't serve the
+ * endpoint (404), so the invite form falls back to the always-shown optional consent checkbox.
+ */
+export function useInvitePreview(birth: { year: number; month: number } | null) {
+  return useQuery({
+    queryKey: queryKeys.invitePreview(birth?.year ?? 0, birth?.month ?? 0),
+    enabled: birth !== null,
+    queryFn: async ({ signal }): Promise<InvitePreview | null> => {
+      if (!birth) return null;
+      try {
+        const query = `birth_year=${birth.year}&birth_month=${birth.month}`;
+        return (
+          await api.get<Envelope<InvitePreview>>(`/family/invites/preview?${query}`, { signal })
+        ).data;
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) return null;
+        throw error;
+      }
+    },
+    staleTime: 60 * 60_000,
+    retry: (count, error) =>
+      !(error instanceof ApiError && error.status < 500 && error.status !== 0) && count < 1,
   });
 }
 

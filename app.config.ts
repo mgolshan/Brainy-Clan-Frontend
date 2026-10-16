@@ -21,6 +21,10 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
  *   `SENTRY_ORG` and `SENTRY_PROJECT` are set (the upload then also needs the
  *   `SENTRY_AUTH_TOKEN` EAS secret), so builds without Sentry keep working. The DSN is the
  *   runtime `EXPO_PUBLIC_SENTRY_DSN`.
+ * - OTA updates (expo-updates, docs/STORE.md "Over-the-air updates"): once `eas init` has added
+ *   `extra.eas.projectId`, the update URL is derived from it; before that, updates are off and
+ *   builds still work. `runtimeVersion` uses the `fingerprint` policy (app.json), so an update only
+ *   reaches builds with the same native code.
  */
 const GOOGLE_PLACEHOLDER_SCHEME = 'com.googleusercontent.apps.not-configured';
 
@@ -41,12 +45,16 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   const sentryOrg = process.env.SENTRY_ORG?.trim();
   const sentryProject = process.env.SENTRY_PROJECT?.trim();
   const baseScheme = typeof config.scheme === 'string' ? config.scheme : 'brainyclan';
+  const projectId: unknown = config.extra?.eas?.projectId;
 
   return {
     ...config,
     name: config.name ?? 'Brainy Clan',
     slug: config.slug ?? 'brainy-clan',
     scheme: facebookAppId ? [baseScheme, `fb${facebookAppId}`] : baseScheme,
+    ...(typeof projectId === 'string' && projectId && !config.updates?.url
+      ? { updates: { ...config.updates, url: `https://u.expo.dev/${projectId}` } }
+      : {}),
     plugins: [
       ...(config.plugins ?? []),
       [

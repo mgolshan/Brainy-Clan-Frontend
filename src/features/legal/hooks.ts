@@ -57,7 +57,18 @@ export function useAcceptLegal() {
     },
     onSuccess: (body) => {
       client.setQueryData<MePayload>(queryKeys.me, (prev) =>
-        prev ? { ...prev, legal: { ...body, needs_acceptance: false } } : prev,
+        prev
+          ? {
+              ...prev,
+              legal: {
+                needs_acceptance: false,
+                terms_version: body.terms_version,
+                privacy_version: body.privacy_version,
+                accepted_terms_version: body.terms_version,
+                accepted_privacy_version: body.privacy_version,
+              },
+            }
+          : prev,
       );
       void client.invalidateQueries({ queryKey: queryKeys.me, exact: true });
     },
@@ -66,16 +77,23 @@ export function useAcceptLegal() {
 
 export type ExportResult = 'downloaded' | 'shared';
 
+/** `brainy-clan-my-data-2026-10-16.json`, dated by the export's `exported_at` when valid. */
+export function exportFileName(exportedAt: string | undefined): string {
+  const time = exportedAt ? Date.parse(exportedAt) : NaN;
+  const date = new Date(Number.isNaN(time) ? Date.now() : time).toISOString().slice(0, 10);
+  return `brainy-clan-my-data-${date}.json`;
+}
+
 /**
- * `GET /me/export` (adults, rate-limited to 1 per hour → 429): fetches the user's data as JSON and
- * hands it to the platform (web download, native share sheet / save to Files).
+ * `GET /me/export` (any non-child user, rate-limited to 1 per hour → 429): fetches the user's data
+ * and hands the `data` object as a JSON file to the platform (web download, native share sheet /
+ * save to Files). The records are saved as received, never interpreted.
  */
 export function useExportMyData() {
   return useMutation({
     mutationFn: async (): Promise<ExportResult> => {
-      const data = await api.get<MeExport>('/me/export', { timeoutMs: 60_000 });
-      const date = new Date().toISOString().slice(0, 10);
-      return saveExportFile(`brainy-clan-my-data-${date}.json`, JSON.stringify(data, null, 2));
+      const { data } = await api.get<Envelope<MeExport>>('/me/export', { timeoutMs: 60_000 });
+      return saveExportFile(exportFileName(data.exported_at), JSON.stringify(data, null, 2));
     },
   });
 }

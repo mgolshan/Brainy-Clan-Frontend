@@ -325,7 +325,8 @@
     "share": "Share code",
     "copy": "Copy code",
     "copied": "Copied!",
-    "shareMessage": "Join our family on Brainy Clan! Open the app, tap “Join with invite code” and enter {{code}} (for {{name}})."
+    "shareMessage": "Join our family on Brainy Clan! Open the app, tap “Join with invite code” and enter {{code}} (for {{name}}).",
+    "ageGroup": "Age group: {{band}}"
   },
   "member": {
     "difficulty": "Difficulty",
@@ -802,6 +803,11 @@
     "exportFailed": "We couldn't save the file. Please try again.",
     "exportRateLimited": "You can download your data once per hour. Please try again later.",
     "exportUnavailable": "Downloading your data isn't available yet.",
-    "exportNotAllowed": "Your family admin manages your data. Ask them for a copy."
+    "exportNotAllowed": "Your family admin manages your data. Ask them for a copy.",
+    "updated": "Updated",
+    "unchanged": "No changes since you last accepted it",
+    "previouslyAccepted": "You accepted version {{version}}",
+    "parentalConsentRequired": "I'm their parent or guardian (or have their permission) and agree to the Privacy policy for their data",
+    "parentalConsentRequiredHint": "Required to invite a child."
   }
 }

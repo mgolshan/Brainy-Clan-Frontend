@@ -6,12 +6,13 @@ import { useMe, useSignOut } from '@/features/auth/hooks';
 import { openLegalPage, useAcceptLegal, useLegal } from '@/features/legal/hooks';
 import { errorMessage } from '@/lib/errorMessage';
 import {
+  Badge,
   Button,
   Card,
+  Divider,
   Icon,
   IconBubble,
   ListRow,
-  Divider,
   Loading,
   Screen,
   Text,
@@ -20,34 +21,62 @@ import {
 
 /**
  * Blocking screen after sign-in when `me.legal.needs_acceptance` is true (adults only; children
- * never get it because their parent consented). Shows the current Terms and Privacy Policy and
- * sends `POST /me/legal-acceptance` with the current versions. The root guard routes on once
- * the `me` cache says nothing is pending.
+ * never get it because their parent consented). The current versions come from `me.legal` (the
+ * server's view, also what `POST /me/legal-acceptance` must echo), falling back to `GET /legal`.
+ * A document whose accepted version differs from the current one is marked "Updated" and shows
+ * the localized `summary` from `GET /legal` ("what changed"). The root guard routes on once the
+ * `me` cache says nothing is pending.
  */
 export function LegalUpdateScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
-  const me = useMe().data;
+  const meLegal = useMe().data?.legal;
   const legal = useLegal();
   const accept = useAcceptLegal();
   const signOut = useSignOut();
 
   if (legal.isPending) return <Loading />;
 
-  // Current versions: from `GET /legal`, else what `me.legal` reports.
-  const termsVersion = legal.data?.terms.version ?? me?.legal?.terms_version;
-  const privacyVersion = legal.data?.privacy.version ?? me?.legal?.privacy_version;
+  const termsVersion = meLegal?.terms_version ?? legal.data?.terms.version;
+  const privacyVersion = meLegal?.privacy_version ?? legal.data?.privacy.version;
 
-  const docRow = (title: string, doc: LegalDocument | undefined, version: string | undefined) => (
-    <ListRow
-      title={title}
-      subtitle={version ? t('legal.version', { version }) : undefined}
-      leading={<Icon name="document-text-outline" color={theme.colors.primary} />}
-      onPress={doc ? () => openLegalPage(doc.url) : undefined}
-      chevron={!!doc}
-      accessibilityHint={doc ? t('legal.opensBrowser') : undefined}
-    />
-  );
+  const docRow = (
+    title: string,
+    doc: LegalDocument | undefined,
+    version: string | undefined,
+    accepted: string | null | undefined,
+  ) => {
+    // Without `me.legal` we can't tell what changed; then both count as updated.
+    const updated = !meLegal || accepted !== version;
+    const summary = updated ? doc?.summary?.trim() : undefined;
+    return (
+      <ListRow
+        title={title}
+        subtitle={version ? t('legal.version', { version }) : undefined}
+        leading={<Icon name="document-text-outline" color={theme.colors.primary} />}
+        onPress={doc ? () => openLegalPage(doc.url) : undefined}
+        chevron={!!doc}
+        accessibilityHint={doc ? t('legal.opensBrowser') : undefined}
+        below={
+          updated ? (
+            <View style={{ gap: theme.spacing.xs, alignItems: 'flex-start' }}>
+              <Badge label={t('legal.updated')} tone="primary" icon="sparkles-outline" />
+              {summary ? <Text variant="caption">{summary}</Text> : null}
+              {accepted && accepted !== version ? (
+                <Text variant="caption" tone="subtle">
+                  {t('legal.previouslyAccepted', { version: accepted })}
+                </Text>
+              ) : null}
+            </View>
+          ) : (
+            <Text variant="caption" tone="subtle">
+              {t('legal.unchanged')}
+            </Text>
+          )
+        }
+      />
+    );
+  };
 
   return (
     <Screen title={t('legal.updateTitle')} subtitle={t('legal.updateSubtitle')}>
@@ -58,9 +87,14 @@ export function LegalUpdateScreen() {
       </View>
       <Text tone="muted">{t('legal.updateBody')}</Text>
       <Card padding="sm">
-        {docRow(t('legal.terms'), legal.data?.terms, termsVersion)}
+        {docRow(t('legal.terms'), legal.data?.terms, termsVersion, meLegal?.accepted_terms_version)}
         <Divider />
-        {docRow(t('legal.privacy'), legal.data?.privacy, privacyVersion)}
+        {docRow(
+          t('legal.privacy'),
+          legal.data?.privacy,
+          privacyVersion,
+          meLegal?.accepted_privacy_version,
+        )}
       </Card>
       {accept.isError ? (
         <Text tone="danger" accessibilityLiveRegion="polite">

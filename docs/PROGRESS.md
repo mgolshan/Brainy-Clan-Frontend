@@ -5,24 +5,30 @@ Milestones are defined in `docs/PLAN.md`.
 
 ## Status
 
-| Milestone                         | Status                                                                                                                              | Notes                                                                                                                                                               |
-| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Scaffold                          | Done                                                                                                                                | Expo SDK 57, Expo Router, tabs and join placeholders, core packages, CLAUDE.md                                                                                      |
-| F0 Local environment              | Done                                                                                                                                | `npm install` on Node 24, `.env` with LAN IP `192.168.2.23`, expo-doctor 21/21                                                                                      |
-| F1 App foundation                 | Done                                                                                                                                | `/api/v1` client + typed errors, health, version gate, age-adaptive themes, base UI, `/dev/themes`                                                                  |
-| F2 Accounts, family and invites   | Done (sign-in + Family tab checked on web against the mock; real login payload matches)                                             | Welcome/register/login/join, create family, Family + Profile tabs, member editor, invites                                                                           |
-| F3 Play loop                      | Done (played against the live backend on web; backend bugs listed in the log)                                                       | Categories + drill-down, play screen, MC + Wisdom Card, feedback, lives, second chances, redemption, offline queue, Home                                            |
-| F4 Goals and leaderboard          | Done (verified against the real backend 2026-10-11)                                                                                 | Goals list, detail (team bar / race, countdown, history), 7-step wizard, Home + Family entry points                                                                 |
-| F2b Member sign-in without email  | Done (verified on web against the real backend B2b)                                                                                 | Sign-in code screen, admin code screen, member email login, devices list, set/change password                                                                       |
-| F5 Remaining challenge types      | Done (played on web against the real B7 backend 2026-10-11; backend bugs in the log)                                                | Sudoku (4/6/9), Math Sprint, Word Puzzles (anagram, missing letter, word search); drafts persisted per item                                                         |
-| F4b Social sign-in                | Built, verified on web against a mock (B6b not served yet; no real client IDs yet)                                                  | Google + Facebook buttons, birth step, Profile sign-in methods, dev build setup, README guide                                                                       |
-| F4c Sign in with Apple            | Built (checks green; only verifiable on an iPhone dev build)                                                                        | Apple's native button on welcome/login/register + Profile sign-in methods, nonce, `authorization_code`, birth step, README setup                                    |
-| F6 Monetization and notifications | Built (paywall + rewarded ads code done; web checks green; purchases/ads need a dev build + store/AdMob accounts)                   | Family plan card, Notifications, push, account/family deletion (verified on web); RevenueCat paywall and AdMob rewarded ads built 2026-10-16, unverified on a phone |
-| F7 Release                        | In progress: legal/consent/privacy (B9 client) + Sentry built 2026-10-16, verified on web against current backend + a local B9 mock | Not yet verified against the real B9 backend; store assets/EAS submit not started                                                                                   |
+| Milestone                         | Status                                                                                                                            | Notes                                                                                                                                                               |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scaffold                          | Done                                                                                                                              | Expo SDK 57, Expo Router, tabs and join placeholders, core packages, CLAUDE.md                                                                                      |
+| F0 Local environment              | Done                                                                                                                              | `npm install` on Node 24, `.env` with LAN IP `192.168.2.23`, expo-doctor 21/21                                                                                      |
+| F1 App foundation                 | Done                                                                                                                              | `/api/v1` client + typed errors, health, version gate, age-adaptive themes, base UI, `/dev/themes`                                                                  |
+| F2 Accounts, family and invites   | Done (sign-in + Family tab checked on web against the mock; real login payload matches)                                           | Welcome/register/login/join, create family, Family + Profile tabs, member editor, invites                                                                           |
+| F3 Play loop                      | Done (played against the live backend on web; backend bugs listed in the log)                                                     | Categories + drill-down, play screen, MC + Wisdom Card, feedback, lives, second chances, redemption, offline queue, Home                                            |
+| F4 Goals and leaderboard          | Done (verified against the real backend 2026-10-11)                                                                               | Goals list, detail (team bar / race, countdown, history), 7-step wizard, Home + Family entry points                                                                 |
+| F2b Member sign-in without email  | Done (verified on web against the real backend B2b)                                                                               | Sign-in code screen, admin code screen, member email login, devices list, set/change password                                                                       |
+| F5 Remaining challenge types      | Done (played on web against the real B7 backend 2026-10-11; backend bugs in the log)                                              | Sudoku (4/6/9), Math Sprint, Word Puzzles (anagram, missing letter, word search); drafts persisted per item                                                         |
+| F4b Social sign-in                | Built, verified on web against a mock (B6b not served yet; no real client IDs yet)                                                | Google + Facebook buttons, birth step, Profile sign-in methods, dev build setup, README guide                                                                       |
+| F4c Sign in with Apple            | Built (checks green; only verifiable on an iPhone dev build)                                                                      | Apple's native button on welcome/login/register + Profile sign-in methods, nonce, `authorization_code`, birth step, README setup                                    |
+| F6 Monetization and notifications | Built (paywall + rewarded ads code done; web checks green; purchases/ads need a dev build + store/AdMob accounts)                 | Family plan card, Notifications, push, account/family deletion (verified on web); RevenueCat paywall and AdMob rewarded ads built 2026-10-16, unverified on a phone |
+| F7 Release                        | In progress: legal client follow-ups + release prep (identity, owl icon/splash, EAS profiles, OTA, docs/STORE.md) done 2026-10-16 | B9 not served yet (preview fallback verified on web, required path via fetch stub); store accounts, screenshots and submission still to do                          |
 
 ## Next up
 
-0.  **Verify F7 legal against the real B9 backend** once it is served (see "How to test → F7
+0.  **F7 release (Moe):** approve the owl mascot (`assets/brand/owl.svg`, rendered by
+    `npm run brand:render`), then follow `docs/STORE.md` §10: store accounts, `eas init`
+    (enables OTA updates), fill `eas.json` submit placeholders, production env vars, review
+    family on the production backend, screenshots (§8), lawyer review of the legal drafts.
+    Open decisions are listed in the 2026-10-16 "F7 release prep" log entry.
+
+1.  **Verify F7 legal against the real B9 backend** once it is served (see "How to test → F7
     legal"): `GET /legal` links (register, join with email, social birth step, invite, Profile →
     Privacy, paywall), `accept_terms` 422 messages, child invite 422 on `parental_consent` without
     the box, `me.legal.needs_acceptance` → blocking screen → `POST /me/legal-acceptance`,
@@ -282,7 +288,57 @@ the checkbox. Sentry: with `EXPO_PUBLIC_SENTRY_DSN` set, throw a test error; the
 the member id as user, no request body/headers. Check `/dev/themes` for the checkbox in all four
 themes (light/dark).
 
+### F7 - invite preview, re-acceptance summary, release assets
+
+- Invite (as Mom, Family → Invite): no consent checkbox until birth year + month are set; ~0.4 s
+  later `GET /family/invites/preview` runs once (debounced). Backend without the endpoint (404) →
+  the old optional "If this is a child…" checkbox. With B9: child → "Age group: Child" + required
+  checkbox, Create disabled until ticked; teen/adult → no checkbox, nothing sent. A 422 on
+  `parental_consent` always shows the checkbox. Delete test invites from the Family tab.
+- Re-acceptance (adult with `me.legal.needs_acceptance`): each document shows "Updated" + the
+  `GET /legal` `summary` + "You accepted version X" when its accepted version differs, else "No
+  changes since you last accepted it"; Accept posts the current versions from `me.legal`.
+- Export: saves the `data` object of `GET /me/export` as `brainy-clan-my-data-<exported_at date>.json`.
+- Brand: `npm run brand:render`, then `npx expo start --web` → `/favicon.ico` is the owl; on a new
+  dev/preview build check the home-screen icon (iOS, Android adaptive + themed icon) and the
+  splash (blue `#1D6FD8`, dark `#10233F`). `npx expo-doctor` 21/21; `npx expo config --type public`.
+
 ## Log
+
+### 2026-10-16 - F7 release prep + legal clarifications (client)
+
+- Legal (contract "Legal clarifications"): `types.ts` gains `LegalDocument.summary`,
+  `MeLegal.accepted_*_version`, `InvitePreview`, a typed `MeExport`. Invite form uses
+  `useInvitePreview` (`src/features/family/hooks.ts`, debounced via `src/lib/useDebouncedValue.ts`,
+  key `invite-preview`) and shows the consent checkbox only when `parental_consent_required`
+  (404/error → previous optional checkbox). `LegalUpdateScreen` reads current + accepted versions
+  from `me.legal`, marks changed documents and shows `summary`. Export saves the envelope's `data`
+  and names the file after `exported_at`. New en/fr strings.
+- Verified on web (B9 not served yet): preview 404 → optional checkbox, debounced (one request
+  for the final month); required/not-required paths with an in-page fetch stub (child → required
+  checkbox + disabled Create until ticked; teen → no checkbox). No invite created; the test login
+  was logged out again. The re-acceptance screen is only type-checked (couldn't force a `/me`
+  refetch with the stub) — check against B9.
+- Release prep: `app.json` — `runtimeVersion: fingerprint`, `ios.infoPlist.ITSAppUsesNonExemptEncryption:
+false`, `supportsTablet: false`, removed the template `ios.icon` (`assets/expo.icon` deleted →
+  expo-doctor 21/21), Android `blockedPermissions` (SYSTEM_ALERT_WINDOW, READ/WRITE_EXTERNAL_STORAGE),
+  expo-secure-store `faceIDPermission: false` (no Face ID string), splash 200 dp on brand blue with
+  a dark variant, adaptive background colour. `expo-updates` added (`npx expo install`);
+  `app.config.ts` derives `updates.url` from `extra.eas.projectId` once `eas init` ran.
+  `eas.json`: channels per profile, preview APK, `submit.production` placeholders (iOS ascAppId /
+  appleTeamId, Android internal track as draft).
+- Brand: original owl mascot `assets/brand/owl.svg`; `scripts/render-brand.mjs`
+  (`npm run brand:render`, devDependency `@resvg/resvg-js`) renders icon, adaptive layers,
+  monochrome, splash, favicon, Play feature graphic and `assets/brand/icon.svg`.
+- `docs/STORE.md`: identity, builds/OTA, EN + FR listings, category/audience/age rating, Apple
+  privacy label + Play data safety, screenshot plan, review notes, release checklist.
+- Checks: typecheck, lint, format:check green; `npx expo export --platform web` bundles;
+  expo-doctor 21/21; `expo config --type public` sane.
+- Open questions for Moe: (1) approve or replace the owl mascot ("Ollie"); (2) iPad: keep
+  `supportsTablet: false` for v1?; (3) Play target audience: include under-13 age groups (Families
+  Policy) or declare 13+ with children only via a parent's family?; (4) Play requires a web URL
+  for account-deletion requests — backend page needed; (5) production review account and support
+  email/website URLs; (6) EU/UK release needs the Google UMP consent form (not built).
 
 ### 2026-10-16 - F7: legal, consent and privacy (B9 client) + Sentry
 

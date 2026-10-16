@@ -12,6 +12,8 @@ export const queryKeys = {
   notificationPreferences: ['me', 'notification-preferences'] as const,
   family: ['family'] as const,
   invites: ['family', 'invites'] as const,
+  invitePreview: (birthYear: number, birthMonth: number) =>
+    ['invite-preview', birthYear, birthMonth] as const,
   subscription: ['family', 'subscription'] as const,
   memberDevices: (memberId: number) => ['family', 'members', memberId, 'devices'] as const,
   memberNotificationPreferences: (memberId: number) =>
