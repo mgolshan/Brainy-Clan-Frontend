@@ -154,5 +154,18 @@ the OS "reduce motion" setting). Components read tokens only through `useTheme()
 
 ## Open questions
 
+- **Waiting for Moe (2026-10-16):**
+  1. Norton Web/Mail Shield intercepts HTTPS in Docker (cURL error 60): disable HTTPS scanning for
+     Docker or drop the Norton root cert into `Brainy-Clan-Backend/docker/php/extra-ca/` and rebuild.
+  2. Lawyer review of the legal drafts, company details (`LEGAL_*`), then `LEGAL_DRAFT=false`.
+  3. Accounts: Hetzner, Apple Developer, Google Play Console, RevenueCat, AdMob, Sentry, SMTP
+     provider, Anthropic API key (AI content generator).
+  4. Approve or replace the owl mascot "Ollie".
+  5. iPhone-only for v1 (`supportsTablet: false`)?
+  6. Google Play target audience: include under-13 age groups (Families Policy) or mixed audience
+     where children only join through a parent's family?
+  7. Support email and website URLs for the store listings; production review account.
+  8. EU/UK release needs Google's UMP ad-consent form (not built).
+
 - Whether teens on the free tier see rewarded ads.
 - Logo and mascot (the theme palettes above are decided; a mascot would fit the `playful` theme).
