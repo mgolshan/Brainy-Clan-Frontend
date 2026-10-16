@@ -28,15 +28,15 @@ Milestones are defined in `docs/PLAN.md`.
     family on the production backend, screenshots (§8), lawyer review of the legal drafts.
     Open decisions are listed in the 2026-10-16 "F7 release prep" log entry.
 
-1.  **Verify F7 legal against the real B9 backend** once it is served (see "How to test → F7
-    legal"): `GET /legal` links (register, join with email, social birth step, invite, Profile →
-    Privacy, paywall), `accept_terms` 422 messages, child invite 422 on `parental_consent` without
-    the box, `me.legal.needs_acceptance` → blocking screen → `POST /me/legal-acceptance`,
-    `GET /me/export` download on web + share sheet on a phone, 429 after a second export.
-    Rewarded ads: `policy.ad_request` on a dev build (teen → `tagForUnderAgeOfConsent`).
-    Sentry: set `EXPO_PUBLIC_SENTRY_DSN` and follow README "Error monitoring — Sentry setup";
-    the new native modules (`expo-sharing`, `expo-file-system`, `@sentry/react-native`) need a
-    new EAS development build.
+1.  **F7 legal vs the real B9 backend — mostly verified on web 2026-10-16** (see log "Regression
+    pass vs B9"). Still to check: join-with-email and social birth-step `accept_terms` 422 messages,
+    paywall legal links (native only), the export share sheet on a phone, Sentry with a DSN,
+    `policy.ad_request` on a dev build. The new native modules (`expo-sharing`,
+    `expo-file-system`, `@sentry/react-native`) need a new EAS development build.
+    **Regression pass not finished (time-boxed):** Play each challenge type (MC, wisdom, sudoku 4×4
+    as Sam, math, anagram, missing letter, word search), feedback/redemption/celebration, member
+    sign-in code / devices / notifications, Profile appearance + FR + notifications, all four
+    themes light/dark, French on key screens, 360 px width.
 
 0a. Done 2026-10-16: account/family deletion verified on web against live B6c (see log).
 
@@ -315,6 +315,46 @@ themes (light/dark).
   splash (blue `#1D6FD8`, dark `#10233F`). `npx expo-doctor` 21/21; `npx expo config --type public`.
 
 ## Log
+
+### 2026-10-16 - Regression pass vs B9 (web, partial) + two client fixes
+
+Verified on web (Chrome) against the live B9 backend with throwaway data (all deleted again):
+
+- Register: required checkbox gates "Create account", Terms/Privacy links open
+  `/legal/terms` and `/legal/privacy` (pages served, en + fr), body sends `accept_terms: true`.
+- Invite preview (throwaway family): child (2017) → "Age group: Child" + required consent checkbox,
+  Create disabled until ticked, POST sends `parental_consent: true`; adult (1980) → "Age group:
+  Adult", no checkbox. Free-plan member limit → "reached its member limit" message.
+- Re-acceptance on the real backend: an **adult who joins by invite without email** has
+  `me.legal.needs_acceptance: true` (no consent row) — a reproducible way to test it. Blocking
+  screen in en and fr (French summaries from `GET /legal?lang=fr`), row opens `…/legal/terms?lang=fr`
+  once, "Accept" posts both current versions, then Home.
+- Mom: Profile → Privacy → Download my data → `brainy-clan-my-data-2026-10-16.json` with the
+  contract keys (download intercepted in the page, no file saved); second tap → "once per hour".
+  Delete account: owner blocker + "Delete family" (not submitted). Alex: teen "Your family admin
+  can do this" card. Home (stats + goal card), Family (members, invites, plan badge), Goals list OK.
+  No console errors.
+- `/account/delete` page is served (en/fr). Not linked from the app on purpose: in-app deletion
+  exists (Profile → Privacy → Delete account) and the contract describes the page for people
+  without the app (Play listing). Add a link only if Moe wants one.
+
+Fixes:
+
+1. **Public queries were cancelled on a signed-out start** (`app/_layout.tsx`): the "token
+   disappeared" effect ran `queryClient.clear()` on mount without a token, aborting the in-flight
+   `/health` and `/legal` requests (nginx 499); their mounted observers kept pointing at the
+   removed queries and, with the React Compiler skipping re-renders, never refetched. Result: no
+   Terms/Privacy links on register/join until the checkbox was tapped, and no minimum-version gate
+   for signed-out users. Now the effect only clears after a real sign-out, and sign-out / account
+   deletion use `clearPrivateQueries` (`src/api/clearPrivateQueries.ts`, keeps `isPublicQueryKey`
+   = health + legal, drops the rest and pending mutations). Tests: `src/api/__tests__/`.
+2. **`GET /legal` summaries were always English**: the app fetched `/legal` without `?lang=fr`.
+   `useLegal` now asks in the app language (key `['legal', 'en'|'fr']`); `localizedLegalUrl`
+   (moved to `src/features/legal/url.ts`) no longer appends a second `lang=fr` to URLs that already
+   carry it. Tests: `src/features/legal/__tests__/url.test.ts`.
+
+- Checks: `npm test` 302/302, typecheck, lint, format:check green; web export bundles.
+- Note: the Chrome extension reports aborted requests (nginx 499) as status 503.
 
 ### 2026-10-16 - Unit tests (Jest + jest-expo) and bugs they found
 

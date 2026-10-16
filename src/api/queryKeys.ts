@@ -27,3 +27,11 @@ export const queryKeys = {
   /** Store data (RevenueCat), not our API: offering packages with store prices. */
   paywallPackages: (appUserId: string) => ['revenuecat', 'packages', appUserId] as const,
 };
+
+/** Roots of queries that don't depend on who is signed in (kept across sign-in/sign-out). */
+const PUBLIC_QUERY_ROOTS: readonly string[] = [queryKeys.health[0], queryKeys.legal[0]];
+
+/** True for public, account-independent data (`GET /health`, `GET /legal`). */
+export function isPublicQueryKey(queryKey: readonly unknown[]): boolean {
+  return typeof queryKey[0] === 'string' && PUBLIC_QUERY_ROOTS.includes(queryKey[0]);
+}

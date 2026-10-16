@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { clearPrivateQueries } from '@/api/clearPrivateQueries';
 import { api } from '@/api/client';
 import { queryClient } from '@/api/queryClient';
 import { queryKeys } from '@/api/queryKeys';
@@ -119,7 +120,7 @@ export function useSignOut() {
     },
     onSettled: () => {
       useSession.getState().clear();
-      client.clear();
+      clearPrivateQueries(client);
     },
   });
 }

@@ -1,23 +1,27 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as WebBrowser from 'expo-web-browser';
+import { useTranslation } from 'react-i18next';
 import { Linking } from 'react-native';
 
 import { api, ApiError } from '@/api/client';
 import { queryKeys } from '@/api/queryKeys';
 import type { Envelope, LegalAcceptanceBody, LegalInfo, MeExport, MePayload } from '@/api/types';
 import { saveExportFile } from '@/features/legal/saveExport';
+import { legalLang, legalPath, localizedLegalUrl } from '@/features/legal/url';
 import i18n from '@/i18n';
 
 /**
- * `GET /legal` (public): current Terms / Privacy Policy versions and URLs. `null` when the
- * backend doesn't serve it yet (404) or can't be reached, so callers simply hide the links.
+ * `GET /legal` (public): current Terms / Privacy Policy versions and URLs, in the app language
+ * (`?lang=fr` localizes `summary` and the page URLs). `null` when the backend doesn't serve it yet
+ * (404), so callers simply hide the links.
  */
 export function useLegal() {
+  const language = useTranslation().i18n.language;
   return useQuery({
-    queryKey: queryKeys.legal,
+    queryKey: [...queryKeys.legal, legalLang(language) ?? 'en'],
     queryFn: async ({ signal }): Promise<LegalInfo | null> => {
       try {
-        return (await api.get<Envelope<LegalInfo>>('/legal', { signal })).data;
+        return (await api.get<Envelope<LegalInfo>>(legalPath(language), { signal })).data;
       } catch (error) {
         if (error instanceof ApiError && error.status === 404) return null;
         throw error;
@@ -28,12 +32,6 @@ export function useLegal() {
   });
 }
 
-/** The legal page in the app language (`?lang=fr` for French, per the contract). */
-export function localizedLegalUrl(url: string): string {
-  if (!i18n.language.startsWith('fr')) return url;
-  return `${url}${url.includes('?') ? '&' : '?'}lang=fr`;
-}
-
 /** Opens a URL in the in-app browser (falls back to the system browser). */
 export function openInAppBrowser(url: string) {
   void WebBrowser.openBrowserAsync(url).catch(() => Linking.openURL(url).catch(() => {}));
@@ -41,7 +39,7 @@ export function openInAppBrowser(url: string) {
 
 /** Opens a backend legal page (from `GET /legal`) in the app language. */
 export function openLegalPage(url: string) {
-  openInAppBrowser(localizedLegalUrl(url));
+  openInAppBrowser(localizedLegalUrl(url, i18n.language));
 }
 
 /**

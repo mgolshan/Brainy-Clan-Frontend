@@ -1,5 +1,6 @@
 import { hashKey, useMutation, useQuery } from '@tanstack/react-query';
 
+import { clearPrivateQueries } from '@/api/clearPrivateQueries';
 import { api } from '@/api/client';
 import { queryClient } from '@/api/queryClient';
 import { queryKeys } from '@/api/queryKeys';
@@ -25,7 +26,7 @@ export function signOutAfterDeletion() {
   useAnswerQueue.getState().clear();
   useChallengeDrafts.getState().clear();
   useSession.getState().clear();
-  queryClient.clear();
+  clearPrivateQueries(queryClient);
 }
 
 /** `GET /me/deletion-check`: blockers, store subscription, whether the family goes too. */

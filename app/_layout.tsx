@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { Platform, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { clearPrivateQueries } from '@/api/clearPrivateQueries';
 import { queryClient, wireQueryClientToDevice } from '@/api/queryClient';
 import { useChallengeDrafts } from '@/challenges/drafts';
 import { AppThemeProvider } from '@/features/app/AppThemeProvider';
@@ -84,19 +85,20 @@ function RootNavigator() {
   useEffect(() => setMonitoringMember(memberId), [memberId]);
   useAnswerQueueSync(!!token);
 
-  // Drop every cached server response (and queued answers) once the token disappears.
+  // Drop the account's cached server responses (and queued answers) once the token disappears.
+  // Nothing to drop on a signed-out start: clearing then would also cancel the public
+  // `/health` and `/legal` requests already in flight (see `clearPrivateQueries`).
   const hadToken = useRef(false);
   useEffect(() => {
     if (token) {
       hadToken.current = true;
       return;
     }
-    queryClient.clear();
-    if (hadToken.current) {
-      useAnswerQueue.getState().clear();
-      useChallengeDrafts.getState().clear();
-    }
+    if (!hadToken.current) return;
     hadToken.current = false;
+    clearPrivateQueries(queryClient);
+    useAnswerQueue.getState().clear();
+    useChallengeDrafts.getState().clear();
   }, [token]);
 
   const navTheme = useMemo(() => {
