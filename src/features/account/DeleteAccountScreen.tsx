@@ -40,20 +40,29 @@ export function DeleteAccountScreen() {
   const confirmed = typed.trim().toUpperCase() === CONFIRM_WORD;
 
   return (
-    <Screen title={title} subtitle={t('deletion.accountSubtitle')} back>
-      {info.active_subscription ? <SubscriptionNotice store={info.store} /> : null}
+    // Teens and children can't delete themselves: only the "ask your admin" card (kid-facing
+    // wording), not the self-deletion details.
+    <Screen
+      title={title}
+      subtitle={managedByAdmin ? undefined : t('deletion.accountSubtitle')}
+      back>
+      {info.active_subscription && !managedByAdmin ? (
+        <SubscriptionNotice store={info.store} />
+      ) : null}
 
-      <Card padding="lg" style={{ gap: theme.spacing.sm }}>
-        <Text weight="bold">{t('deletion.whatHappens')}</Text>
-        <Point text={t('deletion.pointErased')} />
-        <Point text={t('deletion.pointSignOut')} />
-        <Point text={t('deletion.pointSocial')} />
-        <Point text={t('deletion.pointHistory')} />
-        {info.deletes_family ? <Point text={t('deletion.pointFamilyToo')} /> : null}
-        <Text variant="caption" tone="muted">
-          {t('deletion.cannotUndo')}
-        </Text>
-      </Card>
+      {managedByAdmin ? null : (
+        <Card padding="lg" style={{ gap: theme.spacing.sm }}>
+          <Text weight="bold">{t('deletion.whatHappens')}</Text>
+          <Point text={t('deletion.pointErased')} />
+          <Point text={t('deletion.pointSignOut')} />
+          <Point text={t('deletion.pointSocial')} />
+          <Point text={t('deletion.pointHistory')} />
+          {info.deletes_family ? <Point text={t('deletion.pointFamilyToo')} /> : null}
+          <Text variant="caption" tone="muted">
+            {t('deletion.cannotUndo')}
+          </Text>
+        </Card>
+      )}
 
       {ownerBlocked ? (
         <Card variant="tinted" tint={theme.colors.danger} style={{ gap: theme.spacing.sm }}>

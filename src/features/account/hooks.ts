@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { hashKey, useMutation, useQuery } from '@tanstack/react-query';
 
 import { api } from '@/api/client';
 import { queryClient } from '@/api/queryClient';
@@ -70,7 +70,12 @@ export function useDeleteFamily() {
       }
       useAnswerQueue.getState().clear();
       useChallengeDrafts.getState().clear();
-      queryClient.clear();
+      // Keep the `me` query itself (not `clear()`): the root layout observes it, and an observer of
+      // a removed query never hears about the new data, so the guard would not switch to the
+      // create-family onboarding.
+      queryClient.removeQueries({
+        predicate: (query) => query.queryHash !== hashKey(queryKeys.me),
+      });
       queryClient.setQueryData<MePayload>(queryKeys.me, me);
     },
   });

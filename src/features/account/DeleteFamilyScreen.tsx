@@ -56,8 +56,12 @@ export function DeleteFamilyScreen() {
     );
   }
 
-  const children = members.filter((m) => m.is_child).length;
-  const adults = members.filter((m) => !m.is_child && m.user_id !== me.user.id).length;
+  // The server erases every account without its own email login (children, and teens who sign
+  // in with codes); members with an email login keep their accounts. Social-only accounts aren't
+  // visible in the member list, so they count as erased here (the server keeps them).
+  const others = members.filter((m) => m.user_id !== me.user.id);
+  const erased = others.filter((m) => !m.email).length;
+  const kept = others.length - erased;
   const confirmed = typed.trim() === info.name.trim();
 
   return (
@@ -67,8 +71,8 @@ export function DeleteFamilyScreen() {
       <Card padding="lg" style={{ gap: theme.spacing.sm }}>
         <Text weight="bold">{t('deletion.whatHappens')}</Text>
         <Point text={t('deletion.familyPointGone')} />
-        <Point text={t('deletion.familyPointChildren', { count: children })} />
-        <Point text={t('deletion.familyPointAdults', { count: adults })} />
+        {erased > 0 ? <Point text={t('deletion.familyPointErased', { count: erased })} /> : null}
+        {kept > 0 ? <Point text={t('deletion.familyPointKept', { count: kept })} /> : null}
         <Point text={t('deletion.pointHistory')} />
         <Text variant="caption" tone="muted">
           {t('deletion.cannotUndo')}
