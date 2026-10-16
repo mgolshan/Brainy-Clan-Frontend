@@ -5,37 +5,44 @@ Milestones are defined in `docs/PLAN.md`.
 
 ## Status
 
-| Milestone                         | Status                                                                                                                                                       | Notes                                                                                                                                            |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Scaffold                          | Done                                                                                                                                                         | Expo SDK 57, Expo Router, tabs and join placeholders, core packages, CLAUDE.md                                                                   |
-| F0 Local environment              | Done                                                                                                                                                         | `npm install` on Node 24, `.env` with LAN IP `192.168.2.23`, expo-doctor 21/21                                                                   |
-| F1 App foundation                 | Done                                                                                                                                                         | `/api/v1` client + typed errors, health, version gate, age-adaptive themes, base UI, `/dev/themes`                                               |
-| F2 Accounts, family and invites   | Done (sign-in + Family tab checked on web against the mock; real login payload matches)                                                                      | Welcome/register/login/join, create family, Family + Profile tabs, member editor, invites                                                        |
-| F3 Play loop                      | Done (played against the live backend on web; backend bugs listed in the log)                                                                                | Categories + drill-down, play screen, MC + Wisdom Card, feedback, lives, second chances, redemption, offline queue, Home                         |
-| F4 Goals and leaderboard          | Done (verified against the real backend 2026-10-11)                                                                                                          | Goals list, detail (team bar / race, countdown, history), 7-step wizard, Home + Family entry points                                              |
-| F2b Member sign-in without email  | Done (verified on web against the real backend B2b)                                                                                                          | Sign-in code screen, admin code screen, member email login, devices list, set/change password                                                    |
-| F5 Remaining challenge types      | Done (played on web against the real B7 backend 2026-10-11; backend bugs in the log)                                                                         | Sudoku (4/6/9), Math Sprint, Word Puzzles (anagram, missing letter, word search); drafts persisted per item                                      |
-| F4b Social sign-in                | Built, verified on web against a mock (B6b not served yet; no real client IDs yet)                                                                           | Google + Facebook buttons, birth step, Profile sign-in methods, dev build setup, README guide                                                    |
-| F4c Sign in with Apple            | Built (checks green; only verifiable on an iPhone dev build)                                                                                                 | Apple's native button on welcome/login/register + Profile sign-in methods, nonce, birth step, README setup                                       |
-| F6 Monetization and notifications | In progress (plan card + notification settings incl. admin per-member editing verified on web against live B8; push code done, needs a dev build on a phone) | Family plan card, Notifications screen (own + admin per member, "no quiet hours"), push registration + deep links; RevenueCat, AdMob not started |
-| F7 Release                        | Not started                                                                                                                                                  |                                                                                                                                                  |
+| Milestone                         | Status                                                                                                                                                       | Notes                                                                                                                                                                                              |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scaffold                          | Done                                                                                                                                                         | Expo SDK 57, Expo Router, tabs and join placeholders, core packages, CLAUDE.md                                                                                                                     |
+| F0 Local environment              | Done                                                                                                                                                         | `npm install` on Node 24, `.env` with LAN IP `192.168.2.23`, expo-doctor 21/21                                                                                                                     |
+| F1 App foundation                 | Done                                                                                                                                                         | `/api/v1` client + typed errors, health, version gate, age-adaptive themes, base UI, `/dev/themes`                                                                                                 |
+| F2 Accounts, family and invites   | Done (sign-in + Family tab checked on web against the mock; real login payload matches)                                                                      | Welcome/register/login/join, create family, Family + Profile tabs, member editor, invites                                                                                                          |
+| F3 Play loop                      | Done (played against the live backend on web; backend bugs listed in the log)                                                                                | Categories + drill-down, play screen, MC + Wisdom Card, feedback, lives, second chances, redemption, offline queue, Home                                                                           |
+| F4 Goals and leaderboard          | Done (verified against the real backend 2026-10-11)                                                                                                          | Goals list, detail (team bar / race, countdown, history), 7-step wizard, Home + Family entry points                                                                                                |
+| F2b Member sign-in without email  | Done (verified on web against the real backend B2b)                                                                                                          | Sign-in code screen, admin code screen, member email login, devices list, set/change password                                                                                                      |
+| F5 Remaining challenge types      | Done (played on web against the real B7 backend 2026-10-11; backend bugs in the log)                                                                         | Sudoku (4/6/9), Math Sprint, Word Puzzles (anagram, missing letter, word search); drafts persisted per item                                                                                        |
+| F4b Social sign-in                | Built, verified on web against a mock (B6b not served yet; no real client IDs yet)                                                                           | Google + Facebook buttons, birth step, Profile sign-in methods, dev build setup, README guide                                                                                                      |
+| F4c Sign in with Apple            | Built (checks green; only verifiable on an iPhone dev build)                                                                                                 | Apple's native button on welcome/login/register + Profile sign-in methods, nonce, `authorization_code`, birth step, README setup                                                                   |
+| F6 Monetization and notifications | In progress (plan card + notification settings incl. admin per-member editing verified on web against live B8; push code done, needs a dev build on a phone) | Family plan card, Notifications screen (own + admin per member, "no quiet hours"), push registration + deep links, account/family deletion (built, waiting for B6c); RevenueCat, AdMob not started |
+| F7 Release                        | Not started                                                                                                                                                  |                                                                                                                                                                                                    |
 
 ## Next up
 
-0. F6 (in progress): (a) Notification settings verified on web 2026-10-15 (Mom: own adult
-   defaults 21:30–07:00, toggles, reminder time, quiet hours off/on, reload persists; Family → Sam
-   → Notifications child 19:30–07:30, edit + reload; unknown member → "not found"; Sam's own view
-   in playful). Still to check: the other themes and French, and optimistic rollback on a failed save.
-   (b) Push on a phone (code done 2026-10-15, unverified): needs `eas init` (EAS `projectId`)
-   and an EAS dev build; push is silently off on web, in Expo Go, on simulators and without a
-   `projectId`. Check: Profile → Notifications → "Turn on notifications" (OS prompt, then
-   `PUT /me/push-token`), the prompt after the first completed session, token re-send, sign-out
-   sends `DELETE /me/push-token`, taps (`goal_reached`/`period_closed` → goal, `family_activity` →
-   Home, `daily_reminder` → Play) from background and cold start, Android channel. iOS also
-   needs an APNs key in EAS credentials, Android an FCM V1 key.
-   (c) Done 2026-10-15 (admin per-member notification settings).
-   (d) RevenueCat purchases (`Purchases.logIn(revenuecat_app_user_id)`, enable the disabled
-   "Upgrade - coming soon" button) and AdMob rewarded ads (`reward_ref`), both need an EAS dev build.
+0a. Account deletion (built 2026-10-15, backend endpoints not served yet — 404 during the run):
+once B6c is live, check on web: Profile → Delete account as Mom (owner with members → blocker
+card + "Delete family" link) and as Alex (teen → typed DELETE form), the store notice with an
+active subscription, then the full flow ONLY with a throwaway account (register + create
+family → Delete account → Welcome "Your account was deleted"; second throwaway → Delete family
+without / with "Also delete my account" → create-family onboarding / Welcome). Never delete the
+demo accounts. Also check French and the four themes. 0. F6 (in progress): (a) Notification settings verified on web 2026-10-15 (Mom: own adult
+defaults 21:30–07:00, toggles, reminder time, quiet hours off/on, reload persists; Family → Sam
+→ Notifications child 19:30–07:30, edit + reload; unknown member → "not found"; Sam's own view
+in playful). Still to check: the other themes and French, and optimistic rollback on a failed save.
+(b) Push on a phone (code done 2026-10-15, unverified): needs `eas init` (EAS `projectId`)
+and an EAS dev build; push is silently off on web, in Expo Go, on simulators and without a
+`projectId`. Check: Profile → Notifications → "Turn on notifications" (OS prompt, then
+`PUT /me/push-token`), the prompt after the first completed session, token re-send, sign-out
+sends `DELETE /me/push-token`, taps (`goal_reached`/`period_closed` → goal, `family_activity` →
+Home, `daily_reminder` → Play) from background and cold start, Android channel. iOS also
+needs an APNs key in EAS credentials, Android an FCM V1 key.
+(c) Done 2026-10-15 (admin per-member notification settings).
+(d) RevenueCat purchases (`Purchases.logIn(revenuecat_app_user_id)`, enable the disabled
+"Upgrade - coming soon" button) and AdMob rewarded ads (`reward_ref`), both need an EAS dev build.
+
 1. F4b with real credentials: Moe follows README "Google and Facebook sign-in setup" (Google
    Cloud + Meta apps, `.env` / EAS env vars), first EAS development build (`eas init`, then
    `eas build --profile development`), then test on a phone and on web against B6b once the backend serves
@@ -202,6 +209,33 @@ categories whose sessions and answers it serves per API.md), then
    **Try again** when back -> feedback appears.
 
 ## Log
+
+### 2026-10-15 - Account and family deletion (F6 / store compliance), Apple authorization code
+
+- Contract "Account deletion": types `DeletionCheck`, `DeleteAccountBody`, `DeleteFamilyBody`,
+  `SocialSignInBody.authorization_code`; query key `deletionCheck`; error
+  `family_owner_cannot_leave` (en + fr). `api.delete(path, body?, options?)` now takes a body
+  (the one caller with options, push-token unregister, updated).
+- `src/features/account/`: `hooks.ts` (`useDeletionCheck` always fresh, `useDeleteAccount`,
+  `useDeleteFamily`, `signOutAfterDeletion` = flag + answer queue + drafts + token + query cache;
+  no `/auth/logout` since the server already revoked every token), `DeleteAccountScreen`,
+  `DeleteFamilyScreen`, `parts.tsx` (bullet, store-specific "cancel your subscription" notice).
+  Routes `app/delete-account.tsx`, `app/delete-family.tsx` (family-guarded stack).
+- Profile → "Delete account" (ghost button under Sign out) hidden when `policy.is_child`. Screen:
+  what's erased, history anonymised as "Deleted player", family deleted too when
+  `deletes_family`, store notice when `active_subscription` (App Store / Google Play / generic),
+  `family_owner` blocker → explanation + "Delete family" link, else type DELETE (no dialogs).
+- Family → "Delete family" (owner only: `family.owner_user_id === user.id`): counts children
+  erased / other adults kept, "Also delete my account" toggle, confirm by typing the family name.
+  Without the account option the cache restarts from a fresh `/me` (no family) so the guard shows
+  create-family; with it → full sign-out. Welcome shows "Your account was deleted" (transient
+  `appStatus.accountDeleted`, dismissible).
+- Apple: `authorizationCode` from the native result is sent as `authorization_code` on
+  `/auth/social/apple` and on the Apple link call.
+- Verified on web (backend endpoints still 404): Delete family screen as Mom renders correctly
+  (1 child erased, 2 adults kept, typed-name button disabled); Delete account shows the error
+  state while `/me/deletion-check` is 404. Deletion flow itself not run (no live endpoint).
+  typecheck, lint, format:check green; web export bundles.
 
 ### 2026-10-15 - F6 admin notification settings per member + "no quiet hours"
 

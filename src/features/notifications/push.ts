@@ -116,7 +116,7 @@ export async function requestPushPermission(): Promise<PushPermissionState> {
 export async function unregisterPushToken(): Promise<void> {
   if (!isPushSupported() || !sentToken) return;
   try {
-    await api.delete('/me/push-token', { timeoutMs: 4000 });
+    await api.delete('/me/push-token', undefined, { timeoutMs: 4000 });
   } catch {
     // The server also clears it on logout.
   }

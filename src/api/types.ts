@@ -231,6 +231,8 @@ export type SocialProvider = 'google' | 'facebook' | 'apple';
 export interface SocialSignInBody extends DeviceInfo {
   token: string;
   nonce?: string;
+  /** Apple only: the sign-in result's authorization code (server revokes Apple tokens later). */
+  authorization_code?: string;
   birth_year?: number;
   birth_month?: number;
   display_name?: string;
@@ -245,6 +247,34 @@ export interface SocialAccount {
 }
 
 /** `PUT /me/password`; `current_password` only when the member already `has_password`. */
+/**
+ * Why `DELETE /me` is not possible: `family_owner` (owner of a family with other members),
+ * `child_account` (below the adult band — a family admin removes them).
+ */
+export type DeletionBlocker = 'family_owner' | 'child_account' | (string & {});
+
+/** `GET /me/deletion-check`. */
+export interface DeletionCheck {
+  can_delete: boolean;
+  blockers: DeletionBlocker[];
+  /** The caller owns the family and is its only member: the family is deleted too. */
+  deletes_family: boolean;
+  /** Active/grace store subscription: must be cancelled in the store (deletion doesn't). */
+  active_subscription: boolean;
+  store: SubscriptionStore | null;
+}
+
+/** `DELETE /me` body. */
+export interface DeleteAccountBody {
+  confirm: 'DELETE';
+}
+
+/** `DELETE /family` body (owner). `confirm` is the family name. */
+export interface DeleteFamilyBody {
+  confirm: string;
+  delete_my_account?: boolean;
+}
+
 export interface UpdatePasswordBody {
   password: string;
   password_confirmation: string;

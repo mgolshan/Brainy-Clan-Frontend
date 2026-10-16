@@ -231,6 +231,16 @@ export function ProfileScreen() {
         loading={signOut.isPending}
         onPress={() => signOut.mutate()}
       />
+
+      {/* Children can't delete themselves (server-side policy); everyone else can. */}
+      {!policy.is_child ? (
+        <Button
+          title={t('deletion.accountTitle')}
+          variant="ghost"
+          icon="trash-outline"
+          onPress={() => router.push('/delete-account')}
+        />
+      ) : null}
     </Screen>
   );
 }

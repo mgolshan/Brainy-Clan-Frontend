@@ -163,8 +163,9 @@ export const api = {
     apiRequest<T>(path, { ...options, method: 'PUT', body }),
   patch: <T>(path: string, body?: unknown, options?: Opts) =>
     apiRequest<T>(path, { ...options, method: 'PATCH', body }),
-  delete: <T = void>(path: string, options?: Opts) =>
-    apiRequest<T>(path, { ...options, method: 'DELETE' }),
+  /** `body` is optional (e.g. `DELETE /me` sends `confirm`). */
+  delete: <T = void>(path: string, body?: unknown, options?: Opts) =>
+    apiRequest<T>(path, { ...options, method: 'DELETE', body }),
 };
 
 /** Unwraps the `{ data }` envelope. */

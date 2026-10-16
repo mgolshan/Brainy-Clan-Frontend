@@ -5,6 +5,7 @@ export const queryKeys = {
   health: ['health'] as const,
   me: ['me'] as const,
   meStats: ['me', 'stats'] as const,
+  deletionCheck: ['me', 'deletion-check'] as const,
   socialAccounts: ['me', 'social-accounts'] as const,
   notificationPreferences: ['me', 'notification-preferences'] as const,
   family: ['family'] as const,

@@ -48,7 +48,8 @@
     "socialTokenInvalid": "We couldn't verify your Apple, Google or Facebook account. Please try again.",
     "socialSignupIncomplete": "Please tell us your birth year and month to finish creating your account.",
     "socialAccountTaken": "This account is already connected to another Brainy Clan user.",
-    "lastSignInMethod": "This is your only way to sign in. Set a password or connect another account first."
+    "lastSignInMethod": "This is your only way to sign in. Set a password or connect another account first.",
+    "familyOwnerCannotLeave": "The family owner can't delete their account while others are in the family. Delete the family instead."
   },
   "update": {
     "title": "Time for an update",
@@ -698,5 +699,41 @@
     "quietOff": "No quiet hours: notifications can arrive at any time.",
     "memberSubtitle": "Notifications for this member",
     "memberEntryHint": "Reminders, goals and quiet hours"
+  },
+  "deletion": {
+    "accountTitle": "Delete account",
+    "accountSubtitle": "Permanently delete your Brainy Clan account.",
+    "whatHappens": "What happens",
+    "pointErased": "Your name, email, password, birth date and avatar are erased.",
+    "pointSignOut": "You're signed out on every device right away.",
+    "pointSocial": "Connected Apple, Google and Facebook accounts are disconnected.",
+    "pointHistory": "Points history stays for the family's totals, but anonymised: it shows \"Deleted player\" instead of a name.",
+    "pointFamilyToo": "You're the only member of your family, so the family is deleted too.",
+    "cannotUndo": "This can't be undone.",
+    "subscriptionTitle": "Cancel your subscription first",
+    "cancelAppStore": "Your family plan is billed through the App Store. Cancel it in your Apple ID subscriptions first — deleting your account doesn't stop billing.",
+    "cancelPlayStore": "Your family plan is billed through Google Play. Cancel it in Google Play → Subscriptions first — deleting your account doesn't stop billing.",
+    "cancelStoreGeneric": "Your family has an active subscription. Cancel it where you bought it (App Store / Google Play) first — deleting your account doesn't stop billing.",
+    "ownerTitle": "You own a family with other members",
+    "ownerBody": "The owner can't leave the family behind. Delete the family first (you can delete your account in the same step).",
+    "notPossible": "Your account can't be deleted right now.",
+    "typeToConfirm": "Type {{word}} to confirm",
+    "accountSubmit": "Delete my account",
+    "familyTitle": "Delete family",
+    "ownerOnly": "Only the family owner can delete the family.",
+    "familyPointGone": "The family, its goals and invites are deleted.",
+    "familyPointChildren_one": "{{count}} child account is erased (children have no account outside the family).",
+    "familyPointChildren_other": "{{count}} child accounts are erased (children have no account outside the family).",
+    "familyPointAdults_one": "{{count}} other adult keeps their account, without a family.",
+    "familyPointAdults_other": "{{count}} other adults keep their accounts, without a family.",
+    "alsoMyAccount": "Also delete my account",
+    "alsoMyAccountHint": "Otherwise you keep your account and can create or join a new family.",
+    "typeFamilyName": "Type the family name \"{{name}}\" to confirm",
+    "familySubmit": "Delete family",
+    "familyAndAccountSubmit": "Delete family and my account",
+    "doneTitle": "Your account was deleted",
+    "doneBody": "Thanks for playing with Brainy Clan. You're signed out on every device.",
+    "managedTitle": "Your family admin can do this",
+    "managedBody": "Accounts of children and teens are managed by the family. Ask a family admin to remove you from the family — that deletes your account."
   }
 }

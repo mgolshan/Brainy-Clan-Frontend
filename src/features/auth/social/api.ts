@@ -31,6 +31,9 @@ export function useSocialSignIn() {
       const body: SocialSignInBody = {
         token: credential.token,
         ...(credential.nonce ? { nonce: credential.nonce } : {}),
+        ...(credential.authorizationCode
+          ? { authorization_code: credential.authorizationCode }
+          : {}),
         ...(credential.displayName ? { display_name: credential.displayName } : {}),
         ...birth,
         ...getDeviceInfo(),
@@ -68,6 +71,9 @@ export function useLinkSocialAccount() {
       const body = {
         token: credential.token,
         ...(credential.nonce ? { nonce: credential.nonce } : {}),
+        ...(credential.authorizationCode
+          ? { authorization_code: credential.authorizationCode }
+          : {}),
       };
       return (await api.post<Envelope<SocialAccount>>(`/me/social-accounts/${provider}`, body))
         .data;

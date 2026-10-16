@@ -202,6 +202,14 @@ export function FamilyScreen() {
             onPress={() => router.push('/invite')}
           />
           <SubscriptionCard />
+          {info.owner_user_id === me?.user.id ? (
+            <Button
+              title={t('deletion.familyTitle')}
+              variant="ghost"
+              icon="trash-outline"
+              onPress={() => router.push('/delete-family')}
+            />
+          ) : null}
         </>
       ) : (
         <Text variant="caption" tone="muted" align="center">

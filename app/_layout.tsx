@@ -156,6 +156,8 @@ function RootNavigator() {
             <Stack.Screen name="goals/new" options={{ presentation: 'modal' }} />
             <Stack.Screen name="notifications" />
             <Stack.Screen name="member-notifications/[id]" />
+            <Stack.Screen name="delete-account" />
+            <Stack.Screen name="delete-family" />
           </Stack.Protected>
           <Stack.Screen name="oauth-callback" />
           <Stack.Protected guard={__DEV__}>

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text as RNText, View } from 'react-native';
 
 import { SocialSignIn } from '@/features/auth/social/SocialSignIn';
+import { useAppStatus } from '@/store/appStatus';
 import { Appear, Button, Card, Screen, Text, useTheme, withAlpha } from '@/ui';
 
 const HERO = ['🦉', '🦊', '🐼', '🦁'];
@@ -15,6 +16,8 @@ export function WelcomeScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const c = theme.colors;
+  const accountDeleted = useAppStatus((s) => s.accountDeleted);
+  const setAccountDeleted = useAppStatus((s) => s.setAccountDeleted);
 
   return (
     <Screen contentStyle={styles.content}>
@@ -44,6 +47,23 @@ export function WelcomeScreen() {
           {t('welcome.subtitle')}
         </Text>
       </View>
+
+      {accountDeleted ? (
+        <Card variant="tinted" tint={c.success} style={styles.actions}>
+          <Text weight="bold" accessibilityLiveRegion="polite">
+            {t('deletion.doneTitle')}
+          </Text>
+          <Text variant="caption" tone="muted">
+            {t('deletion.doneBody')}
+          </Text>
+          <Button
+            title={t('common.done')}
+            variant="ghost"
+            size="sm"
+            onPress={() => setAccountDeleted(false)}
+          />
+        </Card>
+      ) : null}
 
       <Card style={styles.actions} padding="lg">
         <Button

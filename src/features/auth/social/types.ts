@@ -21,6 +21,8 @@ export interface ProviderCredential {
   token: string;
   nonce?: string;
   displayName?: string;
+  /** Apple only: `authorizationCode` from the sign-in result (lets the server revoke later). */
+  authorizationCode?: string;
 }
 
 /** A provider's credential source. `getToken()` resolves `null` when the user cancels. */

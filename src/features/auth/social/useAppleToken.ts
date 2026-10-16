@@ -35,7 +35,12 @@ async function getAppleCredential(): Promise<ProviderCredential | null> {
     if (!credential.identityToken) {
       throw new SocialProviderError('apple', 'Apple returned no identity token');
     }
-    return { token: credential.identityToken, nonce, displayName: nameFrom(credential.fullName) };
+    return {
+      token: credential.identityToken,
+      nonce,
+      displayName: nameFrom(credential.fullName),
+      authorizationCode: credential.authorizationCode ?? undefined,
+    };
   } catch (error) {
     if (error instanceof SocialProviderError) throw error;
     const code = (error as { code?: string } | null)?.code;

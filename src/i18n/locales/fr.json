@@ -48,7 +48,8 @@
     "socialTokenInvalid": "Impossible de vérifier votre compte Apple, Google ou Facebook. Veuillez réessayer.",
     "socialSignupIncomplete": "Indiquez votre année et votre mois de naissance pour terminer la création du compte.",
     "socialAccountTaken": "Ce compte est déjà associé à un autre utilisateur Brainy Clan.",
-    "lastSignInMethod": "C'est votre seul moyen de connexion. Définissez d'abord un mot de passe ou associez un autre compte."
+    "lastSignInMethod": "C'est votre seul moyen de connexion. Définissez d'abord un mot de passe ou associez un autre compte.",
+    "familyOwnerCannotLeave": "Le propriétaire ne peut pas supprimer son compte tant que d'autres membres sont dans la famille. Supprimez plutôt la famille."
   },
   "update": {
     "title": "C'est l'heure de la mise à jour",
@@ -717,5 +718,43 @@
     "quietOff": "Pas d'heures calmes : les notifications peuvent arriver à tout moment.",
     "memberSubtitle": "Notifications de ce membre",
     "memberEntryHint": "Rappels, objectifs et heures calmes"
+  },
+  "deletion": {
+    "accountTitle": "Supprimer le compte",
+    "accountSubtitle": "Supprimer définitivement votre compte Brainy Clan.",
+    "whatHappens": "Ce qui se passe",
+    "pointErased": "Votre nom, e-mail, mot de passe, date de naissance et avatar sont effacés.",
+    "pointSignOut": "Vous êtes déconnecté immédiatement sur tous vos appareils.",
+    "pointSocial": "Les comptes Apple, Google et Facebook associés sont dissociés.",
+    "pointHistory": "L'historique des points reste pour les totaux de la famille, mais anonymisé : il affiche « Joueur supprimé » au lieu d'un nom.",
+    "pointFamilyToo": "Vous êtes le seul membre de votre famille : la famille est supprimée aussi.",
+    "cannotUndo": "Cette action est irréversible.",
+    "subscriptionTitle": "Résiliez d'abord votre abonnement",
+    "cancelAppStore": "Votre forfait Famille est facturé via l'App Store. Résiliez-le d'abord dans les abonnements de votre identifiant Apple : supprimer votre compte n'arrête pas la facturation.",
+    "cancelPlayStore": "Votre forfait Famille est facturé via Google Play. Résiliez-le d'abord dans Google Play → Abonnements : supprimer votre compte n'arrête pas la facturation.",
+    "cancelStoreGeneric": "Votre famille a un abonnement actif. Résiliez-le d'abord là où vous l'avez acheté (App Store / Google Play) : supprimer votre compte n'arrête pas la facturation.",
+    "ownerTitle": "Vous êtes propriétaire d'une famille avec d'autres membres",
+    "ownerBody": "Le propriétaire ne peut pas quitter la famille. Supprimez d'abord la famille (vous pouvez supprimer votre compte en même temps).",
+    "notPossible": "Votre compte ne peut pas être supprimé pour le moment.",
+    "typeToConfirm": "Tapez {{word}} pour confirmer",
+    "accountSubmit": "Supprimer mon compte",
+    "familyTitle": "Supprimer la famille",
+    "ownerOnly": "Seul le propriétaire de la famille peut la supprimer.",
+    "familyPointGone": "La famille, ses objectifs et ses invitations sont supprimés.",
+    "familyPointChildren_one": "{{count}} compte enfant est effacé (les enfants n'ont pas de compte hors de la famille).",
+    "familyPointChildren_many": "{{count}} comptes enfants sont effacés (les enfants n'ont pas de compte hors de la famille).",
+    "familyPointChildren_other": "{{count}} comptes enfants sont effacés (les enfants n'ont pas de compte hors de la famille).",
+    "familyPointAdults_one": "{{count}} autre adulte garde son compte, sans famille.",
+    "familyPointAdults_many": "{{count}} autres adultes gardent leur compte, sans famille.",
+    "familyPointAdults_other": "{{count}} autres adultes gardent leur compte, sans famille.",
+    "alsoMyAccount": "Supprimer aussi mon compte",
+    "alsoMyAccountHint": "Sinon, vous gardez votre compte et pouvez créer ou rejoindre une nouvelle famille.",
+    "typeFamilyName": "Tapez le nom de la famille « {{name}} » pour confirmer",
+    "familySubmit": "Supprimer la famille",
+    "familyAndAccountSubmit": "Supprimer la famille et mon compte",
+    "doneTitle": "Votre compte a été supprimé",
+    "doneBody": "Merci d'avoir joué avec Brainy Clan. Vous êtes déconnecté sur tous vos appareils.",
+    "managedTitle": "C'est l'administrateur de ta famille qui peut le faire",
+    "managedBody": "Les comptes des enfants et des ados sont gérés par la famille. Demande à un administrateur de te retirer de la famille : cela supprime ton compte."
   }
 }
