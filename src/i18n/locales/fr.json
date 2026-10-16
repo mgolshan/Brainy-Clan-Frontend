@@ -191,6 +191,7 @@
       "body": "Réessaie dans un instant, ou choisis une autre catégorie."
     },
     "worth_one": "Vaut {{count}} point",
+    "worth_many": "Vaut {{count}} points",
     "worth_other": "Vaut {{count}} points",
     "ad": {
       "loading": "Chargement de la vidéo…",
@@ -606,6 +607,7 @@
     "math": {
       "timeUp": "Le temps est écoulé, mais tu peux encore répondre",
       "secondsLeft_one": "{{count}} seconde restante",
+      "secondsLeft_many": "{{count}} secondes restantes",
       "secondsLeft_other": "{{count}} secondes restantes",
       "yourAnswer": "Ta réponse : {{value}}",
       "fractionHint": "Écris les fractions avec / (comme 3/4).",
@@ -668,10 +670,13 @@
     "title": "Abonnement",
     "unlocksTitle": "La formule Famille débloque",
     "unlockMembers_one": "Plus de {{count}} membre",
+    "unlockMembers_many": "Plus de {{count}} membres",
     "unlockMembers_other": "Plus de {{count}} membres",
     "unlockCategories_one": "Plus de {{count}} catégorie",
+    "unlockCategories_many": "Plus de {{count}} catégories",
     "unlockCategories_other": "Plus de {{count}} catégories",
     "unlockGoals_one": "Plus de {{count}} objectif actif",
+    "unlockGoals_many": "Plus de {{count}} objectifs actifs",
     "unlockGoals_other": "Plus de {{count}} objectifs actifs",
     "upgradeSoon": "Passer à Famille — bientôt",
     "renewsOn": "Renouvellement le",

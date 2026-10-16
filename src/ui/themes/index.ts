@@ -12,7 +12,7 @@ export const themes: Record<ThemeKey, ThemeDefinition> = { playful, sleek, moder
 export const DEFAULT_THEME: ThemeKey = 'modern';
 
 export function isThemeKey(value: unknown): value is ThemeKey {
-  return typeof value === 'string' && value in themes;
+  return typeof value === 'string' && Object.prototype.hasOwnProperty.call(themes, value);
 }
 
 /**

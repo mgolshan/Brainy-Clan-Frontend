@@ -116,12 +116,45 @@ you don't need.
 Run these before handing work over (all must pass):
 
 ```powershell
+npm test                          # unit tests (Jest, ~10 s)
 npm run typecheck                 # TypeScript (tsc --noEmit)
 npm run lint                      # ESLint (expo lint)
 npm run format:check              # Prettier; fix with npm run format
 npx expo export --platform web    # the production web bundle builds (output in dist/)
 npx expo-doctor                   # dependency / config health (occasionally)
 ```
+
+## Tests
+
+Unit tests cover the pure logic: no network, no device, no backend. They run in Node with
+[`jest-expo`](https://docs.expo.dev/develop/unit-testing/) (Jest preset for Expo).
+
+```powershell
+npm test                          # run all tests once
+npm run test:watch                # re-run tests for changed files
+npx jest src/features/goals       # one folder (or a file path)
+npx jest -t "word search"         # tests whose name matches
+```
+
+- **Where:** next to the code, in `__tests__/*.test.ts` folders under `src/` (never in `app/`,
+  which is the router). Import app code with the `@/` alias, like the app does. Expo Router only
+  bundles what routes import, so tests never reach the app or the web export.
+- **What is covered:** Sudoku rules (duplicates, 4/6/9 boxes), word puzzles (8-direction
+  word-search selection, accents), challenge registry payload guards (every type, valid and
+  invalid), sign-in/invite code entry, version compare, theme selection, error messages for the
+  contract codes, goal dates and period labels (fixed dates; family vs device time zone),
+  notification times, the offline answer queue (persist / flush / retry with a fake submit and
+  in-memory AsyncStorage) and en/fr locale parity (same keys, plural forms, placeholders, no
+  empty strings).
+- **Setup:** `jest` config in `package.json`; `jest.setup.ts` swaps native modules
+  (Reanimated, Worklets, AsyncStorage) for the mocks their packages ship;
+  `jest.globalSetup.js` pins the device time zone to `America/Toronto` so date tests behave the
+  same on every machine.
+- **Adding tests:** prefer pure functions (move logic out of components into a `.ts` file and
+  test that). Mock the edges with `jest.mock` (API calls, query client), never the code under
+  test. There are no component tests yet; if you add some, install
+  `@testing-library/react-native` with `npx expo install @testing-library/react-native -- --dev`
+  (PowerShell may swallow the `--`: check the package landed in `devDependencies`).
 
 ## Scripts
 
@@ -132,6 +165,8 @@ npx expo-doctor                   # dependency / config health (occasionally)
 | `npm run android`                | Start and open on Android                                                      |
 | `npm run ios`                    | Start and open on iOS (simulator: macOS)                                       |
 | `npm run web`                    | Start and open in the browser (port 8081)                                      |
+| `npm test`                       | Unit tests (Jest with `jest-expo`)                                             |
+| `npm run test:watch`             | Unit tests in watch mode                                                       |
 | `npm run typecheck`              | TypeScript check (`tsc --noEmit`)                                              |
 | `npm run lint`                   | ESLint via `expo lint`                                                         |
 | `npm run format`                 | Prettier – format all files                                                    |

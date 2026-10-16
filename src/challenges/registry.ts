@@ -97,7 +97,8 @@ export const challengeRegistry: Partial<Record<ChallengeTypeKey, ChallengeDefini
 };
 
 export function isChallengeTypeSupported(type: string): type is ChallengeTypeKey {
-  return type in challengeRegistry;
+  // Own keys only: "constructor" or "toString" from the API must not count as a type.
+  return Object.prototype.hasOwnProperty.call(challengeRegistry, type);
 }
 
 export function getChallenge(type: string): ChallengeDefinition | undefined {

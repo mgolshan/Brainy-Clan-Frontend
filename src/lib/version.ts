@@ -4,8 +4,14 @@
  * Returns -1 if a < b, 0 if equal, 1 if a > b.
  */
 export function compareVersions(a: string, b: string): -1 | 0 | 1 {
-  const pa = a.split('.').map((part) => parseInt(part, 10) || 0);
-  const pb = b.split('.').map((part) => parseInt(part, 10) || 0);
+  // Drop "-beta.2" / "+build.5" first, so their dotted parts don't count as version numbers.
+  const parts = (v: string) =>
+    v
+      .split(/[-+]/)[0]
+      .split('.')
+      .map((part) => parseInt(part, 10) || 0);
+  const pa = parts(a);
+  const pb = parts(b);
   const length = Math.max(pa.length, pb.length);
   for (let i = 0; i < length; i++) {
     const x = pa[i] ?? 0;

@@ -77,7 +77,11 @@ export function readFound(value: unknown): WordPlacement[] {
   return Array.isArray(found) ? found.filter(isPlacement) : [];
 }
 
-export const normalizeWord = (w: string) => w.trim().toLocaleUpperCase();
+/**
+ * Compare form of a word, like the server (API.md: NFC-normalized, case-insensitive), so a
+ * decomposed accent ("e" + U+0301) matches a precomposed "É".
+ */
+export const normalizeWord = (w: string) => w.normalize('NFC').trim().toLocaleUpperCase();
 
 /** Cells from start to end if they form a straight line in one of the 8 directions. */
 export function lineCells(start: GridCell, end: GridCell): GridCell[] | null {

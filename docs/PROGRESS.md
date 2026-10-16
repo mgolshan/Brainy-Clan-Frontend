@@ -80,6 +80,17 @@ Milestones are defined in `docs/PLAN.md`.
 
 ## Known issues and notes
 
+- Unit tests (`npm test`) cover pure logic only; no component or end-to-end tests yet (Expo
+  recommends Maestro for E2E). The first run after an install is slow (~50 s, Babel cache);
+  later runs ~10 s. Upgrading to SDK 58 needs Jest 30 (`jest`, `@types/jest`, `jest-expo`
+  together, see Expo's "Migrate tests to SDK 58").
+- Tests cannot change the time zone at runtime (Jest copies `process.env` per file); the device
+  zone is fixed to `America/Toronto` in `jest.globalSetup.js`, other zones go through the
+  functions' `timeZone` arguments.
+- `ApiErrorCode` in `src/api/types.ts` lacks `family_owner_cannot_leave`, `item_already_answered`
+  and `ssv_signature_invalid` from API.md (typing only; `errorMessage` maps the first, the
+  second shows the server message).
+
 - Purchases and ads are native-only (`src/config/monetization.ts`): on web, in Expo Go and
   without RevenueCat keys the Plan card keeps the disabled "Upgrade — coming soon" button and
   `/family-plan` shows "Purchases are only available in the app"; the "Watch a short video"
@@ -304,6 +315,49 @@ themes (light/dark).
   splash (blue `#1D6FD8`, dark `#10233F`). `npx expo-doctor` 21/21; `npx expo config --type public`.
 
 ## Log
+
+### 2026-10-16 - Unit tests (Jest + jest-expo) and bugs they found
+
+Added a lean unit-test setup and 294 tests for the pure logic (11 suites, ~10 s warm; no network,
+no device). See README "Tests".
+
+- **Setup:** `jest-expo` ~57.0.6, `jest` ~29.7.0, `@types/jest` 29.5.14 (dev, via
+  `npx expo install`); no `@testing-library/react-native` (no component tests yet). `npm test` /
+  `npm run test:watch`; `jest` config in `package.json` (tests = `src/**/__tests__/*.test.ts`,
+  Expo's `transformIgnorePatterns` + `standard-navigation`, which expo-router 57 imports as ESM);
+  `jest.setup.ts` swaps Reanimated / Worklets / AsyncStorage for their shipped mocks;
+  `jest.globalSetup.js` pins `TZ=America/Toronto`; `tsconfig.json` `"types": ["jest"]` (Expo docs).
+  Tests are not bundled (router only bundles what routes import; checked in the web export).
+- **Covered:** Sudoku logic (payload guard, boxes 4/6/9 incl. 6×6 [2,3] vs [3,2], row/column/box
+  duplicates, notes), word logic (guards, `lineCells`/`matchSelection` in all 8 directions both
+  ways, `snapToLine` + clipping, accents, shuffle), registry (every contract example playable,
+  malformed payloads skipped, unknown types), `normalizeCode`/`groupCode`, `compareVersions`,
+  `selectThemeKey`/`selectAccessibility`, `errorMessage` for every contract code (+ each string
+  exists in en.json), goals dates (late-evening Toronto, Tokyo vs Toronto, Monday/Sunday, year
+  end, DST, exclusive `ends_at`, family vs device zone, `formatTimeLeft`), notification times +
+  quiet-hours defaults, answer queue (order, dedupe, AsyncStorage persist/rehydrate, flush
+  order, stop on network error/timeout, retry, 409 drop + invalidate, single in-flight flush),
+  en/fr parity (keys, CLDR plural forms, `{{placeholders}}`, no empty strings).
+- **Bugs found and fixed (minimal):**
+  1. Word puzzles: `normalizeWord` did not NFC-normalize (API.md says the server does), so a
+     decomposed accent (`e` + U+0301) never matched a precomposed `É` in the word search, and
+     anagram/missing-letter showed it as two characters. Now `normalize('NFC')` first.
+  2. Challenge registry: `isChallengeTypeSupported` used `type in registry`, so an item type
+     like `constructor` / `toString` counted as supported and `isPlayable` threw
+     ("isValidPayload is not a function") instead of skipping it. Same pattern in `isThemeKey`
+     (`ui_theme: "toString"` would have selected a non-theme). Both use own-key checks now.
+  3. Goal period labels were formatted in the **device** zone; API.md defines the bounds as
+     family-timezone midnights, so on a device in another zone (travel, relatives abroad) the
+     week showed e.g. "Oct 11 – Oct 18". `formatDate`/`formatPeriodRange` take an optional
+     `timeZone`; the goal detail (current period + history rows) passes the family's.
+  4. `compareVersions("1.2.3-rc.1", "1.2.3")` returned 1 (the `.1` of the suffix counted as a
+     4th part), contrary to its doc; suffixes after `-`/`+` are dropped first now.
+  5. fr.json lacked the CLDR `many` plural form for `play.worth`, `challenge.math.secondsLeft`,
+     `billing.unlockMembers/Categories/Goals` (i18next would show the raw key for e.g. 1 000 000);
+     added (same text as `_other`, like the other 21 `_many` keys).
+- `defaultQuietHours` moved from `NotificationsScreen.tsx` to `notifications/time.ts` (testable).
+- Checks: `npm test` 294/294, typecheck, lint, format:check green; web export bundles; expo-doctor
+  21/21.
 
 ### 2026-10-16 - F7 release prep + legal clarifications (client)
 

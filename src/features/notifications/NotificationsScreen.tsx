@@ -11,7 +11,7 @@ import {
   useNotificationPreferences,
   useUpdateNotificationPreferences,
 } from '@/features/notifications/hooks';
-import { formatTime, pad2, parseTime } from '@/features/notifications/time';
+import { defaultQuietHours, formatTime, pad2, parseTime } from '@/features/notifications/time';
 import { usePushPermission } from '@/features/notifications/usePush';
 import { errorMessage } from '@/lib/errorMessage';
 import {
@@ -37,13 +37,6 @@ const TYPES: { key: NotificationType; icon: IconName }[] = [
 ];
 
 const MINUTE_STEP = 15;
-
-/** Contract defaults, used when quiet hours are turned back on. */
-function defaultQuietHours(ageBand: AgeBand | undefined) {
-  return ageBand === 'child'
-    ? { quiet_from: '19:30', quiet_to: '07:30' }
-    : { quiet_from: '21:30', quiet_to: '07:00' };
-}
 
 /** Hour + minute steppers; works the same on web and native. */
 function TimeSelector({

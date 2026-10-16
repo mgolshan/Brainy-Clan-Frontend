@@ -1,13 +1,18 @@
-/** Locale-aware short date ("Oct 17, 2026"); falls back to the ISO date if Intl is unavailable. */
-export function formatDate(iso: string, locale: string): string {
+/**
+ * Locale-aware short date ("Oct 17, 2026"); falls back to the ISO date if Intl is unavailable.
+ * `timeZone` (IANA) picks the calendar day of that zone instead of the device's.
+ */
+export function formatDate(iso: string, locale: string, timeZone?: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
+  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
   try {
-    return new Intl.DateTimeFormat(locale, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    }).format(date);
+    return new Intl.DateTimeFormat(locale, { ...options, timeZone }).format(date);
+  } catch {
+    // Unknown zone (or no time zone support): retry in the device zone.
+  }
+  try {
+    return new Intl.DateTimeFormat(locale, options).format(date);
   } catch {
     return iso.slice(0, 10);
   }

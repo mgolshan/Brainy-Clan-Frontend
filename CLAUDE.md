@@ -76,14 +76,20 @@ Import with the `@/` alias (`@/*` -> `src/*`); route files in `app/` import from
 
 ```bash
 npm start            # Metro dev server (scan QR with Expo Go)
+npm test             # unit tests (Jest + jest-expo), npm run test:watch while working
 npm run typecheck    # tsc --noEmit
 npm run lint         # expo lint (ESLint)
 npm run format       # prettier --write .
 npx expo-doctor      # dependency/config health
 ```
 
-Run `npm run typecheck`, `npm run lint` and `npm run format:check` before declaring a task done;
-`npx expo export --platform web` must bundle.
+Run `npm test`, `npm run typecheck`, `npm run lint` and `npm run format:check` before declaring a
+task done; `npx expo export --platform web` must bundle.
+
+Tests live in `__tests__/*.test.ts` next to the code under `src/` (never in `app/`); see README
+"Tests". When you add or change pure logic (guards, parsing, dates, queues), add or update its
+tests; keep logic out of components so it stays testable. Every locale key must exist in en and
+fr with all plural forms (`_one`/`_other`, French also `_many`) — the i18n parity test checks it.
 
 ## Native modules / builds
 

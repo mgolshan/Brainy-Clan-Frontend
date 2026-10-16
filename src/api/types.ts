@@ -28,6 +28,8 @@ export type ApiErrorCode =
   | 'social_account_taken'
   | 'last_sign_in_method'
   | 'session_not_active'
+  | 'item_already_answered'
+  | 'family_owner_cannot_leave'
   | 'second_chance_unavailable'
   | 'ad_reward_pending'
   | 'app_update_required'

@@ -35,11 +35,20 @@ import {
   useTheme,
 } from '@/ui';
 
-function HistoryRow({ entry, goal }: { entry: GoalHistoryEntry; goal: GoalPlan }) {
+function HistoryRow({
+  entry,
+  goal,
+  timeZone,
+}: {
+  entry: GoalHistoryEntry;
+  goal: GoalPlan;
+  /** Family time zone: period bounds are its midnights. */
+  timeZone?: string;
+}) {
   const { t, i18n } = useTranslation();
   const theme = useTheme();
   const winners = entry.entries.filter((e) => entry.winner_member_ids.includes(e.member_id));
-  const range = formatPeriodRange(entry.starts_at, entry.ends_at, i18n.language);
+  const range = formatPeriodRange(entry.starts_at, entry.ends_at, i18n.language, timeZone);
   return (
     <View style={[styles.historyRow, { gap: theme.spacing.sm, minHeight: theme.touchTarget }]}>
       <View style={styles.flex}>
@@ -181,7 +190,7 @@ export function GoalDetailScreen({ id }: { id: number }) {
           keyExtractor={(row) => String(row.period_id)}
           renderItem={({ item }) => (
             <Card padding="sm">
-              <HistoryRow entry={item} goal={g} />
+              <HistoryRow entry={item} goal={g} timeZone={me?.family?.timezone} />
             </Card>
           )}
           ItemSeparatorComponent={HistoryGap}
@@ -242,7 +251,7 @@ export function GoalDetailScreen({ id }: { id: number }) {
             <Badge label={formatTimeLeft(t, p.ends_at, now)} icon="time-outline" tone="accent" />
           </View>
           <Text variant="caption" tone="muted">
-            {formatPeriodRange(p.starts_at, p.ends_at, i18n.language)}
+            {formatPeriodRange(p.starts_at, p.ends_at, i18n.language, me?.family?.timezone)}
           </Text>
           {g.mode === 'cooperation' ? (
             <TeamProgress progress={p} />

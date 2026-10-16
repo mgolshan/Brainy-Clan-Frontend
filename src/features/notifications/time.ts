@@ -1,3 +1,5 @@
+import type { AgeBand } from '@/api/types';
+
 /** `HH:MM` (24 h) helpers for notification times. */
 
 export interface HourMinute {
@@ -19,3 +21,10 @@ export function formatTime({ hour, minute }: HourMinute): string {
 }
 
 export const pad2 = (n: number) => String(n).padStart(2, '0');
+
+/** Contract defaults (API.md), used when quiet hours are turned back on. */
+export function defaultQuietHours(ageBand: AgeBand | undefined) {
+  return ageBand === 'child'
+    ? { quiet_from: '19:30', quiet_to: '07:30' }
+    : { quiet_from: '21:30', quiet_to: '07:00' };
+}

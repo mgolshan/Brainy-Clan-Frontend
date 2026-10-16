@@ -76,13 +76,19 @@ export function startDateOptions(now = new Date(), timeZone?: string) {
 /**
  * "Oct 12 – Oct 18, 2026" style label for a goal period. `ends_at` is the exclusive end of the
  * window (next period's start), so the last day shown is one moment before it; a daily period
- * shows a single date.
+ * shows a single date. The bounds are midnights in the family time zone (API.md), so pass
+ * `timeZone` to label them by the family's calendar on a device in another zone.
  */
-export function formatPeriodRange(startsAt: string, endsAt: string, locale: string): string {
+export function formatPeriodRange(
+  startsAt: string,
+  endsAt: string,
+  locale: string,
+  timeZone?: string,
+): string {
   const end = new Date(new Date(endsAt).getTime() - 1);
-  const first = formatDate(startsAt, locale);
+  const first = formatDate(startsAt, locale, timeZone);
   const last = Number.isNaN(end.getTime())
-    ? formatDate(endsAt, locale)
-    : formatDate(end.toISOString(), locale);
+    ? formatDate(endsAt, locale, timeZone)
+    : formatDate(end.toISOString(), locale, timeZone);
   return first === last ? first : `${first} – ${last}`;
 }
