@@ -27,6 +27,7 @@ import {
   Button,
   Card,
   Celebration,
+  Checkbox,
   Chip,
   Confetti,
   Divider,
@@ -260,6 +261,18 @@ function PreviewBody({ controls }: { controls: ReactNode }) {
           onValueChange={setToggle}
         />
         <Stepper label="Difficulty" value={stepper} min={1} max={10} onChange={setStepper} />
+        <Checkbox
+          label="I agree to the Terms of use and the Privacy policy"
+          checked={toggle}
+          onChange={setToggle}
+        />
+        <Checkbox
+          label="I'm this child's parent or guardian"
+          description="Required to invite children."
+          checked={false}
+          onChange={() => undefined}
+          error="Please confirm parental consent."
+        />
       </Card>
 
       <SectionHeader title={t('dev.avatars')} />

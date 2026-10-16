@@ -15,6 +15,7 @@ import type {
   SessionItem,
   SessionPayload,
 } from '@/api/types';
+import { usePolicy } from '@/features/auth/hooks';
 import { rewardedAds } from '@/features/play/rewardedAd';
 import { AdError } from '@/features/play/rewardedAdTypes';
 
@@ -179,6 +180,7 @@ export type AdStage = 'loading' | 'watching' | 'checking';
 export function useAdSecondChance(sessionId: number, memberId: number | undefined) {
   const [stage, setStage] = useState<AdStage | null>(null);
   const unclaimed = useRef<string | null>(null);
+  const adRequest = usePolicy()?.ad_request;
 
   const mutation = useMutation({
     mutationFn: async (): Promise<SessionPayload | null> => {
@@ -191,6 +193,7 @@ export function useAdSecondChance(sessionId: number, memberId: number | undefine
           const outcome = await rewardedAds.show({
             userId: String(memberId),
             customData: `${ref}:${sessionId}`,
+            adRequest,
             onShowing: () => setStage('watching'),
           });
           if (outcome === 'dismissed') return null;

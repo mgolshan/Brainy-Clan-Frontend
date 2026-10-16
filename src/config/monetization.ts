@@ -62,6 +62,6 @@ export const ADMOB_REWARDED_UNIT_ID: string | null = isNativeBuild ? rewardedUni
 /** Rewarded ads can be shown in this build. */
 export const adsSupported = ADMOB_REWARDED_UNIT_ID !== null;
 
-/** Legal links on the paywall (required by the stores before release); hidden when unset. */
+/** Fallback paywall legal links when the backend serves no `GET /legal`; hidden when unset. */
 export const TERMS_URL: string | null = clean(process.env.EXPO_PUBLIC_TERMS_URL);
 export const PRIVACY_URL: string | null = clean(process.env.EXPO_PUBLIC_PRIVACY_URL);

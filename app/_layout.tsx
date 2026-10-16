@@ -15,6 +15,7 @@ import { queryClient, wireQueryClientToDevice } from '@/api/queryClient';
 import { useChallengeDrafts } from '@/challenges/drafts';
 import { AppThemeProvider } from '@/features/app/AppThemeProvider';
 import { useMinVersionGate } from '@/features/app/useHealth';
+import { initMonitoring, setMonitoringMember, withMonitoring } from '@/features/app/sentry';
 import { useLocaleSync } from '@/features/app/useLocaleSync';
 import { useMe } from '@/features/auth/hooks';
 import { configureNotifications } from '@/features/notifications/push';
@@ -25,6 +26,9 @@ import { useSession } from '@/store/session';
 import { ErrorState, Loading, useTheme } from '@/ui';
 import { themeFonts } from '@/ui/themes/fonts';
 
+// Error monitoring first, so startup errors are caught (no-op without EXPO_PUBLIC_SENTRY_DSN).
+initMonitoring();
+
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 // Web social sign-in: when this page is the provider's popup returning to /oauth-callback, hand
@@ -34,7 +38,7 @@ if (Platform.OS === 'web') WebBrowser.maybeCompleteAuthSession();
 // Foreground banners for pushes (no-op on web, in Expo Go and without an EAS project).
 configureNotifications();
 
-export default function RootLayout() {
+function RootLayout() {
   const [fontsLoaded, fontError] = useFonts(themeFonts);
 
   useEffect(() => {
@@ -74,6 +78,10 @@ function RootNavigator() {
   const minVersionGate = useMinVersionGate();
 
   useLocaleSync(me.data?.user.locale);
+
+  // Monitoring knows only the member id (never names), and forgets it on sign-out.
+  const memberId = token ? (me.data?.member?.id ?? null) : null;
+  useEffect(() => setMonitoringMember(memberId), [memberId]);
   useAnswerQueueSync(!!token);
 
   // Drop every cached server response (and queued answers) once the token disappears.
@@ -111,9 +119,13 @@ function RootNavigator() {
   const signedIn = !!token;
   const hasFamily = !!me.data?.family;
   const waitingForMe = signedIn && !me.data;
+  // B9: adults re-accept updated Terms / Privacy Policy before anything else (`me.legal` is
+  // absent on older backends = nothing to accept; children never see it).
+  const needsLegal =
+    signedIn && me.data?.legal?.needs_acceptance === true && !me.data.policy.is_child;
 
   usePushRegistration(signedIn);
-  useNotificationDeepLinks(hydrated && !updateRequired && signedIn && hasFamily);
+  useNotificationDeepLinks(hydrated && !updateRequired && signedIn && hasFamily && !needsLegal);
 
   let blocking: ReactNode = null;
   if (!hydrated || (waitingForMe && me.isPending)) {
@@ -141,10 +153,13 @@ function RootNavigator() {
           <Stack.Protected guard={!updateRequired && !signedIn}>
             <Stack.Screen name="(auth)" />
           </Stack.Protected>
-          <Stack.Protected guard={!updateRequired && signedIn && !hasFamily}>
+          <Stack.Protected guard={!updateRequired && needsLegal}>
+            <Stack.Screen name="legal-update" />
+          </Stack.Protected>
+          <Stack.Protected guard={!updateRequired && signedIn && !needsLegal && !hasFamily}>
             <Stack.Screen name="(onboarding)" />
           </Stack.Protected>
-          <Stack.Protected guard={!updateRequired && signedIn && hasFamily}>
+          <Stack.Protected guard={!updateRequired && signedIn && !needsLegal && hasFamily}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="play/[session]" options={{ gestureEnabled: false }} />
             <Stack.Screen name="category/[id]" />
@@ -170,6 +185,8 @@ function RootNavigator() {
     </NavThemeProvider>
   );
 }
+
+export default withMonitoring(RootLayout);
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },

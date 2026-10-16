@@ -11,11 +11,12 @@ import { fakeSocial, PROVIDER_NAMES } from '@/features/auth/social/config';
 import { SocialButton } from '@/features/auth/social/SocialButton';
 import type { ProviderCredential, ProviderTokenSource } from '@/features/auth/social/types';
 import { useSocialProviders } from '@/features/auth/social/useSocialProviders';
+import { AcceptTerms } from '@/features/legal/components';
 import i18n from '@/i18n';
 import { formErrors } from '@/lib/formErrors';
 import { Button, Card, Text, useTheme } from '@/ui';
 
-const BIRTH_FIELDS = ['birth_year', 'birth_month'] as const;
+const BIRTH_FIELDS = ['birth_year', 'birth_month', 'accept_terms'] as const;
 
 /** A thin "—— or ——" separator between the social buttons and the other options. */
 export function OrDivider() {
@@ -61,6 +62,7 @@ export function SocialSignIn({ divider = 'none' }: SocialSignInProps) {
   } | null>(null);
   const [year, setYear] = useState('');
   const [month, setMonth] = useState<number | null>(null);
+  const [accepted, setAccepted] = useState(false);
 
   if (providers.length === 0) return null;
 
@@ -86,6 +88,7 @@ export function SocialSignIn({ divider = 'none' }: SocialSignInProps) {
               if (isApiError(error, 'social_signup_incomplete')) {
                 setYear('');
                 setMonth(null);
+                setAccepted(false);
                 // Same credential on retry (Apple's name comes only once, so it rides along).
                 setPending({ provider: source.provider, credential });
               }
@@ -101,10 +104,15 @@ export function SocialSignIn({ divider = 'none' }: SocialSignInProps) {
   };
 
   const finish = () => {
-    if (!pending || year.length !== 4 || month === null) return;
+    if (!pending || year.length !== 4 || month === null || !accepted) return;
     signIn.mutate({
       ...pending,
-      birth: { birth_year: Number(year), birth_month: month, locale: i18n.language },
+      birth: {
+        birth_year: Number(year),
+        birth_month: month,
+        locale: i18n.language,
+        accept_terms: true,
+      },
     });
   };
 
@@ -157,6 +165,9 @@ export function SocialSignIn({ divider = 'none' }: SocialSignInProps) {
         onMonthChange={setMonth}
         yearError={errors.field('birth_year')}
         monthError={errors.field('birth_month')}
+        accepted={accepted}
+        onAcceptedChange={setAccepted}
+        acceptError={errors.field('accept_terms')}
         error={pending ? errors.general : undefined}
         loading={signIn.isPending}
         onSubmit={finish}
@@ -175,6 +186,9 @@ interface BirthStepProps {
   onMonthChange: (v: number) => void;
   yearError?: string;
   monthError?: string;
+  accepted: boolean;
+  onAcceptedChange: (v: boolean) => void;
+  acceptError?: string;
   error?: string;
   loading: boolean;
   onSubmit: () => void;
@@ -185,7 +199,7 @@ interface BirthStepProps {
 function BirthStep(props: BirthStepProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const ready = props.year.length === 4 && props.month !== null;
+  const ready = props.year.length === 4 && props.month !== null && props.accepted;
   return (
     <Modal
       visible={props.visible}
@@ -211,6 +225,11 @@ function BirthStep(props: BirthStepProps) {
               yearError={props.yearError}
               monthError={props.monthError}
               yearPlaceholder="1988"
+            />
+            <AcceptTerms
+              checked={props.accepted}
+              onChange={props.onAcceptedChange}
+              error={props.acceptError}
             />
             {props.error ? (
               <Text tone="danger" accessibilityLiveRegion="polite">

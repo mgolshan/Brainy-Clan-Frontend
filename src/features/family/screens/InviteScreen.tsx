@@ -7,6 +7,8 @@ import { Platform, Share, StyleSheet, View } from 'react-native';
 import type { AvatarKey, Invite } from '@/api/types';
 import { BirthDateFields } from '@/features/auth/components/BirthDateFields';
 import { useCreateInvite } from '@/features/family/hooks';
+import { LegalLinks } from '@/features/legal/components';
+import { useLegal } from '@/features/legal/hooks';
 import { AvatarPicker } from '@/features/profile/AvatarPicker';
 import { formatDate } from '@/lib/format';
 import { formErrors } from '@/lib/formErrors';
@@ -17,6 +19,7 @@ import {
   Badge,
   Button,
   Card,
+  Checkbox,
   Confetti,
   Screen,
   Text,
@@ -75,7 +78,15 @@ function InviteCode({ invite }: { invite: Invite }) {
   );
 }
 
-/** Admin: invite a member with nickname + birth year/month (`POST /family/invites`). */
+/**
+ * Admin: invite a member with nickname + birth year/month (`POST /family/invites`).
+ *
+ * Parental consent (B9): the server requires `parental_consent: true` when the birth date falls
+ * in a band with `is_child`. The app must not compute age bands and there is no server signal
+ * before the invite exists, so the consent checkbox is shown for every invite (worded "if this is
+ * a child"), is optional on the client, and is sent only when ticked; the server's 422 on
+ * `parental_consent` decides and is shown under the checkbox.
+ */
 export function InviteScreen() {
   const { t } = useTranslation();
   const create = useCreateInvite();
@@ -83,7 +94,15 @@ export function InviteScreen() {
   const [year, setYear] = useState('');
   const [month, setMonth] = useState<number | null>(null);
   const [avatar, setAvatar] = useState<AvatarKey | null>(null);
-  const errors = formErrors(create.error, t, ['nickname', 'birth_year', 'birth_month', 'avatar']);
+  const [consent, setConsent] = useState(false);
+  const legal = useLegal().data;
+  const errors = formErrors(create.error, t, [
+    'nickname',
+    'birth_year',
+    'birth_month',
+    'avatar',
+    'parental_consent',
+  ]);
 
   if (create.data) {
     return (
@@ -116,6 +135,16 @@ export function InviteScreen() {
           hint={t('invite.birthHint')}
         />
         <AvatarPicker value={avatar} onChange={setAvatar} />
+        <View>
+          <Checkbox
+            label={t('legal.parentalConsent')}
+            description={t('legal.parentalConsentHint')}
+            checked={consent}
+            onChange={setConsent}
+            error={errors.field('parental_consent')}
+          />
+          <LegalLinks legal={legal} />
+        </View>
         {errors.general ? <Text tone="danger">{errors.general}</Text> : null}
         <Button
           title={t('invite.create')}
@@ -130,6 +159,7 @@ export function InviteScreen() {
               birth_year: Number(year),
               birth_month: month,
               ...(avatar ? { avatar } : {}),
+              ...(consent ? { parental_consent: true } : {}),
             })
           }
         />

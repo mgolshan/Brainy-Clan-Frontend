@@ -1,3 +1,5 @@
+import type { AdRequestPolicy } from '@/api/types';
+
 /** Shared shapes for the AdMob wrapper (`rewardedAd.ts` native, `rewardedAd.web.ts` stub). */
 
 export type AdErrorKind = 'noFill' | 'failed';
@@ -18,6 +20,11 @@ export interface RewardedAdRequest {
   userId: string;
   /** AdMob SSV `custom_data`: `"<reward_ref>:<session_id>"` (contract). */
   customData: string;
+  /**
+   * How to request the ad: the member's `policy.ad_request` (server decides). Absent on older
+   * backends → safe defaults (non-personalized, rating G, no under-age tag).
+   */
+  adRequest?: AdRequestPolicy;
   /** Called when the ad is loaded and about to be shown. */
   onShowing?: () => void;
 }

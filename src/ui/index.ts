@@ -9,6 +9,7 @@ export { Button, type ButtonProps, type ButtonVariant } from '@/ui/components/Bu
 export { Card, surfaceStyle, withAlpha } from '@/ui/components/Card';
 export { Celebration, Confetti } from '@/ui/components/Celebration';
 export {
+  Checkbox,
   Chip,
   IconBubble,
   SectionHeader,

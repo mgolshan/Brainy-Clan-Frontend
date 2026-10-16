@@ -174,6 +174,77 @@ export function ToggleRow({
   );
 }
 
+interface CheckboxProps {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  /** Extra line under the label (e.g. "Required for children"). */
+  description?: string;
+  /** Server/form error shown under the row. */
+  error?: string;
+  disabled?: boolean;
+}
+
+/** Square checkbox + label, full-row tappable (consent and agreement rows). */
+export function Checkbox({
+  label,
+  checked,
+  onChange,
+  description,
+  error,
+  disabled,
+}: CheckboxProps) {
+  const theme = useTheme();
+  const c = theme.colors;
+  const box = 24;
+  return (
+    <View style={{ gap: 4 }}>
+      <PressableScale
+        onPress={() => onChange(!checked)}
+        disabled={disabled}
+        haptic
+        accessibilityRole="checkbox"
+        accessibilityLabel={label}
+        accessibilityHint={description}
+        accessibilityState={{ checked, disabled: !!disabled }}
+        // react-native-web ignores `accessibilityState.checked`; ARIA props reach the DOM.
+        aria-checked={checked}
+        style={[
+          styles.row,
+          styles.checkRow,
+          { minHeight: theme.touchTarget, gap: theme.spacing.sm, opacity: disabled ? 0.5 : 1 },
+        ]}>
+        <View
+          style={[
+            styles.box,
+            {
+              width: box,
+              height: box,
+              borderRadius: theme.surface === 'outlined' ? 4 : Math.min(theme.radius.sm, 8),
+              borderColor: error ? c.danger : checked ? c.primary : c.borderStrong,
+              backgroundColor: checked ? c.primary : c.surface,
+            },
+          ]}>
+          {checked ? <Icon name="checkmark" size={18} color={c.onPrimary} /> : null}
+        </View>
+        <View style={styles.flex}>
+          <Text>{label}</Text>
+          {description ? (
+            <Text variant="caption" tone="muted">
+              {description}
+            </Text>
+          ) : null}
+        </View>
+      </PressableScale>
+      {error ? (
+        <Text variant="caption" tone="danger" accessibilityLiveRegion="polite">
+          {error}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
 interface StepperProps {
   label: string;
   value: number | null;
@@ -302,6 +373,8 @@ const styles = StyleSheet.create({
   chip: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   row: { flexDirection: 'row', alignItems: 'center' },
+  checkRow: { alignItems: 'flex-start', paddingVertical: 8 },
+  box: { borderWidth: 2, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
   flex: { flex: 1 },
   stepBtn: { alignItems: 'center', justifyContent: 'center' },
   stepValue: { fontVariant: ['tabular-nums'] },

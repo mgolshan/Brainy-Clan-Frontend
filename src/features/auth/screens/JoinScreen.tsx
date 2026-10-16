@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text as RNText, View } from 'react-native';
 
 import { useJoin } from '@/features/auth/hooks';
+import { AcceptTerms } from '@/features/legal/components';
 import { CODE_LENGTH, normalizeCode } from '@/lib/code';
 import { formErrors } from '@/lib/formErrors';
 import { Button, Card, Screen, Text, TextField, ToggleRow, useTheme } from '@/ui';
@@ -20,13 +21,15 @@ export function JoinScreen() {
   const [withLogin, setWithLogin] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const errors = formErrors(join.error, t, ['code', 'email', 'password']);
+  const [accepted, setAccepted] = useState(false);
+  const errors = formErrors(join.error, t, ['code', 'email', 'password', 'accept_terms']);
 
-  const ready = code.length === CODE_LENGTH && (!withLogin || (email.trim() && password));
+  const ready =
+    code.length === CODE_LENGTH && (!withLogin || (email.trim() && password && accepted));
 
   const submit = () => {
     if (!ready) return;
-    join.mutate(withLogin ? { code, email: email.trim(), password } : { code });
+    join.mutate(withLogin ? { code, email: email.trim(), password, accept_terms: true } : { code });
   };
 
   return (
@@ -73,6 +76,11 @@ export function JoinScreen() {
               autoComplete="new-password"
               hint={t('register.passwordHint')}
               error={errors.field('password')}
+            />
+            <AcceptTerms
+              checked={accepted}
+              onChange={setAccepted}
+              error={errors.field('accept_terms')}
             />
           </>
         ) : null}

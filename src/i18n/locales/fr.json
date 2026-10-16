@@ -802,5 +802,27 @@
     "doneBody": "Merci d'avoir joué avec Brainy Clan. Vous êtes déconnecté sur tous vos appareils.",
     "managedTitle": "C'est l'administrateur de ta famille qui peut le faire",
     "managedBody": "Les comptes des enfants et des ados sont gérés par la famille. Demande à un administrateur de te retirer de la famille : cela supprime ton compte."
+  },
+  "legal": {
+    "terms": "Conditions d'utilisation",
+    "privacy": "Politique de confidentialité",
+    "opensBrowser": "Ouvre la page dans un navigateur",
+    "acceptTerms": "J'accepte les Conditions d'utilisation et la Politique de confidentialité",
+    "parentalConsent": "S'il s'agit d'un enfant : je suis son parent ou tuteur (ou j'ai leur permission) et j'accepte la Politique de confidentialité pour ses données",
+    "parentalConsentHint": "Obligatoire pour inviter un enfant. Inutile pour les ados et les adultes.",
+    "updateTitle": "Nos conditions ont changé",
+    "updateSubtitle": "Merci de les consulter pour continuer à utiliser Brainy Clan",
+    "updateBody": "Nos Conditions d'utilisation et notre Politique de confidentialité ont été mises à jour. Touchez chacune pour la lire, puis acceptez pour continuer.",
+    "version": "Version {{version}}",
+    "accept": "Accepter et continuer",
+    "declineHint": "Si vous n'êtes pas d'accord, vous pouvez vous déconnecter.",
+    "privacyTitle": "Confidentialité",
+    "exportTitle": "Télécharger mes données",
+    "exportHint": "Une copie de vos données dans un fichier JSON (une fois par heure).",
+    "exportDone": "Vos données ont été téléchargées.",
+    "exportFailed": "Impossible d'enregistrer le fichier. Veuillez réessayer.",
+    "exportRateLimited": "Vous pouvez télécharger vos données une fois par heure. Réessayez plus tard.",
+    "exportUnavailable": "Le téléchargement de vos données n'est pas encore disponible.",
+    "exportNotAllowed": "L'administrateur de votre famille gère vos données. Demandez-lui une copie."
   }
 }

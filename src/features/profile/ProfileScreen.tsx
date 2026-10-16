@@ -9,6 +9,7 @@ import { useHealth } from '@/features/app/useHealth';
 import { useMe, useSignOut } from '@/features/auth/hooks';
 import { SignInMethods } from '@/features/auth/social/SignInMethods';
 import { DevicesList } from '@/features/family/components/DevicesList';
+import { PrivacySection } from '@/features/legal/PrivacySection';
 import { useNotificationPreferences } from '@/features/notifications/hooks';
 import { AccessibilityEditor } from '@/features/profile/AccessibilityEditor';
 import { AvatarPicker } from '@/features/profile/AvatarPicker';
@@ -203,6 +204,9 @@ export function ProfileScreen() {
         </>
       ) : null}
 
+      {/* Terms/privacy links, data export and account deletion (children: links only). */}
+      <PrivacySection policy={policy} />
+
       <SectionHeader title={t('profile.about')} />
       <Card padding="sm">
         <ListRow title={t('profile.version')} subtitle={APP_VERSION} chevron={false} />
@@ -231,16 +235,6 @@ export function ProfileScreen() {
         loading={signOut.isPending}
         onPress={() => signOut.mutate()}
       />
-
-      {/* Children can't delete themselves (server-side policy); everyone else can. */}
-      {!policy.is_child ? (
-        <Button
-          title={t('deletion.accountTitle')}
-          variant="ghost"
-          icon="trash-outline"
-          onPress={() => router.push('/delete-account')}
-        />
-      ) : null}
     </Screen>
   );
 }

@@ -4,12 +4,20 @@ import { useTranslation } from 'react-i18next';
 
 import { BirthDateFields } from '@/features/auth/components/BirthDateFields';
 import { useRegister } from '@/features/auth/hooks';
+import { AcceptTerms } from '@/features/legal/components';
 import { SocialSignIn } from '@/features/auth/social/SocialSignIn';
 import i18n from '@/i18n';
 import { formErrors } from '@/lib/formErrors';
 import { Button, Card, Screen, Text, TextField } from '@/ui';
 
-const FIELDS = ['display_name', 'email', 'password', 'birth_year', 'birth_month'] as const;
+const FIELDS = [
+  'display_name',
+  'email',
+  'password',
+  'birth_year',
+  'birth_month',
+  'accept_terms',
+] as const;
 
 /**
  * Parent sign-up (`POST /auth/register`). The server decides whether the age qualifies for an
@@ -23,9 +31,11 @@ export function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [year, setYear] = useState('');
   const [month, setMonth] = useState<number | null>(null);
+  const [accepted, setAccepted] = useState(false);
   const errors = formErrors(register.error, t, FIELDS);
 
-  const ready = name.trim() && email.trim() && password.length > 0 && year.length === 4 && month;
+  const ready =
+    name.trim() && email.trim() && password.length > 0 && year.length === 4 && month && accepted;
 
   const submit = () => {
     if (!ready || month === null) return;
@@ -36,6 +46,7 @@ export function RegisterScreen() {
       birth_year: Number(year),
       birth_month: month,
       locale: i18n.language,
+      accept_terms: true,
     });
   };
 
@@ -81,6 +92,11 @@ export function RegisterScreen() {
           monthError={errors.field('birth_month')}
           hint={t('register.birthHint')}
           yearPlaceholder="1988"
+        />
+        <AcceptTerms
+          checked={accepted}
+          onChange={setAccepted}
+          error={errors.field('accept_terms')}
         />
         {errors.general ? (
           <Text tone="danger" accessibilityLiveRegion="polite">

@@ -498,6 +498,47 @@ id. AdMob calls the backend's SSV callback; the app then calls
    your reward…" → the game continues with full lives. Closing the ad early shows "Watch the video
    to the end…" (no second chance). As a child, the option never appears.
 
+## Error monitoring — Sentry setup
+
+The app reports crashes and unhandled JS errors to [Sentry](https://sentry.io) with
+`@sentry/react-native` (iOS, Android and web). It is **off unless `EXPO_PUBLIC_SENTRY_DSN` is set**
+(`src/features/app/sentry.ts`).
+
+Privacy (family app with children): `sendDefaultPii: false`; request bodies, headers (Bearer
+token), cookies and query strings are stripped from events and breadcrumbs; console breadcrumbs
+lose their text; no screenshots or view hierarchy; no performance tracing. The only user field is
+the **family member id** — never a nickname, display name or email, for children and adults alike.
+
+### Step 1 – project and DSN
+
+1. Create a Sentry organization (or use yours) and a project of platform **React Native**, e.g.
+   `brainy-clan-app`. Data region: pick the EU region if most families are in the EU.
+2. Project → Settings → Client Keys (DSN) → copy the DSN. It is public (it ships in the app), so
+   it can live in `.env` and EAS environment variables:
+   `EXPO_PUBLIC_SENTRY_DSN=https://<key>@o<org>.ingest.sentry.io/<project>`.
+3. Restart Metro with `--clear`. To check: throw a test error from a dev screen and see it in
+   Sentry (development events are tagged `environment: development`).
+
+### Step 2 – readable stack traces (source maps with EAS)
+
+`metro.config.js` uses Sentry's serializer (Debug IDs in bundles). The upload runs during EAS
+builds through the `@sentry/react-native/expo` config plugin, which `app.config.ts` adds only when
+`SENTRY_ORG` and `SENTRY_PROJECT` are set:
+
+1. Sentry → Settings → Auth Tokens → create an **organization token** (scope: project releases /
+   source maps upload).
+2. Store it as an **EAS secret**, never in `.env`, `eas.json` or the repo:
+   `npx eas-cli@latest env:create --name SENTRY_AUTH_TOKEN --value <token> --visibility secret --environment production --environment preview`.
+3. Add plain EAS variables `SENTRY_ORG` (organization slug) and `SENTRY_PROJECT`
+   (`brainy-clan-app`), plus `EXPO_PUBLIC_SENTRY_DSN`, for the `preview` and `production`
+   environments. Leave `SENTRY_ORG`/`SENTRY_PROJECT` unset for `development` builds (no upload).
+4. Build (`eas build --profile production`); the build log shows "Sentry: uploading source maps".
+   For OTA updates run `npx sentry-expo-upload-sourcemaps dist` after `eas update` (with
+   `SENTRY_AUTH_TOKEN` in the shell environment only).
+
+If a build fails on the Sentry upload step, check the token, or unset `SENTRY_ORG` /
+`SENTRY_PROJECT` for that environment to build without the upload.
+
 ## Troubleshooting
 
 - Phone shows "Can't reach Brainy Clan": allow Node.js and port 8080 through Windows Defender

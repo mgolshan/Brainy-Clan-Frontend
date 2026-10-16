@@ -781,5 +781,27 @@
     "doneBody": "Thanks for playing with Brainy Clan. You're signed out on every device.",
     "managedTitle": "Your family admin can do this",
     "managedBody": "Accounts of children and teens are managed by the family. Ask a family admin to remove you from the family — that deletes your account."
+  },
+  "legal": {
+    "terms": "Terms of use",
+    "privacy": "Privacy policy",
+    "opensBrowser": "Opens the page in a browser",
+    "acceptTerms": "I agree to the Terms of use and the Privacy policy",
+    "parentalConsent": "If this is a child: I'm their parent or guardian (or have their permission) and agree to the Privacy policy for their data",
+    "parentalConsentHint": "Required to invite children. Not needed for teens and adults.",
+    "updateTitle": "We've updated our terms",
+    "updateSubtitle": "Please review them to keep using Brainy Clan",
+    "updateBody": "Our Terms of use and Privacy policy have changed. Tap each one to read it, then accept to continue.",
+    "version": "Version {{version}}",
+    "accept": "Accept and continue",
+    "declineHint": "If you don't agree, you can sign out.",
+    "privacyTitle": "Privacy",
+    "exportTitle": "Download my data",
+    "exportHint": "A copy of your data as a JSON file (once per hour).",
+    "exportDone": "Your data was downloaded.",
+    "exportFailed": "We couldn't save the file. Please try again.",
+    "exportRateLimited": "You can download your data once per hour. Please try again later.",
+    "exportUnavailable": "Downloading your data isn't available yet.",
+    "exportNotAllowed": "Your family admin manages your data. Ask them for a copy."
   }
 }

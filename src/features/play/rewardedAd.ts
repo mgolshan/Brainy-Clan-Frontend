@@ -1,4 +1,5 @@
 import { ADMOB_REWARDED_UNIT_ID, adsSupported } from '@/config/monetization';
+import type { AdRequestPolicy } from '@/api/types';
 import {
   AdError,
   type RewardedAdOutcome,
@@ -11,8 +12,9 @@ import {
  * lazily and only when `adsSupported` (native build with an ad unit, never Expo Go, where the
  * native module is missing and importing it would throw).
  *
- * Only non-personalized ads (`requestNonPersonalizedAdsOnly`, no tracking / ATT prompt), rated
- * G for a family app. Whether a member may see an ad at all is decided by the server
+ * How ads are requested comes from the member policy (`policy.ad_request`:
+ * `requestNonPersonalizedAdsOnly`, `tagForUnderAgeOfConsent`, `maxAdContentRating`); without it
+ * the safe defaults are non-personalized and rated G (no tracking / ATT prompt). Whether a member may see an ad at all is decided by the server
  * (`policy.second_chance.ad_allowed`, `session.second_chance.ad_available`); this only shows one.
  */
 
@@ -46,13 +48,44 @@ function adErrorFrom(error: unknown): AdError {
   return new AdError(code.includes('no-fill') ? 'noFill' : 'failed', message);
 }
 
-async function show({ userId, customData, onShowing }: RewardedAdRequest) {
+function contentRating(
+  mod: AdsModule,
+  rating: AdRequestPolicy['max_ad_content_rating'] | undefined,
+) {
+  const { MaxAdContentRating } = mod;
+  switch (rating) {
+    case 'PG':
+      return MaxAdContentRating.PG;
+    case 'T':
+      return MaxAdContentRating.T;
+    case 'MA':
+      return MaxAdContentRating.MA;
+    default:
+      // 'G', absent or unknown: the safest rating.
+      return MaxAdContentRating.G;
+  }
+}
+
+async function show({ userId, customData, adRequest, onShowing }: RewardedAdRequest) {
   const unitId = ADMOB_REWARDED_UNIT_ID;
   if (!unitId) throw new AdError('failed');
-  const { RewardedAd, RewardedAdEventType, AdEventType } = await loadSdk();
+  const mod = await loadSdk();
+  const { RewardedAd, RewardedAdEventType, AdEventType } = mod;
+
+  try {
+    // Global request configuration, re-applied per ad: the signed-in member may have changed.
+    await mod.default().setRequestConfiguration({
+      maxAdContentRating: contentRating(mod, adRequest?.max_ad_content_rating),
+      // Left unspecified without a policy (the client never decides age rules).
+      ...(adRequest ? { tagForUnderAgeOfConsent: adRequest.under_age_of_consent } : {}),
+    });
+  } catch (error) {
+    throw adErrorFrom(error);
+  }
 
   const ad = RewardedAd.createForAdRequest(unitId, {
-    requestNonPersonalizedAdsOnly: true,
+    // Default true: personalized ads only when the policy explicitly allows them.
+    requestNonPersonalizedAdsOnly: adRequest?.non_personalized ?? true,
     serverSideVerificationOptions: { userId, customData },
   });
 

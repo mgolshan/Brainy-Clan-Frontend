@@ -4,6 +4,8 @@ import type { LeaderboardPeriod } from '@/api/types';
 export const queryKeys = {
   health: ['health'] as const,
   me: ['me'] as const,
+  /** Public `GET /legal` (current terms/privacy versions + URLs). */
+  legal: ['legal'] as const,
   meStats: ['me', 'stats'] as const,
   deletionCheck: ['me', 'deletion-check'] as const,
   socialAccounts: ['me', 'social-accounts'] as const,

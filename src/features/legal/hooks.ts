@@ -1,0 +1,81 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import * as WebBrowser from 'expo-web-browser';
+import { Linking } from 'react-native';
+
+import { api, ApiError } from '@/api/client';
+import { queryKeys } from '@/api/queryKeys';
+import type { Envelope, LegalAcceptanceBody, LegalInfo, MeExport, MePayload } from '@/api/types';
+import { saveExportFile } from '@/features/legal/saveExport';
+import i18n from '@/i18n';
+
+/**
+ * `GET /legal` (public): current Terms / Privacy Policy versions and URLs. `null` when the
+ * backend doesn't serve it yet (404) or can't be reached, so callers simply hide the links.
+ */
+export function useLegal() {
+  return useQuery({
+    queryKey: queryKeys.legal,
+    queryFn: async ({ signal }): Promise<LegalInfo | null> => {
+      try {
+        return (await api.get<Envelope<LegalInfo>>('/legal', { signal })).data;
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) return null;
+        throw error;
+      }
+    },
+    staleTime: 60 * 60_000,
+    retry: (count, error) => !(error instanceof ApiError && error.status === 404) && count < 2,
+  });
+}
+
+/** The legal page in the app language (`?lang=fr` for French, per the contract). */
+export function localizedLegalUrl(url: string): string {
+  if (!i18n.language.startsWith('fr')) return url;
+  return `${url}${url.includes('?') ? '&' : '?'}lang=fr`;
+}
+
+/** Opens a URL in the in-app browser (falls back to the system browser). */
+export function openInAppBrowser(url: string) {
+  void WebBrowser.openBrowserAsync(url).catch(() => Linking.openURL(url).catch(() => {}));
+}
+
+/** Opens a backend legal page (from `GET /legal`) in the app language. */
+export function openLegalPage(url: string) {
+  openInAppBrowser(localizedLegalUrl(url));
+}
+
+/**
+ * `POST /me/legal-acceptance` with the versions the user just saw (must equal the current ones).
+ * On success the `me` cache stops asking, then `/me` is refetched for the server's view.
+ */
+export function useAcceptLegal() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: LegalAcceptanceBody) => {
+      await api.post<void>('/me/legal-acceptance', body);
+      return body;
+    },
+    onSuccess: (body) => {
+      client.setQueryData<MePayload>(queryKeys.me, (prev) =>
+        prev ? { ...prev, legal: { ...body, needs_acceptance: false } } : prev,
+      );
+      void client.invalidateQueries({ queryKey: queryKeys.me, exact: true });
+    },
+  });
+}
+
+export type ExportResult = 'downloaded' | 'shared';
+
+/**
+ * `GET /me/export` (adults, rate-limited to 1 per hour → 429): fetches the user's data as JSON and
+ * hands it to the platform (web download, native share sheet / save to Files).
+ */
+export function useExportMyData() {
+  return useMutation({
+    mutationFn: async (): Promise<ExportResult> => {
+      const data = await api.get<MeExport>('/me/export', { timeoutMs: 60_000 });
+      const date = new Date().toISOString().slice(0, 10);
+      return saveExportFile(`brainy-clan-my-data-${date}.json`, JSON.stringify(data, null, 2));
+    },
+  });
+}

@@ -5,22 +5,32 @@ Milestones are defined in `docs/PLAN.md`.
 
 ## Status
 
-| Milestone                         | Status                                                                                                            | Notes                                                                                                                                                               |
-| --------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Scaffold                          | Done                                                                                                              | Expo SDK 57, Expo Router, tabs and join placeholders, core packages, CLAUDE.md                                                                                      |
-| F0 Local environment              | Done                                                                                                              | `npm install` on Node 24, `.env` with LAN IP `192.168.2.23`, expo-doctor 21/21                                                                                      |
-| F1 App foundation                 | Done                                                                                                              | `/api/v1` client + typed errors, health, version gate, age-adaptive themes, base UI, `/dev/themes`                                                                  |
-| F2 Accounts, family and invites   | Done (sign-in + Family tab checked on web against the mock; real login payload matches)                           | Welcome/register/login/join, create family, Family + Profile tabs, member editor, invites                                                                           |
-| F3 Play loop                      | Done (played against the live backend on web; backend bugs listed in the log)                                     | Categories + drill-down, play screen, MC + Wisdom Card, feedback, lives, second chances, redemption, offline queue, Home                                            |
-| F4 Goals and leaderboard          | Done (verified against the real backend 2026-10-11)                                                               | Goals list, detail (team bar / race, countdown, history), 7-step wizard, Home + Family entry points                                                                 |
-| F2b Member sign-in without email  | Done (verified on web against the real backend B2b)                                                               | Sign-in code screen, admin code screen, member email login, devices list, set/change password                                                                       |
-| F5 Remaining challenge types      | Done (played on web against the real B7 backend 2026-10-11; backend bugs in the log)                              | Sudoku (4/6/9), Math Sprint, Word Puzzles (anagram, missing letter, word search); drafts persisted per item                                                         |
-| F4b Social sign-in                | Built, verified on web against a mock (B6b not served yet; no real client IDs yet)                                | Google + Facebook buttons, birth step, Profile sign-in methods, dev build setup, README guide                                                                       |
-| F4c Sign in with Apple            | Built (checks green; only verifiable on an iPhone dev build)                                                      | Apple's native button on welcome/login/register + Profile sign-in methods, nonce, `authorization_code`, birth step, README setup                                    |
-| F6 Monetization and notifications | Built (paywall + rewarded ads code done; web checks green; purchases/ads need a dev build + store/AdMob accounts) | Family plan card, Notifications, push, account/family deletion (verified on web); RevenueCat paywall and AdMob rewarded ads built 2026-10-16, unverified on a phone |
-| F7 Release                        | Not started                                                                                                       |                                                                                                                                                                     |
+| Milestone                         | Status                                                                                                                              | Notes                                                                                                                                                               |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scaffold                          | Done                                                                                                                                | Expo SDK 57, Expo Router, tabs and join placeholders, core packages, CLAUDE.md                                                                                      |
+| F0 Local environment              | Done                                                                                                                                | `npm install` on Node 24, `.env` with LAN IP `192.168.2.23`, expo-doctor 21/21                                                                                      |
+| F1 App foundation                 | Done                                                                                                                                | `/api/v1` client + typed errors, health, version gate, age-adaptive themes, base UI, `/dev/themes`                                                                  |
+| F2 Accounts, family and invites   | Done (sign-in + Family tab checked on web against the mock; real login payload matches)                                             | Welcome/register/login/join, create family, Family + Profile tabs, member editor, invites                                                                           |
+| F3 Play loop                      | Done (played against the live backend on web; backend bugs listed in the log)                                                       | Categories + drill-down, play screen, MC + Wisdom Card, feedback, lives, second chances, redemption, offline queue, Home                                            |
+| F4 Goals and leaderboard          | Done (verified against the real backend 2026-10-11)                                                                                 | Goals list, detail (team bar / race, countdown, history), 7-step wizard, Home + Family entry points                                                                 |
+| F2b Member sign-in without email  | Done (verified on web against the real backend B2b)                                                                                 | Sign-in code screen, admin code screen, member email login, devices list, set/change password                                                                       |
+| F5 Remaining challenge types      | Done (played on web against the real B7 backend 2026-10-11; backend bugs in the log)                                                | Sudoku (4/6/9), Math Sprint, Word Puzzles (anagram, missing letter, word search); drafts persisted per item                                                         |
+| F4b Social sign-in                | Built, verified on web against a mock (B6b not served yet; no real client IDs yet)                                                  | Google + Facebook buttons, birth step, Profile sign-in methods, dev build setup, README guide                                                                       |
+| F4c Sign in with Apple            | Built (checks green; only verifiable on an iPhone dev build)                                                                        | Apple's native button on welcome/login/register + Profile sign-in methods, nonce, `authorization_code`, birth step, README setup                                    |
+| F6 Monetization and notifications | Built (paywall + rewarded ads code done; web checks green; purchases/ads need a dev build + store/AdMob accounts)                   | Family plan card, Notifications, push, account/family deletion (verified on web); RevenueCat paywall and AdMob rewarded ads built 2026-10-16, unverified on a phone |
+| F7 Release                        | In progress: legal/consent/privacy (B9 client) + Sentry built 2026-10-16, verified on web against current backend + a local B9 mock | Not yet verified against the real B9 backend; store assets/EAS submit not started                                                                                   |
 
 ## Next up
+
+0.  **Verify F7 legal against the real B9 backend** once it is served (see "How to test → F7
+    legal"): `GET /legal` links (register, join with email, social birth step, invite, Profile →
+    Privacy, paywall), `accept_terms` 422 messages, child invite 422 on `parental_consent` without
+    the box, `me.legal.needs_acceptance` → blocking screen → `POST /me/legal-acceptance`,
+    `GET /me/export` download on web + share sheet on a phone, 429 after a second export.
+    Rewarded ads: `policy.ad_request` on a dev build (teen → `tagForUnderAgeOfConsent`).
+    Sentry: set `EXPO_PUBLIC_SENTRY_DSN` and follow README "Error monitoring — Sentry setup";
+    the new native modules (`expo-sharing`, `expo-file-system`, `@sentry/react-native`) need a
+    new EAS development build.
 
 0a. Done 2026-10-16: account/family deletion verified on web against live B6c (see log).
 
@@ -70,9 +80,17 @@ Milestones are defined in `docs/PLAN.md`.
   option is hidden on web / Expo Go / release builds without an ad unit. Development builds
   without ad units use Google's sample rewarded units, which never call the SSV webhook, so the
   reward check ends in "We couldn't confirm your reward yet" — use a real unit + test device.
-- Teens and ads: the app sets only `maxAdContentRating: G` and non-personalized ads. AdMob's
-  `tagForUnderAgeOfConsent` (EU users under the age of digital consent) is not set because the
-  client must not decide age rules; if needed, the policy should carry it (contract gap).
+- Ads request config comes from `policy.ad_request` (2026-10-16): non-personalized, under-age tag
+  and max rating per band. Without it (older backend) the app keeps non-personalized + rating G
+  and leaves `tagForUnderAgeOfConsent` unspecified.
+- Child-invite consent: there is no server signal before an invite exists (the app must not
+  compute bands), so the invite form always shows the "If this is a child: parent/guardian…"
+  checkbox, optional on the client; `parental_consent: true` is sent only when ticked and the
+  server's 422 on `parental_consent` is shown under it. A contract hint (e.g. a band preview
+  endpoint or `policy.invite_requires_consent_below`) would let the app show it only for children.
+- "Download my data" is shown for every non-child (`!policy.is_child`); the contract says
+  "adults" but has no explicit flag, so a teen may get the server's 403 (shown as "Your family
+  admin manages your data").
 
 - Chrome automation on this PC: the controlled window reports `visibilityState: hidden`, so
   Reanimated entering animations freeze mid-way (scaled cards swallow clicks), drags don't
@@ -246,7 +264,65 @@ AdMob setup", `npx eas-cli@latest build --profile development`, `npm run start:d
    re-checks the same reward without another ad.
 7. Child: the option never appears (server `ad_allowed: false`). Family tier: no ads.
 
+### F7 - legal, consent, privacy (B9) and Sentry
+
+Without B9 (current backend): register / join-with-email / social birth step show a required
+"I agree to the Terms of use and the Privacy policy" checkbox (submit stays disabled until
+ticked; no links while `GET /legal` is 404); the invite form shows the optional parental-consent
+checkbox; Profile → Privacy shows "Download my data" (tap → "isn't available yet") and "Delete
+account", no terms rows; no re-acceptance screen.
+
+With B9 (or a mock that adds `me.legal` and `/legal`): links open the backend pages in the in-app
+browser (French adds `?lang=fr`); an adult with `needs_acceptance: true` lands on "We've updated
+our terms" after sign-in (no tabs reachable), "Accept and continue" posts both current versions
+and continues; a child never sees it. Profile → Privacy → Terms / Privacy rows; "Download my
+data" downloads `brainy-clan-my-data-<date>.json` on web, opens the share sheet on a phone; a
+second try within an hour → "once per hour" message. Child invite without the box → error under
+the checkbox. Sentry: with `EXPO_PUBLIC_SENTRY_DSN` set, throw a test error; the event has only
+the member id as user, no request body/headers. Check `/dev/themes` for the checkbox in all four
+themes (light/dark).
+
 ## Log
+
+### 2026-10-16 - F7: legal, consent and privacy (B9 client) + Sentry
+
+Built against the B9 contract (backend not served yet; everything degrades when fields/endpoints
+are missing):
+
+- Types: `LegalInfo`, `MeLegal` (`me.legal?`), `LegalAcceptanceBody`, `MeExport`,
+  `AdRequestPolicy` (`policy.ad_request?`), `accept_terms` on register/join/social bodies,
+  `parental_consent` on invites. New `Checkbox` control in `src/ui` (`aria-checked` on web).
+- `src/features/legal/`: `useLegal` (404 → null, links hidden), `openLegalPage` (expo-web-browser,
+  `?lang=fr`), `AcceptTerms` + `LegalLinks`, `LegalUpdateScreen` (route `legal-update`, root guard
+  `needsLegal` = signed in + `me.legal.needs_acceptance` + not `policy.is_child`, blocks the
+  onboarding/tabs groups), `useAcceptLegal` (POST with the `GET /legal` versions, falling back to
+  `me.legal`), `PrivacySection` in Profile (terms/privacy rows, Download my data, Delete account
+  moved here), `useExportMyData` (`saveExport.web.ts` blob download, `saveExport.ts` expo-file-system
+  - expo-sharing; 429/403/404 messages).
+- Sign-ups send `accept_terms: true` (register, join with email login, social birth step); the
+  server's 422 field error shows under the checkbox. Invite: see Known issues for the consent
+  choice.
+- Paywall legal links use `GET /legal` first, env URLs as fallback (in-app browser).
+- Rewarded ads read `policy.ad_request` (request config re-applied per ad).
+- Sentry (`@sentry/react-native` 7.11 via `npx expo install`): `src/features/app/sentry.ts` (off
+  without `EXPO_PUBLIC_SENTRY_DSN`; `sendDefaultPii: false`; bodies/headers/query strings and
+  console breadcrumb text scrubbed; user = member id only; no screenshots/tracing), root wrapped
+  with `Sentry.wrap` only when on, `metro.config.js` with `getSentryExpoConfig`, config plugin in
+  `app.config.ts` only when `SENTRY_ORG` + `SENTRY_PROJECT` are set; README section.
+- Also installed `expo-sharing`, `expo-file-system` (`npx expo install`).
+- Checks: typecheck, lint, format:check green; `npx expo export --platform web` bundles
+  (route `legal-update` exported; the "Something prevented Expo from exiting" line appears with
+  or without the Sentry metro config); expo-doctor 20/21 (known ios.icon false positive).
+- Verified on web (Mom): register checkbox gates "Create account"; invite checkbox toggles;
+  Profile → Privacy hides terms rows with `/legal` 404 and shows "isn't available yet" for the
+  export. Through a local mock proxy adding `me.legal` / `/legal`: blocking screen appeared,
+  Accept posted `{terms_version, privacy_version}` and routed home; Privacy shows the terms rows.
+  The web export download and the native share sheet were not exercised (no B9 export yet).
+  Test session signed out.
+- Contract gaps (for the coordinator): no pre-invite signal for `parental_consent`; whether
+  `me.legal.*_version` are the user's accepted or the current versions (the app posts the
+  `GET /legal` versions); no "what changed" summary for re-acceptance; no explicit export flag
+  ("adults"); `GET /me/export` body shape/envelope unspecified (saved as returned).
 
 ### 2026-10-16 - F6 RevenueCat paywall + AdMob rewarded ads, small fixes
 

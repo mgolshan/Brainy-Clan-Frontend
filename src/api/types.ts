@@ -163,11 +163,61 @@ export interface Policy {
     ad_allowed: boolean;
     redemption_allowed: boolean;
   };
+  /**
+   * How rewarded ads must be requested (AdMob request configuration), from the band policy.
+   * Optional until the B9 backend serves it: the app then keeps safe defaults
+   * (non-personalized, rating G).
+   */
+  ad_request?: AdRequestPolicy;
   /** `max_active_goals`: `null` = unlimited. */
   limits: { max_members: number; max_categories: number; max_active_goals: number | null };
   accessibility_defaults: Omit<Accessibility, 'theme'>;
   feature_flags: Record<string, unknown>;
 }
+
+/** Policy `ad_request`: AdMob `requestNonPersonalizedAdsOnly`, `tagForUnderAgeOfConsent`, `maxAdContentRating`. */
+export interface AdRequestPolicy {
+  non_personalized: boolean;
+  under_age_of_consent: boolean;
+  max_ad_content_rating: 'G' | 'PG' | 'T' | 'MA' | (string & {});
+}
+
+// ---------------------------------------------------------------------------
+// Legal, consent and privacy (B9)
+// ---------------------------------------------------------------------------
+
+export interface LegalDocument {
+  /** e.g. `2026-10-16`. */
+  version: string;
+  /** HTML page (`?lang=fr` for French). */
+  url: string;
+}
+
+/** `GET /legal` (public). */
+export interface LegalInfo {
+  terms: LegalDocument;
+  privacy: LegalDocument;
+}
+
+/** `me.legal`: adults whose accepted versions are older than the current ones must re-accept. */
+export interface MeLegal {
+  needs_acceptance: boolean;
+  terms_version: string;
+  privacy_version: string;
+}
+
+/** `POST /me/legal-acceptance` (must equal the current versions) → 204. */
+export interface LegalAcceptanceBody {
+  terms_version: string;
+  privacy_version: string;
+}
+
+/**
+ * `GET /me/export` (adults, 1 per hour): a JSON download of the user's own data. The shape is
+ * not part of the contract (profile, memberships, ledger, sessions, goals, consents, devices);
+ * the app only saves/shares it as a file.
+ */
+export type MeExport = Record<string, unknown>;
 
 // ---------------------------------------------------------------------------
 // Health
@@ -194,6 +244,8 @@ export interface MePayload {
   member: Member | null;
   family: Family | null;
   policy: Policy;
+  /** B9: absent on older backends (treated as "nothing to accept"). */
+  legal?: MeLegal;
 }
 
 export interface AuthPayload extends MePayload {
@@ -207,6 +259,8 @@ export interface RegisterBody extends DeviceInfo {
   birth_year: number;
   birth_month: number;
   locale?: string;
+  /** B9: the user agreed to the current Terms and Privacy Policy (422 on `accept_terms` otherwise). */
+  accept_terms: true;
 }
 
 export interface LoginBody extends DeviceInfo {
@@ -218,6 +272,8 @@ export interface JoinBody extends DeviceInfo {
   code: string;
   email?: string;
   password?: string;
+  /** B9: required when joining as an adult with an email login. */
+  accept_terms?: true;
 }
 
 /** `POST /auth/code`: sign in with an admin-issued one-time sign-in code. */
@@ -243,6 +299,8 @@ export interface SocialSignInBody extends DeviceInfo {
   birth_month?: number;
   display_name?: string;
   locale?: string;
+  /** B9: required with the birth data of a first-time sign-up. */
+  accept_terms?: true;
 }
 
 /** A Google/Facebook/Apple account linked to the signed-in user (`GET /me/social-accounts`). */
@@ -374,6 +432,12 @@ export interface CreateInviteBody {
   birth_year: number;
   birth_month: number;
   avatar?: AvatarKey;
+  /**
+   * B9: the admin is the child's parent/guardian (or has their permission) and agrees to the
+   * privacy policy for the child's data. Required (422 on `parental_consent`) when the birth date
+   * falls in a band with `is_child`; the server decides.
+   */
+  parental_consent?: boolean;
 }
 
 // ---------------------------------------------------------------------------

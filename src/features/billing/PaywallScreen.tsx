@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, View } from 'react-native';
+import { View } from 'react-native';
 
 import { useIsAdmin, usePolicy } from '@/features/auth/hooks';
 import {
@@ -14,6 +14,7 @@ import { store } from '@/features/billing/store';
 import { type PaywallPackage, StoreError } from '@/features/billing/storeTypes';
 import { Unlocks } from '@/features/billing/SubscriptionCard';
 import { PRIVACY_URL, TERMS_URL } from '@/config/monetization';
+import { openInAppBrowser, openLegalPage, useLegal } from '@/features/legal/hooks';
 import { errorMessage } from '@/lib/errorMessage';
 import {
   Badge,
@@ -143,6 +144,7 @@ export function PaywallScreen() {
   const { run, step } = usePaywallActions(appUserId);
   const storeErrorText = useStoreErrorText();
   const [chosen, setChosen] = useState<string | null>(null);
+  const legal = useLegal().data;
 
   const title = t('billing.paywall.title');
   const allowed = !!policy && policy.purchases_allowed && !policy.is_child && isAdmin;
@@ -188,8 +190,19 @@ export function PaywallScreen() {
     );
   }
 
-  const terms = TERMS_URL;
-  const privacy = PRIVACY_URL;
+  // Backend legal pages (`GET /legal`, localized) first; the env URLs are the fallback.
+  const termsFallback = TERMS_URL;
+  const privacyFallback = PRIVACY_URL;
+  const openTerms = legal?.terms
+    ? () => openLegalPage(legal.terms.url)
+    : termsFallback
+      ? () => openInAppBrowser(termsFallback)
+      : null;
+  const openPrivacy = legal?.privacy
+    ? () => openLegalPage(legal.privacy.url)
+    : privacyFallback
+      ? () => openInAppBrowser(privacyFallback)
+      : null;
   const list = packages.data ?? [];
   const selected = list.find((p) => p.id === chosen) ?? list[0];
   const busy = run.isPending;
@@ -267,22 +280,22 @@ export function PaywallScreen() {
       <Text variant="caption" tone="muted" align="center">
         {t('billing.paywall.legal')}
       </Text>
-      {terms || privacy ? (
+      {openTerms || openPrivacy ? (
         <View style={{ flexDirection: 'row', justifyContent: 'center', gap: theme.spacing.md }}>
-          {terms ? (
+          {openTerms ? (
             <Button
               title={t('billing.paywall.terms')}
               variant="ghost"
               size="sm"
-              onPress={() => void Linking.openURL(terms)}
+              onPress={openTerms}
             />
           ) : null}
-          {privacy ? (
+          {openPrivacy ? (
             <Button
               title={t('billing.paywall.privacy')}
               variant="ghost"
               size="sm"
-              onPress={() => void Linking.openURL(privacy)}
+              onPress={openPrivacy}
             />
           ) : null}
         </View>

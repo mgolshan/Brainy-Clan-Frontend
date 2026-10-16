@@ -16,6 +16,11 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
  *   App Tracking Transparency prompt (`NSUserTrackingUsageDescription`) is added.
  * - RevenueCat (react-native-purchases) needs no config plugin; its keys are runtime
  *   `EXPO_PUBLIC_REVENUECAT_*` variables.
+ * - Sentry (README "Error monitoring — Sentry setup"): the `@sentry/react-native/expo` plugin
+ *   adds the native source map / debug symbol upload to EAS builds. It is only added when
+ *   `SENTRY_ORG` and `SENTRY_PROJECT` are set (the upload then also needs the
+ *   `SENTRY_AUTH_TOKEN` EAS secret), so builds without Sentry keep working. The DSN is the
+ *   runtime `EXPO_PUBLIC_SENTRY_DSN`.
  */
 const GOOGLE_PLACEHOLDER_SCHEME = 'com.googleusercontent.apps.not-configured';
 
@@ -33,6 +38,8 @@ function reversedClientId(clientId: string | undefined): string {
 
 export default ({ config }: ConfigContext): ExpoConfig => {
   const facebookAppId = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID?.trim();
+  const sentryOrg = process.env.SENTRY_ORG?.trim();
+  const sentryProject = process.env.SENTRY_PROJECT?.trim();
   const baseScheme = typeof config.scheme === 'string' ? config.scheme : 'brainyclan';
 
   return {
@@ -55,6 +62,18 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           skAdNetworkItems: ['cstr6suwn9.skadnetwork'],
         },
       ],
+      ...(sentryOrg && sentryProject
+        ? [
+            [
+              '@sentry/react-native/expo',
+              {
+                organization: sentryOrg,
+                project: sentryProject,
+                url: process.env.SENTRY_URL?.trim() || 'https://sentry.io/',
+              },
+            ] as [string, Record<string, string>],
+          ]
+        : []),
     ],
   };
 };

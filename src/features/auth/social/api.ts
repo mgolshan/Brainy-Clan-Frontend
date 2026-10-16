@@ -17,7 +17,7 @@ export interface SocialSignInInput {
   provider: SocialProvider;
   credential: ProviderCredential;
   /** Only after 422 `social_signup_incomplete` (first-time sign-up). */
-  birth?: { birth_year: number; birth_month: number; locale?: string };
+  birth?: { birth_year: number; birth_month: number; locale?: string; accept_terms: true };
 }
 
 /**
