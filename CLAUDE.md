@@ -90,9 +90,11 @@ Run `npm run typecheck`, `npm run lint` and `npm run format:check` before declar
 The app runs in **Expo Go** for daily work (`npm start`), and in an **EAS development build**
 (`expo-dev-client`, `eas.json`, `npm run start:dev-client`) for native features such as Google
 sign-in. `app.config.ts` extends `app.json` with env-driven settings (social client IDs, URL
-schemes). Brand colours of third parties (Google/Facebook buttons) live only in `src/ui/brand.ts`. RevenueCat (purchases), AdMob and push notifications are
-planned but **not installed yet**: they are native modules and will require an **EAS development
-build** (`npx eas-cli@latest build --profile development`) instead of Expo Go. `ios/` and
+schemes, AdMob app IDs). Brand colours of third parties (Google/Facebook buttons) live only in `src/ui/brand.ts`. RevenueCat (purchases,
+`src/features/billing/store.ts`), AdMob (rewarded ads, `src/features/play/rewardedAd.ts`) and push
+notifications are native modules that only work in an **EAS development build**
+(`npx eas-cli@latest build --profile development`), never in Expo Go or on web: they are imported
+lazily, have `.web.ts` stubs and hide their UI when unavailable (`src/config/monetization.ts`). `ios/` and
 `android/` are generated (CNG) and git-ignored – configure native behaviour via `app.json` and
 config plugins, never by editing native folders.
 

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Switch, View } from 'react-native';
+import { Platform, StyleSheet, Switch, View } from 'react-native';
 
 import { withAlpha } from '@/ui/components/Card';
 import { Icon, type IconName } from '@/ui/components/Icon';
@@ -129,6 +129,19 @@ export function ToggleRow({
 }: ToggleRowProps) {
   const theme = useTheme();
   const c = theme.colors;
+  // Classic's paper-coloured knob vanishes on a dark card (only the track showed): on dark, the
+  // off knob uses the text colour and the on knob the colour drawn on primary.
+  const thumb =
+    theme.key === 'classic'
+      ? value
+        ? c.onPrimary
+        : theme.scheme === 'dark'
+          ? c.text
+          : c.surface
+      : '#FFFFFF';
+  // react-native-web colours the "on" knob with `activeThumbColor` (default teal), not
+  // `thumbColor`; the prop is web-only, so it is passed only there.
+  const webThumb = Platform.OS === 'web' ? { activeThumbColor: thumb } : null;
   return (
     <PressableScale
       onPress={() => onValueChange(!value)}
@@ -152,7 +165,8 @@ export function ToggleRow({
         onValueChange={onValueChange}
         disabled={disabled}
         trackColor={{ true: c.primary, false: c.borderStrong }}
-        thumbColor={theme.key === 'classic' ? c.surface : '#FFFFFF'}
+        thumbColor={thumb}
+        {...webThumb}
         ios_backgroundColor={c.borderStrong}
         importantForAccessibility="no"
       />

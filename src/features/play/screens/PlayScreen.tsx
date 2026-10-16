@@ -6,7 +6,9 @@ import { Platform, StyleSheet, Text as RNText, View } from 'react-native';
 
 import type { PlaySession } from '@/api/types';
 import { getChallenge } from '@/challenges/registry';
+import type { AdStage } from '@/features/play/api';
 import { FeedbackPanel } from '@/features/play/components/FeedbackPanel';
+import { AdError } from '@/features/play/rewardedAdTypes';
 import { usePlaySession } from '@/features/play/usePlaySession';
 import { askAfterSessionIfUndecided } from '@/features/notifications/usePush';
 import { useStartAndOpen } from '@/features/play/useStartAndOpen';
@@ -170,25 +172,32 @@ function CompletedView({
 
 function FailedView({
   session,
+  adAvailable,
+  adStage,
   onFree,
   onAd,
   onRedemption,
   onEnd,
   busy,
   error,
+  notice,
 }: {
   session: PlaySession;
+  /** Server allows an ad now and this build can show one. */
+  adAvailable: boolean;
+  adStage: AdStage | null;
   onFree: () => void;
   onAd: () => void;
   onRedemption: () => void;
   onEnd: () => void;
   busy: 'free' | 'ad' | 'redemption' | 'end' | null;
   error: unknown;
+  notice: string | null;
 }) {
   const { t } = useTranslation();
   const theme = useTheme();
   const sc = session.second_chance;
-  const anyOption = sc.free_remaining_today > 0 || sc.ad_available || sc.redemption_available;
+  const anyOption = sc.free_remaining_today > 0 || adAvailable || sc.redemption_available;
   return (
     <View style={{ gap: theme.spacing.md }}>
       <Appear style={[styles.center, { gap: theme.spacing.sm }]}>
@@ -219,15 +228,22 @@ function FailedView({
               disabled={busy !== null}
             />
           ) : null}
-          {sc.ad_available ? (
-            <Button
-              title={t('play.failed.ad')}
-              icon="play-circle-outline"
-              variant="secondary"
-              onPress={onAd}
-              loading={busy === 'ad'}
-              disabled={busy !== null}
-            />
+          {adAvailable ? (
+            <>
+              <Button
+                title={t('play.failed.ad')}
+                icon="play-circle-outline"
+                variant="secondary"
+                onPress={onAd}
+                loading={busy === 'ad'}
+                disabled={busy !== null}
+              />
+              {adStage === 'loading' || adStage === 'checking' ? (
+                <Text variant="caption" tone="muted" accessibilityLiveRegion="polite">
+                  {adStage === 'loading' ? t('play.ad.loading') : t('play.ad.checking')}
+                </Text>
+              ) : null}
+            </>
           ) : null}
           {sc.redemption_available ? (
             <>
@@ -249,7 +265,13 @@ function FailedView({
           <Text tone="muted">{t('play.failed.noneLeft')}</Text>
         </Card>
       )}
-      {error ? <Text tone="danger">{errorMessage(error, t)}</Text> : null}
+      {error ? (
+        <Text tone="danger">
+          {error instanceof AdError ? t(`play.ad.${error.kind}`) : errorMessage(error, t)}
+        </Text>
+      ) : notice ? (
+        <Text tone="muted">{notice}</Text>
+      ) : null}
       <Button
         title={t('play.failed.end')}
         variant="ghost"
@@ -295,12 +317,14 @@ export function PlayScreen({ sessionId }: { sessionId: number }) {
   }
 
   const busy = play.secondChanceState.isPending
-    ? (play.secondChanceState.variables?.method ?? 'free')
-    : play.redemptionState.isPending
-      ? 'redemption'
-      : play.abandonState.isPending
-        ? 'end'
-        : null;
+    ? 'free'
+    : play.adState.isPending
+      ? 'ad'
+      : play.redemptionState.isPending
+        ? 'redemption'
+        : play.abandonState.isPending
+          ? 'end'
+          : null;
 
   const definition = currentItem ? getChallenge(currentItem.type) : undefined;
   const Challenge = definition?.component;
@@ -409,12 +433,20 @@ export function PlayScreen({ sessionId }: { sessionId: number }) {
       {phase === 'failed' ? (
         <FailedView
           session={session}
+          adAvailable={play.adAvailable}
+          adStage={play.adStage}
           busy={busy}
           error={
-            play.secondChanceState.error ?? play.redemptionState.error ?? play.abandonState.error
+            play.secondChanceState.error ??
+            play.adState.error ??
+            play.redemptionState.error ??
+            play.abandonState.error
           }
-          onFree={() => void play.secondChance('free').catch(() => undefined)}
-          onAd={() => void play.secondChance('ad').catch(() => undefined)}
+          notice={
+            play.adState.isSuccess && play.adState.data === null ? t('play.ad.notCompleted') : null
+          }
+          onFree={() => void play.freeSecondChance().catch(() => undefined)}
+          onAd={() => void play.watchAd().catch(() => undefined)}
           onRedemption={() => void play.startRedemption().catch(() => undefined)}
           onEnd={() =>
             void play

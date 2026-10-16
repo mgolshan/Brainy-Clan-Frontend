@@ -5,20 +5,20 @@ Milestones are defined in `docs/PLAN.md`.
 
 ## Status
 
-| Milestone                         | Status                                                                                                                                                       | Notes                                                                                                                                                                                                  |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Scaffold                          | Done                                                                                                                                                         | Expo SDK 57, Expo Router, tabs and join placeholders, core packages, CLAUDE.md                                                                                                                         |
-| F0 Local environment              | Done                                                                                                                                                         | `npm install` on Node 24, `.env` with LAN IP `192.168.2.23`, expo-doctor 21/21                                                                                                                         |
-| F1 App foundation                 | Done                                                                                                                                                         | `/api/v1` client + typed errors, health, version gate, age-adaptive themes, base UI, `/dev/themes`                                                                                                     |
-| F2 Accounts, family and invites   | Done (sign-in + Family tab checked on web against the mock; real login payload matches)                                                                      | Welcome/register/login/join, create family, Family + Profile tabs, member editor, invites                                                                                                              |
-| F3 Play loop                      | Done (played against the live backend on web; backend bugs listed in the log)                                                                                | Categories + drill-down, play screen, MC + Wisdom Card, feedback, lives, second chances, redemption, offline queue, Home                                                                               |
-| F4 Goals and leaderboard          | Done (verified against the real backend 2026-10-11)                                                                                                          | Goals list, detail (team bar / race, countdown, history), 7-step wizard, Home + Family entry points                                                                                                    |
-| F2b Member sign-in without email  | Done (verified on web against the real backend B2b)                                                                                                          | Sign-in code screen, admin code screen, member email login, devices list, set/change password                                                                                                          |
-| F5 Remaining challenge types      | Done (played on web against the real B7 backend 2026-10-11; backend bugs in the log)                                                                         | Sudoku (4/6/9), Math Sprint, Word Puzzles (anagram, missing letter, word search); drafts persisted per item                                                                                            |
-| F4b Social sign-in                | Built, verified on web against a mock (B6b not served yet; no real client IDs yet)                                                                           | Google + Facebook buttons, birth step, Profile sign-in methods, dev build setup, README guide                                                                                                          |
-| F4c Sign in with Apple            | Built (checks green; only verifiable on an iPhone dev build)                                                                                                 | Apple's native button on welcome/login/register + Profile sign-in methods, nonce, `authorization_code`, birth step, README setup                                                                       |
-| F6 Monetization and notifications | In progress (plan card + notification settings incl. admin per-member editing verified on web against live B8; push code done, needs a dev build on a phone) | Family plan card, Notifications screen (own + admin per member, "no quiet hours"), push registration + deep links, account/family deletion (verified on web 2026-10-16); RevenueCat, AdMob not started |
-| F7 Release                        | Not started                                                                                                                                                  |                                                                                                                                                                                                        |
+| Milestone                         | Status                                                                                                            | Notes                                                                                                                                                               |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scaffold                          | Done                                                                                                              | Expo SDK 57, Expo Router, tabs and join placeholders, core packages, CLAUDE.md                                                                                      |
+| F0 Local environment              | Done                                                                                                              | `npm install` on Node 24, `.env` with LAN IP `192.168.2.23`, expo-doctor 21/21                                                                                      |
+| F1 App foundation                 | Done                                                                                                              | `/api/v1` client + typed errors, health, version gate, age-adaptive themes, base UI, `/dev/themes`                                                                  |
+| F2 Accounts, family and invites   | Done (sign-in + Family tab checked on web against the mock; real login payload matches)                           | Welcome/register/login/join, create family, Family + Profile tabs, member editor, invites                                                                           |
+| F3 Play loop                      | Done (played against the live backend on web; backend bugs listed in the log)                                     | Categories + drill-down, play screen, MC + Wisdom Card, feedback, lives, second chances, redemption, offline queue, Home                                            |
+| F4 Goals and leaderboard          | Done (verified against the real backend 2026-10-11)                                                               | Goals list, detail (team bar / race, countdown, history), 7-step wizard, Home + Family entry points                                                                 |
+| F2b Member sign-in without email  | Done (verified on web against the real backend B2b)                                                               | Sign-in code screen, admin code screen, member email login, devices list, set/change password                                                                       |
+| F5 Remaining challenge types      | Done (played on web against the real B7 backend 2026-10-11; backend bugs in the log)                              | Sudoku (4/6/9), Math Sprint, Word Puzzles (anagram, missing letter, word search); drafts persisted per item                                                         |
+| F4b Social sign-in                | Built, verified on web against a mock (B6b not served yet; no real client IDs yet)                                | Google + Facebook buttons, birth step, Profile sign-in methods, dev build setup, README guide                                                                       |
+| F4c Sign in with Apple            | Built (checks green; only verifiable on an iPhone dev build)                                                      | Apple's native button on welcome/login/register + Profile sign-in methods, nonce, `authorization_code`, birth step, README setup                                    |
+| F6 Monetization and notifications | Built (paywall + rewarded ads code done; web checks green; purchases/ads need a dev build + store/AdMob accounts) | Family plan card, Notifications, push, account/family deletion (verified on web); RevenueCat paywall and AdMob rewarded ads built 2026-10-16, unverified on a phone |
+| F7 Release                        | Not started                                                                                                       |                                                                                                                                                                     |
 
 ## Next up
 
@@ -36,8 +36,12 @@ Milestones are defined in `docs/PLAN.md`.
    Home, `daily_reminder` → Play) from background and cold start, Android channel. iOS also
    needs an APNs key in EAS credentials, Android an FCM V1 key.
    (c) Done 2026-10-15 (admin per-member notification settings).
-   (d) RevenueCat purchases (`Purchases.logIn(revenuecat_app_user_id)`, enable the disabled
-   "Upgrade - coming soon" button) and AdMob rewarded ads (`reward_ref`), both need an EAS dev build.
+   (d) RevenueCat paywall + AdMob rewarded ads built 2026-10-16 (see log). To verify on phones:
+   Moe follows README "Family plan purchases — RevenueCat setup" and "Rewarded ads — AdMob setup"
+   (store products, RevenueCat entitlement `family` + current offering, webhook, keys in EAS env;
+   AdMob apps + rewarded unit with SSV to `/api/v1/webhooks/admob-ssv`, test device), makes a dev
+   build, then runs the phone checklist in "How to test → F6". Before an EU/UK release: Google UMP
+   consent form for ads (not built), and real `EXPO_PUBLIC_TERMS_URL` / `EXPO_PUBLIC_PRIVACY_URL`.
 
 1. F4b with real credentials: Moe follows README "Google and Facebook sign-in setup" (Google
    Cloud + Meta apps, `.env` / EAS env vars), first EAS development build (`eas init`, then
@@ -60,12 +64,15 @@ Milestones are defined in `docs/PLAN.md`.
 
 ## Known issues and notes
 
-- Delete family counts "erased" members as those without an email login (the server erases
-  accounts with no email and no social account). The member list has no social-account flag, so a
-  social-only member (no email) would be counted as erased though the server keeps them; needs a
-  contract field (e.g. `has_login` on Member) to be exact.
-- Classic dark: the off-state switch thumb (`c.surface`) is hard to see on a card (only the
-  track shows). Shared `ToggleRow` in `src/ui/components/Controls.tsx`, not changed.
+- Purchases and ads are native-only (`src/config/monetization.ts`): on web, in Expo Go and
+  without RevenueCat keys the Plan card keeps the disabled "Upgrade — coming soon" button and
+  `/family-plan` shows "Purchases are only available in the app"; the "Watch a short video"
+  option is hidden on web / Expo Go / release builds without an ad unit. Development builds
+  without ad units use Google's sample rewarded units, which never call the SSV webhook, so the
+  reward check ends in "We couldn't confirm your reward yet" — use a real unit + test device.
+- Teens and ads: the app sets only `maxAdContentRating: G` and non-personalized ads. AdMob's
+  `tagForUnderAgeOfConsent` (EU users under the age of digital consent) is not set because the
+  client must not decide age rules; if needed, the policy should carry it (contract gap).
 
 - Chrome automation on this PC: the controlled window reports `visibilityState: hidden`, so
   Reanimated entering animations freeze mid-way (scaled cards swallow clicks), drags don't
@@ -211,7 +218,77 @@ categories whose sessions and answers it serves per API.md), then
 4. Offline: answer while offline -> "Waiting for a connection" with that item kept on screen;
    **Try again** when back -> feedback appears.
 
+### F6 - Family plan purchases and rewarded ads (phone, EAS dev build)
+
+On web (no build needed): Family → Plan shows the plan; for a free family the button stays
+disabled "Upgrade — coming soon"; `http://localhost:8081/family-plan` shows "Purchases are only
+available in the Brainy Clan app for iPhone and Android". The play screen never offers "Watch a
+short video" on web.
+
+Phone checklist (after README "Family plan purchases — RevenueCat setup" and "Rewarded ads —
+AdMob setup", `npx eas-cli@latest build --profile development`, `npm run start:dev-client`):
+
+1. Free family, adult admin: Family → Plan → **See the Family plan** → what the plan unlocks,
+   Yearly (badge "Best value", monthly equivalent) and Monthly with store prices.
+2. **Subscribe** with a sandbox / license-test account → store sheet → pay → "Activating the
+   Family plan…" → celebration "Welcome to the Family plan!" → Done → Plan card shows Family,
+   locked categories open, member/goal limits gone. RevenueCat customer = `family-<id>`.
+3. Cancel the store sheet → "Purchase cancelled — nothing was charged." Turn off Wi-Fi before
+   subscribing → network message. If the webhook is slow (>30 s) → "Almost there" screen.
+4. Second phone, same family admin: **Restore purchases** → activates (or "No active Family plan
+   was found…" for a store account without one).
+5. Teen / child / non-admin adult: no "See the Family plan" button; `/family-plan` shows the
+   locked state. Sign out after the paywall ran → RevenueCat user back to anonymous.
+6. Ads, adult on a free family whose policy allows ads: lose all lives → **Watch a short video**
+   → "Loading the video…" → ad → close after the reward → "Checking your reward…" → game
+   continues (lives reset). Close the ad early → "Watch the video to the end…". Backend SSV not
+   reachable → after ~20 s "We couldn't confirm your reward yet"; tapping the button again
+   re-checks the same reward without another ad.
+7. Child: the option never appears (server `ad_allowed: false`). Family tier: no ads.
+
 ## Log
+
+### 2026-10-16 - F6 RevenueCat paywall + AdMob rewarded ads, small fixes
+
+- Contract (2026-10-16 changelog): `Member.has_own_login`, `ad_reward_pending` error code,
+  `POST /family/subscription/sync`, app-generated `reward_ref`. Types updated.
+- Delete family counts use `has_own_login` (fallback: email login when the server doesn't send it
+  yet); copy now says "without their own login (email, Google, Apple or Facebook)" (en + fr).
+  Verified on web as Mom: live server (no flag yet) → 2 erased / 1 kept; with the flag simulated
+  for Alex (fetch patch in the tab) → 1 erased / 2 kept. Nothing submitted.
+- `ToggleRow` knob: classic dark used `surface` (invisible on a card) → off knob = `text`, on knob =
+  `onPrimary`; and on web the "on" knob was react-native-web's default teal in every theme
+  (`thumbColor` is ignored when on) → `activeThumbColor` passed on web. Checked computed colours in
+  all four themes light + dark at `/dev/themes`.
+- **RevenueCat** (`react-native-purchases` 10.14 via `npx expo install`, no config plugin):
+  `src/features/billing/store.ts` (lazy SDK import, configure once with the platform key, `logIn`
+  as `revenuecat_app_user_id`, offerings → packages annual first, purchase / restore with
+  cancel + error mapping, `logOut` on sign-out) and a `store.web.ts` stub. Paywall
+  `app/family-plan.tsx` → `PaywallScreen`: unlocks (policy limits), store-priced packages,
+  Subscribe, Restore purchases, renewal disclosure, terms/privacy links from env (hidden when
+  unset); after a purchase/restore `waitForFamilyTier()` polls sync/GET every 2 s for ≤30 s, then
+  refetches `/me`, family, categories → celebration or "Almost there". Plan card: "See the Family
+  plan" when RevenueCat is available, else the old disabled button. Only adult admins with
+  `purchases_allowed`.
+- **AdMob** (`react-native-google-mobile-ads` 17.2 + config plugin in `app.config.ts`, app IDs
+  from `ADMOB_IOS_APP_ID` / `ADMOB_ANDROID_APP_ID`, Google sample IDs as defaults, Google's
+  SKAdNetwork id, no ATT): `src/features/play/rewardedAd.ts` (lazy import, non-personalized, G
+  rating, SSV `userId` = member id, `customData` = `"<reward_ref>:<session_id>"`) + web stub.
+  `useAdSecondChance` makes a UUID v4 (`expo-crypto`), shows the ad, then claims with
+  `method: "ad"`, retrying 409 `ad_reward_pending` / 5xx / network every 2 s for ~20 s; an earned
+  but unconfirmed reward is kept for the next tap. Option shown only when
+  `policy.second_chance.ad_allowed` && session `ad_available` && the build can show ads.
+  The old `PLACEHOLDER_AD_REWARD` is gone.
+- README: step-by-step RevenueCat and AdMob setup; `.env.example` placeholders; CLAUDE.md native
+  modules note updated.
+- Web checks (Mom, session logged out after): `/family-plan` → "only in the app" state; Plan card
+  for the family tier unchanged ("Family plan"); no RevenueCat/AdMob code in the web export. The
+  free-tier "coming soon" button could not be shown live (The Demos is on the Family tier and the
+  cached subscription query didn't refetch under the fetch patch) — logic unchanged on web.
+- typecheck, lint, format:check green; `expo export --platform web` bundles; expo-doctor 20/21
+  (known `ios.icon` false positive); `expo config --type prebuild` resolves the AdMob plugin.
+- Not verifiable here: real purchases, offerings, restore, ads, SSV — need a dev build and the
+  store/RevenueCat/AdMob accounts (phone checklist in How to test → F6).
 
 ### 2026-10-16 - Account deletion verified against live B6c
 

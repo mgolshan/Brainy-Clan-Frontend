@@ -1,6 +1,8 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { randomUUID } from 'expo-crypto';
+import { useRef, useState } from 'react';
 
-import { api } from '@/api/client';
+import { ApiError, api } from '@/api/client';
 import { queryClient } from '@/api/queryClient';
 import { queryKeys } from '@/api/queryKeys';
 import type {
@@ -13,6 +15,8 @@ import type {
   SessionItem,
   SessionPayload,
 } from '@/api/types';
+import { rewardedAds } from '@/features/play/rewardedAd';
+import { AdError } from '@/features/play/rewardedAdTypes';
 
 // ---------------------------------------------------------------------------
 // Raw calls (also used by the answer queue outside React)
@@ -124,6 +128,95 @@ export function useSecondChance(sessionId: number) {
         .data,
     onSuccess: applySessionPayload,
   });
+}
+
+const AD_CLAIM_INTERVAL_MS = 2_000;
+const AD_CLAIM_TIMEOUT_MS = 20_000;
+
+/** Worth retrying while claiming an ad reward: AdMob's callback not in yet, or a blip. */
+function isRetryableClaimError(error: unknown): boolean {
+  if (!(error instanceof ApiError)) return false;
+  return (
+    error.code === 'ad_reward_pending' ||
+    error.code === 'network_error' ||
+    error.code === 'timeout' ||
+    error.status >= 500
+  );
+}
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/**
+ * `POST .../second-chance` with `method: "ad"`. The server only accepts the reward once AdMob's
+ * SSV callback has arrived, so 409 `ad_reward_pending` is retried every 2 s for up to ~20 s.
+ */
+async function claimAdReward(sessionId: number, rewardRef: string): Promise<SessionPayload> {
+  const deadline = Date.now() + AD_CLAIM_TIMEOUT_MS;
+  for (;;) {
+    try {
+      const body: SecondChanceBody = { method: 'ad', reward_ref: rewardRef };
+      return (
+        await api.post<Envelope<SessionPayload>>(`/play/sessions/${sessionId}/second-chance`, body)
+      ).data;
+    } catch (error) {
+      if (!isRetryableClaimError(error) || Date.now() + AD_CLAIM_INTERVAL_MS > deadline) {
+        throw error;
+      }
+      await sleep(AD_CLAIM_INTERVAL_MS);
+    }
+  }
+}
+
+/** `loading`: fetching the video; `watching`: on screen; `checking`: confirming the reward. */
+export type AdStage = 'loading' | 'watching' | 'checking';
+
+/**
+ * Second chance by rewarded ad (F6): new UUID v4 `reward_ref` → AdMob rewarded ad with SSV
+ * `user_id` = member id and `custom_data` = `"<reward_ref>:<session_id>"` → claim with retries.
+ * Resolves to `null` when the ad was closed before the reward. A reward that was earned but not
+ * confirmed in time is kept, so "try again" re-checks it instead of showing another ad.
+ */
+export function useAdSecondChance(sessionId: number, memberId: number | undefined) {
+  const [stage, setStage] = useState<AdStage | null>(null);
+  const unclaimed = useRef<string | null>(null);
+
+  const mutation = useMutation({
+    mutationFn: async (): Promise<SessionPayload | null> => {
+      try {
+        let rewardRef = unclaimed.current;
+        if (!rewardRef) {
+          if (memberId === undefined) throw new AdError('failed', 'no member');
+          const ref = randomUUID();
+          setStage('loading');
+          const outcome = await rewardedAds.show({
+            userId: String(memberId),
+            customData: `${ref}:${sessionId}`,
+            onShowing: () => setStage('watching'),
+          });
+          if (outcome === 'dismissed') return null;
+          unclaimed.current = ref;
+          rewardRef = ref;
+        }
+        setStage('checking');
+        try {
+          const payload = await claimAdReward(sessionId, rewardRef);
+          unclaimed.current = null;
+          return payload;
+        } catch (error) {
+          // Keep the earned reward only while the server may still accept it.
+          if (!isRetryableClaimError(error)) unclaimed.current = null;
+          throw error;
+        }
+      } finally {
+        setStage(null);
+      }
+    },
+    onSuccess: (payload) => {
+      if (payload) applySessionPayload(payload);
+    },
+  });
+
+  return { mutation, stage };
 }
 
 export function useRedemption(sessionId: number) {

@@ -44,6 +44,8 @@ export function errorMessage(error: unknown, t: TFunction): string {
       return t('errors.sessionNotActive');
     case 'second_chance_unavailable':
       return t('errors.secondChanceUnavailable');
+    case 'ad_reward_pending':
+      return t('errors.adRewardPending');
     case 'app_update_required':
       return t('errors.updateRequired');
     case 'goal_limit_reached':

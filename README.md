@@ -370,6 +370,134 @@ token plus the raw `nonce` (and `display_name` on the first sign-in) to
 **Web (later, optional)**: needs a Services ID with the web domain and return URL, and the Apple
 JS redirect flow; not built yet.
 
+## Family plan purchases — RevenueCat setup
+
+The Family plan is an auto-renewing subscription sold through the App Store and Google Play via
+**RevenueCat** (`react-native-purchases`). The app user in RevenueCat is the **family**
+(`family-{id}`, sent by the server as `revenuecat_app_user_id`), so one adult's purchase upgrades
+everyone. The app never sets the tier: RevenueCat calls the backend webhook, and the app polls
+`GET /family/subscription` (plus `POST /family/subscription/sync`) for up to ~30 s after buying.
+
+Where it shows: Family tab → **Plan** card → **See the Family plan** — only for adult admins whose
+policy allows purchases, only in an iOS/Android **development or store build** with the RevenueCat
+keys set. On web, in Expo Go, or without keys the card keeps the disabled "Upgrade — coming soon"
+button (store billing needs the native app; web billing is a later milestone).
+
+1. **Store products** (needs the paid Apple Developer Program and a Google Play Console account):
+   - App Store Connect → your app (`app.brainyclan`) → Subscriptions → a subscription group
+     "Family plan" with two auto-renewable products, e.g. `brainyclan_family_monthly` and
+     `brainyclan_family_annual`. Fill in prices, display names and the review screenshot. Also
+     sign the Paid Apps agreement (Business section), or products never load.
+   - Google Play Console → your app (`app.brainyclan`) → Monetize → Subscriptions → products with
+     the same IDs, each with a monthly / yearly base plan. Play only lists products after an app
+     build has been uploaded to a testing track (internal testing is enough).
+2. **RevenueCat project** (app.revenuecat.com, free to start):
+   - Create a project "Brainy Clan", then add an **App Store app** (bundle ID `app.brainyclan`,
+     plus an In-App Purchase Key from App Store Connect → Users and Access → Integrations) and a
+     **Play Store app** (package `app.brainyclan`, plus a Google Cloud service-account JSON with
+     access in Play Console — RevenueCat's guide walks through it).
+   - Products: import the store products in both apps.
+   - **Entitlement** with identifier exactly **`family`** (the backend's `REVENUECAT_ENTITLEMENT`)
+     and attach all Family-plan products to it.
+   - **Offering** (e.g. `default`), mark it **Current**, and add the packages **Monthly**
+     (`$rc_monthly`) and **Annual** (`$rc_annual`) with the matching iOS and Android products. The
+     app shows the current offering's packages with the store's localized prices, yearly first.
+3. **Webhook to the backend** (project → Integrations → Webhooks): URL
+   `https://<public backend host>/api/v1/webhooks/revenuecat`, Authorization header value
+   `Bearer <REVENUECAT_WEBHOOK_SECRET>` (same secret in the backend `.env`). For the faster
+   tier switch, also give the backend a RevenueCat secret API key (`REVENUECAT_API_KEY`, see the
+   backend README) — `POST /family/subscription/sync` then reads the subscriber directly.
+   The backend must be reachable from the internet for webhooks (a tunnel such as `cloudflared`
+   or `ngrok` works for a local Docker backend).
+4. **API keys → env**: RevenueCat project → API keys → the **public** app-specific keys
+   (`appl_…` for iOS, `goog_…` for Android) into `.env` locally and into the EAS environment
+   variables (development / preview / production) for cloud builds:
+   ```
+   EXPO_PUBLIC_REVENUECAT_IOS_KEY=appl_...
+   EXPO_PUBLIC_REVENUECAT_ANDROID_KEY=goog_...
+   ```
+   These are public SDK keys (safe in the app); never put a secret key in an `EXPO_PUBLIC_` var.
+5. **Legal links** (required by both stores on a subscription screen): set
+   `EXPO_PUBLIC_TERMS_URL` and `EXPO_PUBLIC_PRIVACY_URL` (the links are hidden until set; Apple's
+   standard EULA `https://www.apple.com/legal/internet-services/itunes/dev/stdeula/` is fine as
+   terms of use if you have no own terms yet). The privacy policy URL is also needed in both store
+   listings.
+6. **Development build** (purchases never work in Expo Go or on web):
+   `npx eas-cli@latest build --profile development --platform ios|android`, install it, then
+   `npm run start:dev-client`. No config plugin is needed for RevenueCat.
+7. **Test accounts**:
+   - iOS: App Store Connect → Users and Access → **Sandbox** → add a sandbox tester; on the
+     iPhone, Settings → App Store → Sandbox Account. Sandbox renewals are fast (a month ≈ 5 min).
+   - Android: Play Console → Settings → **License testing** → add your Google account; install
+     the build from the internal testing track (or the dev build signed with the same key) and use
+     that account in the Play Store. Test cards never charge.
+8. **Check on the phone**: sign in as an adult admin of a free family → Family → Plan → **See the
+   Family plan** → prices show → pick Yearly → **Subscribe** → store sheet → after paying,
+   "Activating the Family plan…" then the celebration; the Plan card shows **Family** and the
+   limits are gone. Also try: cancel the store sheet ("Purchase cancelled — nothing was charged"),
+   **Restore purchases** on a second device, and a teen/child (no paywall entry).
+
+## Rewarded ads — AdMob setup
+
+Free-tier adults (and teens, if the server policy allows it) can watch a short **rewarded video**
+for a second chance after losing all lives. The server decides who may see ads
+(`policy.second_chance.ad_allowed`, per session `second_chance.ad_available`); **children never
+see ads**. Only **non-personalized** ads are requested (`requestNonPersonalizedAdsOnly`), rated
+**G**, so there is no tracking and no App Tracking Transparency prompt. The option is hidden on
+web, in Expo Go and in release builds without an ad unit.
+
+How the reward is verified: the app creates a random `reward_ref` (UUID), passes it to AdMob as
+server-side verification (SSV) custom data `"<reward_ref>:<session_id>"` with user id = member
+id. AdMob calls the backend's SSV callback; the app then calls
+`POST /play/sessions/{id}/second-chance` with `method: "ad"` and retries every 2 s for up to
+~20 s while the server answers 409 `ad_reward_pending` ("Checking your reward…").
+
+1. **AdMob account** (admob.google.com) → **Apps** → add the iOS app and the Android app
+   (once they are in the stores you can link them; before that, add them as unpublished). Note
+   each **App ID** (`ca-app-pub-…~…`).
+2. **Rewarded ad unit** per app (Ad units → Add → Rewarded). Note each **ad unit ID**
+   (`ca-app-pub-…/…`). In the ad unit's settings turn on **Server-side verification** with the
+   callback URL `https://<public backend host>/api/v1/webhooks/admob-ssv` (must be public HTTPS;
+   use a tunnel for a local backend) and use the **Verify URL** button to check it.
+3. **Env** (`.env` and EAS environment variables):
+   ```
+   ADMOB_IOS_APP_ID=ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy
+   ADMOB_ANDROID_APP_ID=ca-app-pub-xxxxxxxxxxxxxxxx~zzzzzzzzzz
+   EXPO_PUBLIC_ADMOB_REWARDED_IOS=ca-app-pub-xxxxxxxxxxxxxxxx/1111111111
+   EXPO_PUBLIC_ADMOB_REWARDED_ANDROID=ca-app-pub-xxxxxxxxxxxxxxxx/2222222222
+   ```
+   The app IDs are build-time values (`app.config.ts` passes them to the
+   `react-native-google-mobile-ads` config plugin) — changing them needs a **new build**. Without
+   them, Google's sample app IDs are used and, in development builds, Google's sample rewarded
+   units (always-filled test ads). Note: sample ad units don't call your SSV URL, so the reward
+   check then ends in "We couldn't confirm your reward yet" — for an end-to-end test use your
+   real ad unit with SSV on and the phone registered as a test device.
+4. **Test devices** (never click your own live ads): AdMob → Settings → Test devices → add the
+   phone (Android: the advertising ID from Settings → Google → Ads; iOS: the IDFA shown in the
+   Xcode/device log line "To get test ads on this device…"). Test devices get labelled test ads
+   from real ad units, including the SSV callback.
+5. **Development build**: `npx eas-cli@latest build --profile development --platform ios|android`
+   (AdMob never works in Expo Go), then `npm run start:dev-client`.
+6. **Store privacy answers** for non-personalized ads:
+   - Apple App Privacy: AdMob still collects device identifiers/usage for ads delivery,
+     frequency capping and fraud prevention — declare "Identifiers → Device ID" and "Usage Data →
+     Advertising Data" as used for **Third-Party Advertising**, **not linked** to the user and
+     **not used for tracking**. No ATT prompt is shown because nothing tracks. Add Google's
+     privacy manifest notes if App Review asks (the SDK ships its own `PrivacyInfo.xcprivacy`).
+   - Google Play Data safety: declare "Device or other IDs" collected and shared for advertising
+     by the AdMob SDK; the app contains ads ("Contains ads" = yes). Because children use the app,
+     Google Play's **Families policy** applies: keep ads rated G (done in code), and choose the
+     target audience carefully (if under-13s are a target audience, Play requires Families
+     self-certified ad SDKs and child-directed settings — the app already never shows ads to
+     children, which the server enforces).
+   - EU/UK users: non-personalized ads still need consent for cookies/identifiers under GDPR —
+     set up a **Google UMP consent message** (AdMob → Privacy & messaging) before releasing there.
+     The consent form is not built yet (see `docs/PROGRESS.md`).
+7. **Check on the phone**: as an adult on the free tier, start a game, lose all lives → **Watch a
+   short video** → "Loading the video…" → the ad plays → close it after the reward → "Checking
+   your reward…" → the game continues with full lives. Closing the ad early shows "Watch the video
+   to the end…" (no second chance). As a child, the option never appears.
+
 ## Troubleshooting
 
 - Phone shows "Can't reach Brainy Clan": allow Node.js and port 8080 through Windows Defender
@@ -410,5 +538,6 @@ drive into Docker is unreliable for Metro, so daily work should use `npm start` 
 
 ## Later
 
-RevenueCat, AdMob and push notifications are native modules and need the EAS development build
-(already required for Google/Facebook sign-in, see above). See `CLAUDE.md` for architecture rules.
+RevenueCat web billing (subscriptions on the web version) and the EU consent form for ads. Push
+notifications, RevenueCat and AdMob are native modules and need the EAS development build (see
+above). See `CLAUDE.md` for architecture rules.

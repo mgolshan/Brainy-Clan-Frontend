@@ -49,7 +49,8 @@
     "socialSignupIncomplete": "Indiquez votre année et votre mois de naissance pour terminer la création du compte.",
     "socialAccountTaken": "Ce compte est déjà associé à un autre utilisateur Brainy Clan.",
     "lastSignInMethod": "C'est votre seul moyen de connexion. Définissez d'abord un mot de passe ou associez un autre compte.",
-    "familyOwnerCannotLeave": "Le propriétaire ne peut pas supprimer son compte tant que d'autres membres sont dans la famille. Supprimez plutôt la famille."
+    "familyOwnerCannotLeave": "Le propriétaire ne peut pas supprimer son compte tant que d'autres membres sont dans la famille. Supprimez plutôt la famille.",
+    "adRewardPending": "Nous n’avons pas encore pu confirmer votre récompense. Réessayez dans un instant."
   },
   "update": {
     "title": "C'est l'heure de la mise à jour",
@@ -190,7 +191,14 @@
       "body": "Réessaie dans un instant, ou choisis une autre catégorie."
     },
     "worth_one": "Vaut {{count}} point",
-    "worth_other": "Vaut {{count}} points"
+    "worth_other": "Vaut {{count}} points",
+    "ad": {
+      "loading": "Chargement de la vidéo…",
+      "checking": "Vérification de votre récompense…",
+      "notCompleted": "Regardez la vidéo jusqu’au bout pour obtenir votre seconde chance.",
+      "noFill": "Aucune vidéo n’est disponible pour le moment. Réessayez plus tard.",
+      "failed": "La vidéo n’a pas pu être affichée. Réessayez."
+    }
   },
   "dev": {
     "themesTitle": "Aperçu des thèmes",
@@ -679,6 +687,44 @@
       "app_store": "App Store",
       "play_store": "Google Play",
       "stripe": "Web"
+    },
+    "seePlan": "Voir le forfait Famille",
+    "errors": {
+      "network": "Impossible de joindre la boutique. Vérifiez votre connexion et réessayez.",
+      "notAllowed": "Les achats ne sont pas autorisés sur cet appareil (vérifiez Temps d’écran ou les restrictions Google Play).",
+      "pending": "Votre paiement est en attente. Le forfait Famille démarre dès que la boutique le confirme.",
+      "alreadyOwned": "Ce compte de boutique a déjà un abonnement Brainy Clan, peut-être pour une autre famille. Essayez « Restaurer les achats » ou utilisez le compte qui l’a acheté.",
+      "unavailable": "Le forfait Famille n’est pas disponible pour le moment. Réessayez plus tard.",
+      "store": "La boutique a rencontré un problème. Réessayez dans un instant.",
+      "unknown": "Un problème est survenu pendant l’achat. Réessayez."
+    },
+    "paywall": {
+      "title": "Forfait Famille",
+      "subtitle": "Un seul abonnement pour toute la famille",
+      "wholeFamily": "Toute votre famille profite du forfait Famille, enfants compris. Résiliable à tout moment dans l’App Store ou Google Play.",
+      "choose": "Choisissez une formule",
+      "annual": "Annuel",
+      "monthly": "Mensuel",
+      "perYear": "{{price}} / an",
+      "perMonth": "{{price}} / mois",
+      "perMonthEquivalent": "Seulement {{price}} par mois",
+      "bestValue": "Meilleur prix",
+      "subscribe": "S’abonner",
+      "restore": "Restaurer les achats",
+      "activating": "Activation du forfait Famille pour votre famille…",
+      "cancelled": "Achat annulé — rien n’a été débité.",
+      "nothingToRestore": "Aucun forfait Famille actif trouvé pour ce compte de boutique.",
+      "noPackages": "Aucune formule n’est disponible pour le moment. Réessayez plus tard.",
+      "alreadyFamily": "Votre famille a déjà le forfait Famille.",
+      "notAllowed": "Seul un administrateur de la famille peut gérer le forfait.",
+      "notInBuild": "Les achats sont disponibles uniquement dans l’application Brainy Clan pour iPhone et Android.",
+      "welcomeTitle": "Bienvenue dans le forfait Famille !",
+      "welcomeBody": "Toute votre famille a maintenant le forfait Famille.",
+      "delayedTitle": "Presque fini",
+      "delayedBody": "Votre achat est validé. Le forfait Famille peut mettre quelques minutes à apparaître dans l’application — inutile d’acheter à nouveau.",
+      "legal": "Le paiement est débité de votre compte App Store ou Google Play. L’abonnement se renouvelle automatiquement sauf résiliation au moins 24 heures avant la fin de la période ; gérez-le ou résiliez-le dans les réglages de votre compte de boutique.",
+      "terms": "Conditions d’utilisation",
+      "privacy": "Politique de confidentialité"
     }
   },
   "notifications": {
@@ -741,12 +787,12 @@
     "familyTitle": "Supprimer la famille",
     "ownerOnly": "Seul le propriétaire de la famille peut la supprimer.",
     "familyPointGone": "La famille, ses objectifs et ses invitations sont supprimés.",
-    "familyPointErased_one": "{{count}} membre sans connexion par e-mail (comme un enfant) est effacé : son compte ne peut pas exister hors de la famille.",
-    "familyPointErased_many": "{{count}} membres sans connexion par e-mail (comme les enfants) sont effacés : leurs comptes ne peuvent pas exister hors de la famille.",
-    "familyPointErased_other": "{{count}} membres sans connexion par e-mail (comme les enfants) sont effacés : leurs comptes ne peuvent pas exister hors de la famille.",
-    "familyPointKept_one": "{{count}} autre membre avec une connexion par e-mail garde son compte, sans famille.",
-    "familyPointKept_many": "{{count}} autres membres avec une connexion par e-mail gardent leur compte, sans famille.",
-    "familyPointKept_other": "{{count}} autres membres avec une connexion par e-mail gardent leur compte, sans famille.",
+    "familyPointErased_one": "{{count}} membre sans connexion personnelle (e-mail, Google, Apple ou Facebook — comme un enfant) est effacé : son compte ne peut pas exister hors de la famille.",
+    "familyPointErased_many": "{{count}} membres sans connexion personnelle (e-mail, Google, Apple ou Facebook — comme les enfants) sont effacés : leurs comptes ne peuvent pas exister hors de la famille.",
+    "familyPointErased_other": "{{count}} membres sans connexion personnelle (e-mail, Google, Apple ou Facebook — comme les enfants) sont effacés : leurs comptes ne peuvent pas exister hors de la famille.",
+    "familyPointKept_one": "{{count}} autre membre avec sa propre connexion garde son compte, sans famille.",
+    "familyPointKept_many": "{{count}} autres membres avec leur propre connexion gardent leur compte, sans famille.",
+    "familyPointKept_other": "{{count}} autres membres avec leur propre connexion gardent leur compte, sans famille.",
     "alsoMyAccount": "Supprimer aussi mon compte",
     "alsoMyAccountHint": "Sinon, vous gardez votre compte et pouvez créer ou rejoindre une nouvelle famille.",
     "typeFamilyName": "Tapez le nom de la famille « {{name}} » pour confirmer",

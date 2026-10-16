@@ -20,4 +20,6 @@ export const queryKeys = {
   goal: (id: number) => ['goals', id] as const,
   goalHistory: (id: number) => ['goals', id, 'history'] as const,
   playSession: (id: number) => ['play', 'session', id] as const,
+  /** Store data (RevenueCat), not our API: offering packages with store prices. */
+  paywallPackages: (appUserId: string) => ['revenuecat', 'packages', appUserId] as const,
 };

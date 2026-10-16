@@ -56,11 +56,11 @@ export function DeleteFamilyScreen() {
     );
   }
 
-  // The server erases every account without its own email login (children, and teens who sign
-  // in with codes); members with an email login keep their accounts. Social-only accounts aren't
-  // visible in the member list, so they count as erased here (the server keeps them).
+  // The server erases every account without its own login (`has_own_login`: an email login or a
+  // linked Google/Apple/Facebook account); the others keep their accounts. Older servers don't
+  // send the flag, so fall back to the email login there.
   const others = members.filter((m) => m.user_id !== me.user.id);
-  const erased = others.filter((m) => !m.email).length;
+  const erased = others.filter((m) => !(m.has_own_login ?? !!m.email)).length;
   const kept = others.length - erased;
   const confirmed = typed.trim() === info.name.trim();
 

@@ -1,20 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { ApiError } from '@/api/client';
-import type { AnswerResult, SecondChanceMethod, SessionItem } from '@/api/types';
+import type { AnswerResult, SessionItem } from '@/api/types';
 import { getChallenge, isPlayable } from '@/challenges/registry';
+import { useMe } from '@/features/auth/hooks';
 import {
   applyAnswerResult,
   postAnswer,
+  useAdSecondChance,
   useAbandonSession,
   usePlaySessionQuery,
   useRedemption,
   useSecondChance,
 } from '@/features/play/api';
 import { flushAnswerQueue, subscribeToFlush, useAnswerQueue } from '@/features/play/answerQueue';
-
-/** Placeholder reward id until AdMob arrives (F6); the server verifies real ones in B8. */
-export const PLACEHOLDER_AD_REWARD = 'dev-placeholder-reward';
+import { rewardedAds } from '@/features/play/rewardedAd';
 
 /** How long a correct quick-flow answer (Math Sprint) stays on screen before the next item. */
 export const QUICK_FLOW_DELAY_MS = 1200;
@@ -61,6 +61,8 @@ function describeCorrect(item: SessionItem | undefined, correct: unknown): strin
 export function usePlaySession(sessionId: number) {
   const query = usePlaySessionQuery(sessionId);
   const secondChance = useSecondChance(sessionId);
+  const me = useMe().data;
+  const adChance = useAdSecondChance(sessionId, me?.member?.id);
   const redemption = useRedemption(sessionId);
   const abandon = useAbandonSession(sessionId);
 
@@ -176,13 +178,22 @@ export function usePlaySession(sessionId: number) {
 
   const retryQueued = useCallback(() => void flushAnswerQueue(), []);
 
-  const takeSecondChance = useCallback(
-    (method: SecondChanceMethod) =>
-      secondChance.mutateAsync(
-        method === 'ad' ? { method, reward_ref: PLACEHOLDER_AD_REWARD } : { method },
-      ),
+  const takeFreeSecondChance = useCallback(
+    () => secondChance.mutateAsync({ method: 'free' }),
     [secondChance],
   );
+
+  // Rewarded ad: only when the server allows it for this member and session (never children),
+  // and this build can show ads (not web / Expo Go / without an ad unit).
+  const adAllowed = me?.policy.second_chance.ad_allowed === true && rewardedAds.available;
+  const adAvailable = adAllowed && session?.second_chance.ad_available === true;
+
+  // Forget the last ad attempt (error / "watch to the end") once the game is running again.
+  const resetAd = adChance.mutation.reset;
+  const adPending = adChance.mutation.isPending;
+  useEffect(() => {
+    if (session?.status === 'active' && !adPending) resetAd();
+  }, [session?.status, adPending, resetAd]);
 
   let phase: PlayPhase;
   if (query.isPending) phase = 'loading';
@@ -215,8 +226,12 @@ export function usePlaySession(sessionId: number) {
     submit,
     next,
     retryQueued,
-    secondChance: takeSecondChance,
+    freeSecondChance: takeFreeSecondChance,
     secondChanceState: secondChance,
+    adAvailable,
+    watchAd: adChance.mutation.mutateAsync,
+    adState: adChance.mutation,
+    adStage: adChance.stage,
     startRedemption: redemption.mutateAsync,
     redemptionState: redemption,
     abandon: abandon.mutateAsync,

@@ -10,10 +10,22 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
  *   builds working (the Google button is then hidden on iOS).
  * - Facebook (browser OAuth via expo-auth-session): native builds receive the redirect on the
  *   `fb<APP_ID>` scheme, so it is registered next to `brainyclan`.
+ * - AdMob (react-native-google-mobile-ads, README "AdMob setup"): the native SDK needs the AdMob
+ *   app IDs at build time (`ADMOB_IOS_APP_ID` / `ADMOB_ANDROID_APP_ID`); without them Google's
+ *   sample app IDs are used, which only ever serve test ads. Ads are non-personalized only, so no
+ *   App Tracking Transparency prompt (`NSUserTrackingUsageDescription`) is added.
+ * - RevenueCat (react-native-purchases) needs no config plugin; its keys are runtime
+ *   `EXPO_PUBLIC_REVENUECAT_*` variables.
  */
 const GOOGLE_PLACEHOLDER_SCHEME = 'com.googleusercontent.apps.not-configured';
 
 /** `123-abc.apps.googleusercontent.com` -> `com.googleusercontent.apps.123-abc`. */
+/** Google's sample AdMob app IDs (test ads only). */
+const ADMOB_SAMPLE_APP_ID = {
+  ios: 'ca-app-pub-3940256099942544~1458002511',
+  android: 'ca-app-pub-3940256099942544~3347511713',
+} as const;
+
 function reversedClientId(clientId: string | undefined): string {
   const prefix = clientId?.trim().replace(/\.apps\.googleusercontent\.com$/, '');
   return prefix ? `com.googleusercontent.apps.${prefix}` : GOOGLE_PLACEHOLDER_SCHEME;
@@ -33,6 +45,15 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       [
         'react-native-nitro-google-signin',
         { iosUrlScheme: reversedClientId(process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID) },
+      ],
+      [
+        'react-native-google-mobile-ads',
+        {
+          iosAppId: process.env.ADMOB_IOS_APP_ID?.trim() || ADMOB_SAMPLE_APP_ID.ios,
+          androidAppId: process.env.ADMOB_ANDROID_APP_ID?.trim() || ADMOB_SAMPLE_APP_ID.android,
+          // Google's own SKAdNetwork id (recommended by AdMob for iOS attribution, no tracking).
+          skAdNetworkItems: ['cstr6suwn9.skadnetwork'],
+        },
       ],
     ],
   };

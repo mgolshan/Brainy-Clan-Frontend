@@ -1,9 +1,11 @@
+import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import type { Policy, Subscription } from '@/api/types';
 import { useIsAdmin, usePolicy } from '@/features/auth/hooks';
 import { useSubscription } from '@/features/billing/hooks';
+import { store as billingStore } from '@/features/billing/store';
 import { formatDate } from '@/lib/format';
 import { tierLabel } from '@/lib/labels';
 import {
@@ -43,7 +45,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 }
 
 /** What the Family plan unlocks, read from the current (free) policy limits. */
-function Unlocks({ policy }: { policy: Policy }) {
+export function Unlocks({ policy }: { policy: Policy }) {
   const { t } = useTranslation();
   const theme = useTheme();
   const { max_members, max_categories, max_active_goals } = policy.limits;
@@ -114,7 +116,16 @@ function SubscriptionDetails({ sub, policy }: { sub: Subscription; policy: Polic
           <Divider />
           <Unlocks policy={policy} />
           {policy.purchases_allowed ? (
-            <Button title={t('billing.upgradeSoon')} icon="star" disabled onPress={() => {}} />
+            billingStore.available ? (
+              <Button
+                title={t('billing.seePlan')}
+                icon="star"
+                onPress={() => router.push('/family-plan')}
+              />
+            ) : (
+              // Web, Expo Go and builds without RevenueCat keys can't sell the plan.
+              <Button title={t('billing.upgradeSoon')} icon="star" disabled onPress={() => {}} />
+            )
           ) : null}
         </>
       ) : null}

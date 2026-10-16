@@ -29,6 +29,7 @@ export type ApiErrorCode =
   | 'last_sign_in_method'
   | 'session_not_active'
   | 'second_chance_unavailable'
+  | 'ad_reward_pending'
   | 'app_update_required'
   | 'goal_limit_reached'
   | 'not_found';
@@ -137,6 +138,11 @@ export interface Member {
    * `email`.
    */
   email_login_allowed?: boolean;
+  /**
+   * The member can sign in without the family (email login or a linked Google/Apple/Facebook
+   * account); members without one are erased with the family. Same visibility as `email`.
+   */
+  has_own_login?: boolean;
 }
 
 export interface Policy {
@@ -674,7 +680,7 @@ export interface Subscription {
   product_id: string | null;
   expires_at: string | null;
   will_renew: boolean;
-  /** Passed to `Purchases.logIn()` (RevenueCat, later). */
+  /** Passed to `Purchases.logIn()` (RevenueCat app user id, `family-{id}`). */
   revenuecat_app_user_id: string;
 }
 

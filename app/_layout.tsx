@@ -158,6 +158,7 @@ function RootNavigator() {
             <Stack.Screen name="member-notifications/[id]" />
             <Stack.Screen name="delete-account" />
             <Stack.Screen name="delete-family" />
+            <Stack.Screen name="family-plan" />
           </Stack.Protected>
           <Stack.Screen name="oauth-callback" />
           <Stack.Protected guard={__DEV__}>

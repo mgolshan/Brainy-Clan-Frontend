@@ -49,7 +49,8 @@
     "socialSignupIncomplete": "Please tell us your birth year and month to finish creating your account.",
     "socialAccountTaken": "This account is already connected to another Brainy Clan user.",
     "lastSignInMethod": "This is your only way to sign in. Set a password or connect another account first.",
-    "familyOwnerCannotLeave": "The family owner can't delete their account while others are in the family. Delete the family instead."
+    "familyOwnerCannotLeave": "The family owner can't delete their account while others are in the family. Delete the family instead.",
+    "adRewardPending": "We couldn't confirm your reward yet. Please try again in a moment."
   },
   "update": {
     "title": "Time for an update",
@@ -180,7 +181,14 @@
       "body": "Try again in a moment, or pick another category."
     },
     "worth_one": "Worth {{count}} point",
-    "worth_other": "Worth {{count}} points"
+    "worth_other": "Worth {{count}} points",
+    "ad": {
+      "loading": "Loading the video…",
+      "checking": "Checking your reward…",
+      "notCompleted": "Watch the video to the end to get your second chance.",
+      "noFill": "No video is available right now. Please try again later.",
+      "failed": "The video couldn't be shown. Please try again."
+    }
   },
   "dev": {
     "themesTitle": "Theme preview",
@@ -660,6 +668,44 @@
       "app_store": "App Store",
       "play_store": "Google Play",
       "stripe": "Web"
+    },
+    "seePlan": "See the Family plan",
+    "errors": {
+      "network": "Couldn't reach the store. Check your connection and try again.",
+      "notAllowed": "Purchases aren't allowed on this device (check Screen Time or Google Play restrictions).",
+      "pending": "Your payment is pending. The Family plan starts as soon as the store confirms it.",
+      "alreadyOwned": "This store account already has a Brainy Clan subscription, possibly for another family. Try “Restore purchases”, or use the account that bought it.",
+      "unavailable": "The Family plan isn't available right now. Please try again later.",
+      "store": "The store had a problem. Please try again in a moment.",
+      "unknown": "Something went wrong with the purchase. Please try again."
+    },
+    "paywall": {
+      "title": "Family plan",
+      "subtitle": "One subscription for the whole family",
+      "wholeFamily": "Everyone in your family gets the Family plan, children included. Cancel any time in the App Store or Google Play.",
+      "choose": "Choose a plan",
+      "annual": "Yearly",
+      "monthly": "Monthly",
+      "perYear": "{{price}} / year",
+      "perMonth": "{{price}} / month",
+      "perMonthEquivalent": "Just {{price}} a month",
+      "bestValue": "Best value",
+      "subscribe": "Subscribe",
+      "restore": "Restore purchases",
+      "activating": "Activating the Family plan for your family…",
+      "cancelled": "Purchase cancelled — nothing was charged.",
+      "nothingToRestore": "No active Family plan was found for this store account.",
+      "noPackages": "No plans are available yet. Please try again later.",
+      "alreadyFamily": "Your family already has the Family plan.",
+      "notAllowed": "Only a family admin can manage the plan.",
+      "notInBuild": "Purchases are only available in the Brainy Clan app for iPhone and Android.",
+      "welcomeTitle": "Welcome to the Family plan!",
+      "welcomeBody": "Everyone in your family now has the Family plan.",
+      "delayedTitle": "Almost there",
+      "delayedBody": "Your purchase went through. It can take a few minutes until the Family plan shows in the app — no need to buy again.",
+      "legal": "Payment is charged to your App Store or Google Play account. The subscription renews automatically unless cancelled at least 24 hours before the end of the period; manage or cancel it in your store account settings.",
+      "terms": "Terms of use",
+      "privacy": "Privacy policy"
     }
   },
   "notifications": {
@@ -722,10 +768,10 @@
     "familyTitle": "Delete family",
     "ownerOnly": "Only the family owner can delete the family.",
     "familyPointGone": "The family, its goals and invites are deleted.",
-    "familyPointErased_one": "{{count}} member without their own email login (like a child) is erased: their account can't exist outside the family.",
-    "familyPointErased_other": "{{count}} members without their own email login (like children) are erased: their accounts can't exist outside the family.",
-    "familyPointKept_one": "{{count}} other member with an email login keeps their account, without a family.",
-    "familyPointKept_other": "{{count}} other members with an email login keep their accounts, without a family.",
+    "familyPointErased_one": "{{count}} member without their own login (email, Google, Apple or Facebook — like a child) is erased: their account can't exist outside the family.",
+    "familyPointErased_other": "{{count}} members without their own login (email, Google, Apple or Facebook — like children) are erased: their accounts can't exist outside the family.",
+    "familyPointKept_one": "{{count}} other member with their own login keeps their account, without a family.",
+    "familyPointKept_other": "{{count}} other members with their own login keep their accounts, without a family.",
     "alsoMyAccount": "Also delete my account",
     "alsoMyAccountHint": "Otherwise you keep your account and can create or join a new family.",
     "typeFamilyName": "Type the family name \"{{name}}\" to confirm",

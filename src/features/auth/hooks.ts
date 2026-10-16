@@ -14,6 +14,7 @@ import type {
 } from '@/api/types';
 import { normalizeCode } from '@/lib/code';
 import { getDeviceInfo } from '@/lib/device';
+import { store as purchasesStore } from '@/features/billing/store';
 import { unregisterPushToken } from '@/features/notifications/push';
 import { useSession } from '@/store/session';
 
@@ -108,6 +109,8 @@ export function useSignOut() {
     mutationFn: async () => {
       // While the Bearer token is still valid (best effort, never throws).
       await unregisterPushToken();
+      // Back to an anonymous RevenueCat user (no-op unless the paywall ran; never throws).
+      await purchasesStore.reset();
       try {
         await api.post<void>('/auth/logout', undefined, { timeoutMs: 5000 });
       } catch {
