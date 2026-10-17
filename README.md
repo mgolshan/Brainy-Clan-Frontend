@@ -480,7 +480,9 @@ for a second chance after losing all lives. The server decides who may see ads
 (`policy.second_chance.ad_allowed`, per session `second_chance.ad_available`); **children never
 see ads**. Only **non-personalized** ads are requested (`requestNonPersonalizedAdsOnly`), rated
 **G**, so there is no tracking and no App Tracking Transparency prompt. The option is hidden on
-web, in Expo Go and in release builds without an ad unit.
+web, in Expo Go and in release builds without an ad unit. Where the law requires it (EU/EEA, UK,
+Switzerland, some US states), Google's **UMP consent message** is shown right before the first
+ad (step 7).
 
 How the reward is verified: the app creates a random `reward_ref` (UUID), passes it to AdMob as
 server-side verification (SSV) custom data `"<reward_ref>:<session_id>"` with user id = member
@@ -527,12 +529,57 @@ id. AdMob calls the backend's SSV callback; the app then calls
      self-certified ad SDKs and child-directed settings — the app already never shows ads to
      children, which the server enforces).
    - EU/UK users: non-personalized ads still need consent for cookies/identifiers under GDPR —
-     set up a **Google UMP consent message** (AdMob → Privacy & messaging) before releasing there.
-     The consent form is not built yet (see `docs/PROGRESS.md`).
-7. **Check on the phone**: as an adult on the free tier, start a game, lose all lives → **Watch a
+     the app asks with Google's UMP consent message (step 7).
+7. **Consent message (Google UMP, AdMob → Privacy & messaging)**. The app uses the `AdsConsent`
+   API of react-native-google-mobile-ads (`src/features/play/adConsent.ts`); the message itself
+   is designed and published in AdMob, no app change needed:
+   1. AdMob → **Privacy & messaging** → **European regulations** (GDPR) → **Create message**.
+      Select **both apps** (the message is linked to the AdMob **app IDs** from step 1 — the app
+      must be built with those real IDs, not Google's sample IDs, or no message is found), the
+      languages (**English** and **French**), your privacy policy URL, and the ad partners
+      (keep Google's default list unless you add mediation). The GDPR message covers the EEA,
+      the UK and Switzerland. Leave "Close (do not consent)" off unless a lawyer asks for it.
+      **Publish** the message.
+   2. Optional, for US users: **US state regulations** → create and publish a message for both
+      apps (an opt-out "Do not sell or share" message; with non-personalized ads it is mostly a
+      formality — decide with the lawyer).
+   3. Do **not** create the "IDFA explainer" (iOS ATT) message: the app never asks for ATT (see
+      "iOS: no App Tracking Transparency prompt" below).
+   4. **Test it** in a development build: install, try a rewarded ad once and look in the device
+      log (Xcode console / `adb logcat`) for the UMP line with the **hashed device ID**
+      (`... setTestDeviceIdentifiers(...) ... "<HASH>"` / `addTestDeviceHashedId("<HASH>")`).
+      Put it in `.env` with a debug region and restart Metro:
+      ```
+      EXPO_PUBLIC_ADMOB_TEST_DEVICE_IDS=33BE2250B43518CCDA7DE426D04EE231
+      EXPO_PUBLIC_ADMOB_CONSENT_DEBUG_GEOGRAPHY=EEA
+      ```
+      (`EEA`, `NOT_EEA`, `REGULATED_US_STATE` or `OTHER`; only used in development builds and only
+      on the listed devices). To see the message again, delete and reinstall the app (consent is
+      stored on the device).
+   5. **How the app behaves**: nothing at app start. Only when a member whose policy allows ads
+      taps **Watch a short video** does the app check consent (`requestInfoUpdate` +
+      `loadAndShowConsentFormIfRequired`, with the member's `tagForUnderAgeOfConsent`); the
+      message appears only where required and only the first time. The answer is cached for
+      the app session. If ads may not be requested (`canRequestAds` false, or the check fails
+      offline without an earlier answer), the app shows "No video is available right now" and
+      the other second-chance options stay available — play is never blocked. Ads are still
+      requested non-personalized (`policy.ad_request`). Children never see the message (the
+      server never allows them ads), nor does web or Expo Go. Where UMP requires a way to change
+      the choice later, **Profile → Privacy → Privacy choices for ads** appears (it opens
+      Google's privacy options form); elsewhere the row is hidden.
+   6. **iOS: no App Tracking Transparency prompt.** The app requests non-personalized / limited
+      ads and never reads the IDFA, so it does not call the ATT API, the config has no
+      `NSUserTrackingUsageDescription` (no `userTrackingUsageDescription` plugin option in
+      `app.config.ts`), and App Store privacy answers say "not used for tracking". If the policy
+      ever allows personalized ads on iOS, an ATT prompt (and that Info.plist string) must be
+      added first.
+8. **Check on the phone**: as an adult on the free tier, start a game, lose all lives → **Watch a
    short video** → "Loading the video…" → the ad plays → close it after the reward → "Checking
    your reward…" → the game continues with full lives. Closing the ad early shows "Watch the video
-   to the end…" (no second chance). As a child, the option never appears.
+   to the end…" (no second chance). As a child, the option never appears. With the EEA debug
+   region (step 7.4): the consent message appears before the first video only; choosing "Do not
+   consent" still plays a (limited) ad or shows "No video is available"; Profile → Privacy →
+   **Privacy choices for ads** reopens the choices.
 
 ## Error monitoring — Sentry setup
 

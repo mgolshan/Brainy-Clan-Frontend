@@ -5,13 +5,15 @@ import { ActivityIndicator } from 'react-native';
 import { ApiError } from '@/api/client';
 import type { Policy } from '@/api/types';
 import { openLegalPage, useExportMyData, useLegal } from '@/features/legal/hooks';
+import { useAdPrivacyOptions } from '@/features/play/useAdPrivacyOptions';
 import { errorMessage } from '@/lib/errorMessage';
 import { Card, Divider, Icon, type IconName, ListRow, SectionHeader, Text, useTheme } from '@/ui';
 
 /**
  * Profile → Privacy: Terms / Privacy Policy (from `GET /legal`, hidden when not served),
  * "Download my data" (`GET /me/export`) and "Delete account" for everyone but children (the
- * policy's `is_child`; the server answers 403 for anyone else it refuses).
+ * policy's `is_child`; the server answers 403 for anyone else it refuses), and "Privacy choices
+ * for ads" (Google UMP privacy options) for members who can see ads, when UMP requires it.
  */
 export function PrivacySection({ policy }: { policy: Policy }) {
   const { t } = useTranslation();
@@ -19,8 +21,9 @@ export function PrivacySection({ policy }: { policy: Policy }) {
   const legal = useLegal().data;
   const exportData = useExportMyData();
   const selfService = !policy.is_child;
+  const adPrivacy = useAdPrivacyOptions(policy);
 
-  if (!legal && !selfService) return null;
+  if (!legal && !selfService && !adPrivacy.visible) return null;
 
   const exportError = (error: unknown): string => {
     if (error instanceof ApiError) {
@@ -86,6 +89,28 @@ export function PrivacySection({ policy }: { policy: Policy }) {
               title={t('deletion.accountTitle')}
               leading={<Icon name="trash-outline" color={theme.colors.danger} />}
               onPress={() => router.push('/delete-account')}
+            />
+          </>
+        ) : null}
+        {adPrivacy.visible ? (
+          <>
+            {legal || selfService ? <Divider /> : null}
+            <ListRow
+              title={t('legal.adPrivacyChoices')}
+              subtitle={t('legal.adPrivacyChoicesHint')}
+              leading={leading('options-outline')}
+              trailing={
+                adPrivacy.pending ? <ActivityIndicator color={theme.colors.primary} /> : undefined
+              }
+              chevron={!adPrivacy.pending}
+              onPress={adPrivacy.pending ? undefined : adPrivacy.open}
+              below={
+                adPrivacy.failed ? (
+                  <Text variant="caption" tone="danger" accessibilityLiveRegion="polite">
+                    {t('legal.adPrivacyChoicesFailed')}
+                  </Text>
+                ) : null
+              }
             />
           </>
         ) : null}

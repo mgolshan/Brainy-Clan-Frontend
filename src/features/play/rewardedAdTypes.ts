@@ -1,4 +1,5 @@
 import type { AdRequestPolicy } from '@/api/types';
+import type { AdConsent } from '@/features/play/adConsent';
 
 /** Shared shapes for the AdMob wrapper (`rewardedAd.ts` native, `rewardedAd.web.ts` stub). */
 
@@ -37,4 +38,6 @@ export interface RewardedAds {
   readonly available: boolean;
   /** Loads and shows one non-personalized rewarded ad; resolves once it is closed. */
   show(request: RewardedAdRequest): Promise<RewardedAdOutcome>;
+  /** Google UMP consent: gathered by `show`, privacy options for Profile → Privacy. */
+  readonly consent: AdConsent;
 }

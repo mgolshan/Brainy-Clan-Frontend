@@ -5,20 +5,20 @@ Milestones are defined in `docs/PLAN.md`.
 
 ## Status
 
-| Milestone                         | Status                                                                                                                            | Notes                                                                                                                                                               |
-| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Scaffold                          | Done                                                                                                                              | Expo SDK 57, Expo Router, tabs and join placeholders, core packages, CLAUDE.md                                                                                      |
-| F0 Local environment              | Done                                                                                                                              | `npm install` on Node 24, `.env` with LAN IP `192.168.2.23`, expo-doctor 21/21                                                                                      |
-| F1 App foundation                 | Done                                                                                                                              | `/api/v1` client + typed errors, health, version gate, age-adaptive themes, base UI, `/dev/themes`                                                                  |
-| F2 Accounts, family and invites   | Done (sign-in + Family tab checked on web against the mock; real login payload matches)                                           | Welcome/register/login/join, create family, Family + Profile tabs, member editor, invites                                                                           |
-| F3 Play loop                      | Done (played against the live backend on web; backend bugs listed in the log)                                                     | Categories + drill-down, play screen, MC + Wisdom Card, feedback, lives, second chances, redemption, offline queue, Home                                            |
-| F4 Goals and leaderboard          | Done (verified against the real backend 2026-10-11)                                                                               | Goals list, detail (team bar / race, countdown, history), 7-step wizard, Home + Family entry points                                                                 |
-| F2b Member sign-in without email  | Done (verified on web against the real backend B2b)                                                                               | Sign-in code screen, admin code screen, member email login, devices list, set/change password                                                                       |
-| F5 Remaining challenge types      | Done (played on web against the real B7 backend 2026-10-11; backend bugs in the log)                                              | Sudoku (4/6/9), Math Sprint, Word Puzzles (anagram, missing letter, word search); drafts persisted per item                                                         |
-| F4b Social sign-in                | Built, verified on web against a mock (B6b not served yet; no real client IDs yet)                                                | Google + Facebook buttons, birth step, Profile sign-in methods, dev build setup, README guide                                                                       |
-| F4c Sign in with Apple            | Built (checks green; only verifiable on an iPhone dev build)                                                                      | Apple's native button on welcome/login/register + Profile sign-in methods, nonce, `authorization_code`, birth step, README setup                                    |
-| F6 Monetization and notifications | Built (paywall + rewarded ads code done; web checks green; purchases/ads need a dev build + store/AdMob accounts)                 | Family plan card, Notifications, push, account/family deletion (verified on web); RevenueCat paywall and AdMob rewarded ads built 2026-10-16, unverified on a phone |
-| F7 Release                        | In progress: legal client follow-ups + release prep (identity, owl icon/splash, EAS profiles, OTA, docs/STORE.md) done 2026-10-16 | B9 not served yet (preview fallback verified on web, required path via fetch stub); store accounts, screenshots and submission still to do                          |
+| Milestone                         | Status                                                                                                                            | Notes                                                                                                                                                                                          |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scaffold                          | Done                                                                                                                              | Expo SDK 57, Expo Router, tabs and join placeholders, core packages, CLAUDE.md                                                                                                                 |
+| F0 Local environment              | Done                                                                                                                              | `npm install` on Node 24, `.env` with LAN IP `192.168.2.23`, expo-doctor 21/21                                                                                                                 |
+| F1 App foundation                 | Done                                                                                                                              | `/api/v1` client + typed errors, health, version gate, age-adaptive themes, base UI, `/dev/themes`                                                                                             |
+| F2 Accounts, family and invites   | Done (sign-in + Family tab checked on web against the mock; real login payload matches)                                           | Welcome/register/login/join, create family, Family + Profile tabs, member editor, invites                                                                                                      |
+| F3 Play loop                      | Done (played against the live backend on web; backend bugs listed in the log)                                                     | Categories + drill-down, play screen, MC + Wisdom Card, feedback, lives, second chances, redemption, offline queue, Home                                                                       |
+| F4 Goals and leaderboard          | Done (verified against the real backend 2026-10-11)                                                                               | Goals list, detail (team bar / race, countdown, history), 7-step wizard, Home + Family entry points                                                                                            |
+| F2b Member sign-in without email  | Done (verified on web against the real backend B2b)                                                                               | Sign-in code screen, admin code screen, member email login, devices list, set/change password                                                                                                  |
+| F5 Remaining challenge types      | Done (played on web against the real B7 backend 2026-10-11; backend bugs in the log)                                              | Sudoku (4/6/9), Math Sprint, Word Puzzles (anagram, missing letter, word search); drafts persisted per item                                                                                    |
+| F4b Social sign-in                | Built, verified on web against a mock (B6b not served yet; no real client IDs yet)                                                | Google + Facebook buttons, birth step, Profile sign-in methods, dev build setup, README guide                                                                                                  |
+| F4c Sign in with Apple            | Built (checks green; only verifiable on an iPhone dev build)                                                                      | Apple's native button on welcome/login/register + Profile sign-in methods, nonce, `authorization_code`, birth step, README setup                                                               |
+| F6 Monetization and notifications | Built (paywall + rewarded ads code done; web checks green; purchases/ads need a dev build + store/AdMob accounts)                 | Family plan card, Notifications, push, account/family deletion (verified on web); RevenueCat paywall and AdMob rewarded ads built 2026-10-16, UMP ad consent 2026-10-17, unverified on a phone |
+| F7 Release                        | In progress: legal client follow-ups + release prep (identity, owl icon/splash, EAS profiles, OTA, docs/STORE.md) done 2026-10-16 | B9 not served yet (preview fallback verified on web, required path via fetch stub); store accounts, screenshots and submission still to do                                                     |
 
 ## Next up
 
@@ -56,8 +56,12 @@ Milestones are defined in `docs/PLAN.md`.
    Moe follows README "Family plan purchases — RevenueCat setup" and "Rewarded ads — AdMob setup"
    (store products, RevenueCat entitlement `family` + current offering, webhook, keys in EAS env;
    AdMob apps + rewarded unit with SSV to `/api/v1/webhooks/admob-ssv`, test device), makes a dev
-   build, then runs the phone checklist in "How to test → F6". Before an EU/UK release: Google UMP
-   consent form for ads (not built), and real `EXPO_PUBLIC_TERMS_URL` / `EXPO_PUBLIC_PRIVACY_URL`.
+   build, then runs the phone checklist in "How to test → F6". Google UMP ad consent **built
+   2026-10-17** (see log), unverified on a phone: Moe creates and publishes the GDPR message (and
+   optionally the US state message) in AdMob → Privacy & messaging (README "Rewarded ads — AdMob
+   setup" step 7), then checks it in a dev build with the EEA debug geography + hashed test device
+   ID (How to test → F6, items 8–10). Still needed before an EU/UK release: real
+   `EXPO_PUBLIC_TERMS_URL` / `EXPO_PUBLIC_PRIVACY_URL`.
 
 1. F4b with real credentials: Moe follows README "Google and Facebook sign-in setup" (Google
    Cloud + Meta apps, `.env` / EAS env vars), first EAS development build (`eas init`, then
@@ -284,6 +288,15 @@ AdMob setup", `npx eas-cli@latest build --profile development`, `npm run start:d
    reachable → after ~20 s "We couldn't confirm your reward yet"; tapping the button again
    re-checks the same reward without another ad.
 7. Child: the option never appears (server `ad_allowed: false`). Family tier: no ads.
+8. UMP consent (README AdMob step 7, `.env` `EXPO_PUBLIC_ADMOB_CONSENT_DEBUG_GEOGRAPHY=EEA` +
+   `EXPO_PUBLIC_ADMOB_TEST_DEVICE_IDS=<hash>`, fresh install): nothing at app start; first
+   **Watch a short video** → Google's consent message (English / French) → after a choice the ad
+   loads. Second video in the same session: no message. Kill and reopen: no message again.
+9. Profile → Privacy → **Privacy choices for ads** visible (EEA) → opens Google's privacy options
+   form; check it also shows after an app restart (status read from the device, no new ad
+   needed). With `NOT_EEA`: no message, no row. Child / family tier / web: never a row.
+10. Consent dismissed or unavailable (e.g. airplane mode on the very first ad) → "No video is
+    available right now", other second-chance options still work; next tap asks again.
 
 ### F7 - legal, consent, privacy (B9) and Sentry
 
@@ -319,6 +332,38 @@ themes (light/dark).
   splash (blue `#1D6FD8`, dark `#10233F`). `npx expo-doctor` 21/21; `npx expo config --type public`.
 
 ## Log
+
+### 2026-10-17 - Google UMP ad consent (F6 next-up d)
+
+- `src/features/play/adConsent.ts`: consent gating on the `AdsConsent` API of
+  react-native-google-mobile-ads 17.2 (`requestInfoUpdate` + `loadAndShowConsentFormIfRequired`,
+  fallback `getConsentInfo`, `showPrivacyOptionsForm`). Gathered lazily inside
+  `rewardedAds.show` right before the first ad (never at app start), before the SDK is
+  initialized; passes the member's `policy.ad_request.under_age_of_consent` as
+  `tagForUnderAgeOfConsent`; cached per session (failures aren't cached, so the next tap retries).
+  `canRequestAds === false` → `AdError('noFill')` → existing "No video is available right now"
+  path; play is never blocked. Ad requests still use `policy.ad_request` (non-personalized).
+- `rewardedAd.ts` is now `createRewardedAds(importSdk)` (injectable for tests); the exported
+  `rewardedAds` is unchanged for callers and gained `consent` (`noAdConsent` on web, in Expo Go and
+  without an ad unit).
+- Profile → Privacy → **Privacy choices for ads** (`useAdPrivacyOptions`, in `PrivacySection`):
+  only when the policy allows ads in a build that can show them (same condition as the ad
+  option) and UMP's `privacyOptionsRequirementStatus === 'REQUIRED'` (stored status read with
+  `getConsentInfo`, no network, no message). Never for children. en + fr strings; themed via
+  `useTheme` (ListRow + primary icon/spinner, danger caption), like the other Privacy rows.
+- Debug: `EXPO_PUBLIC_ADMOB_CONSENT_DEBUG_GEOGRAPHY` / `EXPO_PUBLIC_ADMOB_TEST_DEVICE_IDS`
+  (development builds only, `.env.example`).
+- iOS: decided **no ATT prompt** — non-personalized/limited ads, IDFA never read; no
+  `NSUserTrackingUsageDescription` anywhere (checked `app.json`, `app.config.ts`, the plugin's
+  `userTrackingUsageDescription` option is not passed). Documented in README and `app.config.ts`.
+- README "Rewarded ads — AdMob setup": new step 7 (Privacy & messaging GDPR message for
+  EEA/UK/Switzerland linked to the app IDs, optional US state message, no IDFA explainer, debug
+  geography + hashed test device ID, app behaviour, ATT decision); "not built yet" note removed.
+- Tests: `src/features/play/__tests__/adConsent.test.ts` (16) and `rewardedAdConsent.test.ts` (3,
+  mocks react-native-google-mobile-ads: no SDK init / ad request without consent, one consent
+  flow per session, non-personalized request, privacy options form).
+- Needs a phone check (dev build, How to test → F6 items 8–10) once the AdMob message is published.
+- Checks: `npm test` 340/340, typecheck, lint, format:check green; web export bundles.
 
 ### 2026-10-17 - "Continue your game" verified on web + resume fix
 

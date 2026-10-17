@@ -1,5 +1,6 @@
 import { ADMOB_REWARDED_UNIT_ID, adsSupported } from '@/config/monetization';
 import type { AdRequestPolicy } from '@/api/types';
+import { consentDebugOptions, createAdConsent, noAdConsent } from '@/features/play/adConsent';
 import {
   AdError,
   type RewardedAdOutcome,
@@ -16,28 +17,14 @@ import {
  * `requestNonPersonalizedAdsOnly`, `tagForUnderAgeOfConsent`, `maxAdContentRating`); without it
  * the safe defaults are non-personalized and rated G (no tracking / ATT prompt). Whether a member may see an ad at all is decided by the server
  * (`policy.second_chance.ad_allowed`, `session.second_chance.ad_available`); this only shows one.
+ *
+ * Google UMP consent (`adConsent.ts`) is gathered right before the first ad of the session, before
+ * the SDK is initialized; when UMP says ads can't be requested, `show` fails with `noFill`.
  */
 
 type AdsModule = typeof import('react-native-google-mobile-ads');
 
 const LOAD_TIMEOUT_MS = 20_000;
-
-let ready: Promise<AdsModule> | null = null;
-
-function loadSdk(): Promise<AdsModule> {
-  ready ??= import('react-native-google-mobile-ads')
-    .then(async (mod) => {
-      const ads = mod.default();
-      await ads.setRequestConfiguration({ maxAdContentRating: mod.MaxAdContentRating.G });
-      await ads.initialize();
-      return mod;
-    })
-    .catch((error: unknown) => {
-      ready = null;
-      throw new AdError('failed', error instanceof Error ? error.message : undefined);
-    });
-  return ready;
-}
 
 function adErrorFrom(error: unknown): AdError {
   const code =
@@ -66,10 +53,11 @@ function contentRating(
   }
 }
 
-async function show({ userId, customData, adRequest, onShowing }: RewardedAdRequest) {
-  const unitId = ADMOB_REWARDED_UNIT_ID;
-  if (!unitId) throw new AdError('failed');
-  const mod = await loadSdk();
+async function showAd(
+  mod: AdsModule,
+  unitId: string,
+  { userId, customData, adRequest, onShowing }: RewardedAdRequest,
+) {
   const { RewardedAd, RewardedAdEventType, AdEventType } = mod;
 
   try {
@@ -127,7 +115,53 @@ async function show({ userId, customData, adRequest, onShowing }: RewardedAdRequ
   });
 }
 
-export const rewardedAds: RewardedAds = {
-  available: adsSupported,
-  show,
-};
+/**
+ * Rewarded ads backed by `importSdk` (the lazily imported react-native-google-mobile-ads module;
+ * injectable so tests can pass a mock).
+ */
+export function createRewardedAds(importSdk: () => Promise<AdsModule>): RewardedAds {
+  let ready: Promise<AdsModule> | null = null;
+
+  const consent = createAdConsent(
+    () => importSdk().then((mod) => mod.AdsConsent),
+    consentDebugOptions(
+      process.env.EXPO_PUBLIC_ADMOB_CONSENT_DEBUG_GEOGRAPHY,
+      process.env.EXPO_PUBLIC_ADMOB_TEST_DEVICE_IDS,
+      __DEV__,
+    ),
+  );
+
+  function loadSdk(): Promise<AdsModule> {
+    ready ??= importSdk()
+      .then(async (mod) => {
+        const ads = mod.default();
+        await ads.setRequestConfiguration({ maxAdContentRating: mod.MaxAdContentRating.G });
+        await ads.initialize();
+        return mod;
+      })
+      .catch((error: unknown) => {
+        ready = null;
+        throw new AdError('failed', error instanceof Error ? error.message : undefined);
+      });
+    return ready;
+  }
+
+  return {
+    available: adsSupported,
+    async show(request) {
+      const unitId = ADMOB_REWARDED_UNIT_ID;
+      if (!unitId) throw new AdError('failed');
+      // Consent first (Google's message may appear here), then initialize and request the ad.
+      if (!(await consent.canRequestAds(request.adRequest?.under_age_of_consent))) {
+        throw new AdError('noFill', 'consent: ads cannot be requested');
+      }
+      return showAd(await loadSdk(), unitId, request);
+    },
+    // Never touch the native module where ads can't run (Expo Go, no ad unit).
+    consent: adsSupported ? consent : noAdConsent,
+  };
+}
+
+export const rewardedAds: RewardedAds = createRewardedAds(
+  () => import('react-native-google-mobile-ads'),
+);

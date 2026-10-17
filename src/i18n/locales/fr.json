@@ -863,6 +863,9 @@
     "unchanged": "Aucun changement depuis votre dernière acceptation",
     "previouslyAccepted": "Vous aviez accepté la version {{version}}",
     "parentalConsentRequired": "Je suis son parent ou tuteur (ou j'ai sa permission) et j'accepte la Politique de confidentialité pour ses données",
-    "parentalConsentRequiredHint": "Obligatoire pour inviter un enfant."
+    "parentalConsentRequiredHint": "Obligatoire pour inviter un enfant.",
+    "adPrivacyChoices": "Choix de confidentialité pour les publicités",
+    "adPrivacyChoicesHint": "Modifiez ce que vous autorisez pour les courtes vidéos",
+    "adPrivacyChoicesFailed": "Les choix de confidentialité n’ont pas pu s’ouvrir. Veuillez réessayer."
   }
 }

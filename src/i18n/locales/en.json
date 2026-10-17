@@ -830,6 +830,9 @@
     "unchanged": "No changes since you last accepted it",
     "previouslyAccepted": "You accepted version {{version}}",
     "parentalConsentRequired": "I'm their parent or guardian (or have their permission) and agree to the Privacy policy for their data",
-    "parentalConsentRequiredHint": "Required to invite a child."
+    "parentalConsentRequiredHint": "Required to invite a child.",
+    "adPrivacyChoices": "Privacy choices for ads",
+    "adPrivacyChoicesHint": "Change what you allow for the short videos",
+    "adPrivacyChoicesFailed": "The privacy choices couldn't be opened. Please try again."
   }
 }

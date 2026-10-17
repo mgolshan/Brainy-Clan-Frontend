@@ -12,8 +12,11 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
  *   `fb<APP_ID>` scheme, so it is registered next to `brainyclan`.
  * - AdMob (react-native-google-mobile-ads, README "AdMob setup"): the native SDK needs the AdMob
  *   app IDs at build time (`ADMOB_IOS_APP_ID` / `ADMOB_ANDROID_APP_ID`); without them Google's
- *   sample app IDs are used, which only ever serve test ads. Ads are non-personalized only, so no
- *   App Tracking Transparency prompt (`NSUserTrackingUsageDescription`) is added.
+ *   sample app IDs are used, which only ever serve test ads. Ads are non-personalized only and the
+ *   IDFA is never used, so no App Tracking Transparency prompt: deliberately no
+ *   `userTrackingUsageDescription` plugin option / `NSUserTrackingUsageDescription` (adding one
+ *   without calling the ATT API would only confuse App Review). Google UMP consent (GDPR) needs no
+ *   extra native config beyond the app ID.
  * - RevenueCat (react-native-purchases) needs no config plugin; its keys are runtime
  *   `EXPO_PUBLIC_REVENUECAT_*` variables.
  * - Sentry (README "Error monitoring — Sentry setup"): the `@sentry/react-native/expo` plugin
