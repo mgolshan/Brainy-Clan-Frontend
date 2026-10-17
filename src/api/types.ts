@@ -532,6 +532,9 @@ export interface SessionPayload {
   items: SessionItem[];
 }
 
+/** `GET /play/sessions/current`: the member's most recent unfinished session, or `null`. */
+export type CurrentSession = SessionPayload | null;
+
 export interface StartSessionBody {
   category_id: number;
 }

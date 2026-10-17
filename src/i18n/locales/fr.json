@@ -206,6 +206,22 @@
       "notCompleted": "Regardez la vidéo jusqu’au bout pour obtenir votre seconde chance.",
       "noFill": "Aucune vidéo n’est disponible pour le moment. Réessayez plus tard.",
       "failed": "La vidéo n’a pas pu être affichée. Réessayez."
+    },
+    "resume": {
+      "title": "Reprendre votre partie",
+      "titleKid": "Ta partie t'attend !",
+      "game": "Votre partie",
+      "continue": "Continuer",
+      "continueKid": "On continue !",
+      "end": "Terminer la partie",
+      "endHint": "Touchez deux fois pour terminer cette partie",
+      "endConfirm": "Touchez encore pour terminer",
+      "endConfirmKid": "Touche encore pour arrêter la partie",
+      "lives_one": "{{count}} vie sur {{total}} restante",
+      "lives_many": "{{count}} vies sur {{total}} restantes",
+      "lives_other": "{{count}} vies sur {{total}} restantes",
+      "outOfLives": "Plus de vies, une seconde chance vous attend",
+      "redemption": "Manche de rattrapage"
     }
   },
   "dev": {

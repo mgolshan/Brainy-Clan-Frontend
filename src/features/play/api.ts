@@ -9,15 +9,17 @@ import type {
   AnswerBody,
   AnswerResult,
   Category,
+  CurrentSession,
   Envelope,
   PlaySession,
   SecondChanceBody,
-  SessionItem,
   SessionPayload,
 } from '@/api/types';
 import { usePolicy } from '@/features/auth/hooks';
+import { isUnfinished } from '@/features/play/resume';
 import { rewardedAds } from '@/features/play/rewardedAd';
 import { AdError } from '@/features/play/rewardedAdTypes';
+import { markAnswered, mergeItems } from '@/features/play/sessionItems';
 
 // ---------------------------------------------------------------------------
 // Raw calls (also used by the answer queue outside React)
@@ -32,14 +34,24 @@ export async function postAnswer(sessionId: number, body: AnswerBody): Promise<A
 }
 
 /**
- * Merge items by id and sort by position. `GET`, `second-chance` and `redemption` return all
- * session items; merging (rather than replacing) keeps answers recorded locally before a refetch.
+ * Keep the "Continue your game" card in step with a session the member is playing: progress is
+ * copied locally (no refetch per answer); once the game is over the query is refetched.
  */
-export function mergeItems(current: SessionItem[], incoming: SessionItem[]): SessionItem[] {
-  const byId = new Map<number, SessionItem>();
-  for (const item of current) byId.set(item.id, item);
-  for (const item of incoming) byId.set(item.id, { ...byId.get(item.id), ...item });
-  return [...byId.values()].sort((a, b) => a.position - b.position);
+export function syncCurrentSession(session: PlaySession, answeredItemId?: number) {
+  queryClient.setQueryData<CurrentSession>(queryKeys.currentSession, (prev) =>
+    prev && prev.session.id === session.id
+      ? isUnfinished(session.status)
+        ? {
+            session,
+            items:
+              answeredItemId === undefined ? prev.items : markAnswered(prev.items, answeredItemId),
+          }
+        : null
+      : prev,
+  );
+  if (!isUnfinished(session.status)) {
+    void queryClient.invalidateQueries({ queryKey: queryKeys.currentSession });
+  }
 }
 
 /** Write a server answer result into the cached session. */
@@ -48,10 +60,11 @@ export function applyAnswerResult(sessionId: number, itemId: number, result: Ans
     prev
       ? {
           session: result.session,
-          items: prev.items.map((it) => (it.id === itemId ? { ...it, answered: true } : it)),
+          items: markAnswered(prev.items, itemId),
         }
       : prev,
   );
+  syncCurrentSession(result.session, itemId);
   // Points changed: home stats, leaderboard and goal progress are now stale (inactive queries
   // are only marked stale, they refetch when their screen is shown again).
   if (result.points_awarded > 0) {
@@ -66,6 +79,7 @@ function applySessionPayload(payload: SessionPayload) {
     session: payload.session,
     items: mergeItems(prev?.items ?? [], payload.items),
   }));
+  syncCurrentSession(payload.session);
 }
 
 // ---------------------------------------------------------------------------
@@ -80,6 +94,39 @@ export function useCategories() {
       (await api.get<Envelope<Category[]>>('/categories', { signal })).data,
     staleTime: 5 * 60_000,
   });
+}
+
+/**
+ * `GET /play/sessions/current`: the member's unfinished game, or `null`. A 404 (backend without
+ * the endpoint yet) counts as "no current session".
+ */
+export function useCurrentSession() {
+  return useQuery({
+    queryKey: queryKeys.currentSession,
+    queryFn: async ({ signal }): Promise<CurrentSession> => {
+      try {
+        const payload = (
+          await api.get<Envelope<CurrentSession>>('/play/sessions/current', { signal })
+        ).data;
+        return payload && isUnfinished(payload.session.status) ? payload : null;
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) return null;
+        throw error;
+      }
+    },
+    staleTime: 60_000,
+  });
+}
+
+/**
+ * Seed the play-screen cache from the current-session payload before "Continue" opens it, so
+ * the game shows at once (same merge as a refetch: locally known answers are kept).
+ */
+export function seedPlaySession(payload: SessionPayload) {
+  queryClient.setQueryData<SessionPayload>(queryKeys.playSession(payload.session.id), (prev) => ({
+    session: payload.session,
+    items: mergeItems(prev?.items ?? [], payload.items),
+  }));
 }
 
 /** `GET /play/sessions/{id}`; seeded by `useStartSession`. */
@@ -118,6 +165,8 @@ export function useStartSession() {
         },
         items: [...payload.items].sort((a, b) => a.position - b.position),
       });
+      // Starting abandons older unfinished games on the server; the new one is now "current".
+      void queryClient.invalidateQueries({ queryKey: queryKeys.currentSession });
     },
   });
 }
@@ -238,6 +287,8 @@ export function useAbandonSession(sessionId: number) {
       queryClient.setQueryData<SessionPayload>(queryKeys.playSession(sessionId), (prev) =>
         prev ? { ...prev, session } : prev,
       );
+      syncCurrentSession(session);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.currentSession });
     },
   });
 }

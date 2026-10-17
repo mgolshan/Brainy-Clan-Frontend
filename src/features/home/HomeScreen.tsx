@@ -8,6 +8,8 @@ import { useIsAdmin, useMe } from '@/features/auth/hooks';
 import { useLeaderboard } from '@/features/family/hooks';
 import { GoalCard } from '@/features/goals/components/GoalCard';
 import { pickMainGoal, useGoals } from '@/features/goals/hooks';
+import { useCurrentSession } from '@/features/play/api';
+import { ResumeGameCard } from '@/features/play/components/ResumeGameCard';
 import { useMeStats } from '@/features/profile/hooks';
 import { formatNumber } from '@/lib/format';
 import {
@@ -75,6 +77,7 @@ export function HomeScreen() {
   const stats = useMeStats();
   const board = useLeaderboard('week');
   const goals = useGoals();
+  const current = useCurrentSession();
   const isAdmin = useIsAdmin();
   const mainGoal = pickMainGoal(goals.data);
   const name = me?.member?.nickname ?? me?.user.display_name ?? '';
@@ -85,6 +88,7 @@ export function HomeScreen() {
         void stats.refetch();
         void board.refetch();
         void goals.refetch();
+        void current.refetch();
       }}
       refreshing={stats.isRefetching || board.isRefetching}>
       <View style={[styles.row, { gap: theme.spacing.md }]}>
@@ -193,6 +197,8 @@ export function HomeScreen() {
           />
         </Card>
       ) : null}
+
+      <ResumeGameCard compact />
 
       <Button
         title={t('home.playNow')}

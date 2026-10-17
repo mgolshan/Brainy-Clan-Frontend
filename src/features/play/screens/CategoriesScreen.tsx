@@ -4,9 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import type { Category } from '@/api/types';
-import { useCategories } from '@/features/play/api';
+import { useCategories, useCurrentSession } from '@/features/play/api';
 import { findCategory } from '@/features/play/categoryVisuals';
 import { CategoryTile } from '@/features/play/components/CategoryTile';
+import { ResumeGameCard } from '@/features/play/components/ResumeGameCard';
 import { useStartAndOpen } from '@/features/play/useStartAndOpen';
 import { errorMessage } from '@/lib/errorMessage';
 import {
@@ -88,14 +89,19 @@ function StatusLines({
 export function CategoriesScreen() {
   const { t } = useTranslation();
   const categories = useCategories();
+  const current = useCurrentSession();
   const selection = useCategorySelection();
 
   return (
     <Screen
       title={t('play.title')}
       subtitle={t('play.subtitle')}
-      onRefresh={() => void categories.refetch()}
+      onRefresh={() => {
+        void categories.refetch();
+        void current.refetch();
+      }}
       refreshing={categories.isRefetching}>
+      <ResumeGameCard />
       {categories.isPending ? (
         <Loading fill={false} />
       ) : categories.isError ? (

@@ -35,9 +35,8 @@ Milestones are defined in `docs/PLAN.md`.
     (native only), the export share sheet on a phone, Sentry with a DSN, `policy.ad_request` on a
     dev build. The new native modules (`expo-sharing`, `expo-file-system`,
     `@sentry/react-native`) need a new EAS development build.
-    Decision for Moe: leaving a game with ✕ keeps the session `active` on the server (no abandon
-    call, no resume in the app) — starting again creates a new session. Either abandon on leave or
-    offer "Continue your game"; until then old active sessions pile up per member.
+    "Continue your game": **verified on web 2026-10-17** against the live endpoint (see log
+    entry of 2026-10-17 "verified on web + resume fix").
 
 0a. Done 2026-10-16: account/family deletion verified on web against live B6c (see log).
 
@@ -83,7 +82,8 @@ Milestones are defined in `docs/PLAN.md`.
 
 - Type a `t` parameter as `TFunction` (from `i18next`), not `ReturnType<typeof useTranslation>['t']`:
   with the typed keys the latter hits TS2589 ("excessively deep") once the locale grows.
-- Leaving a game with ✕ leaves the server session `active` (see Next up 1, decision for Moe).
+- Leaving a game with ✕ keeps the session (no abandon); the "Continue your game" card brings the
+  member back. The server abandons older unfinished sessions on a new start and idle ones after 24 h.
 - Unit tests (`npm test`) cover pure logic only; no component or end-to-end tests yet (Expo
   recommends Maestro for E2E). The first run after an install is slow (~50 s, Babel cache);
   later runs ~10 s. Upgrading to SDK 58 needs Jest 30 (`jest`, `@types/jest`, `jest-expo`
@@ -319,6 +319,56 @@ themes (light/dark).
   splash (blue `#1D6FD8`, dark `#10233F`). `npx expo-doctor` 21/21; `npx expo config --type public`.
 
 ## Log
+
+### 2026-10-17 - "Continue your game" verified on web + resume fix
+
+Verified on web (Chrome) against the live `GET /play/sessions/current`, no console errors:
+
+- Sam (playful): start World Geography, answer, ✕ → card on Play (hearts, "0 of 10 points · 2 of
+  3 lives left", "Keep playing!") and Home (compact, above "Play now"); Continue resumes the same
+  session; leaving during the feedback panel and continuing opens the next item; card progress
+  follows answers without a refetch. Starting Science & Nature from a category tile while 55 was
+  open → card shows the new session, 55 is `abandoned` server-side. End game: first tap → red
+  "Tap again to stop this game", reverts after 4 s; two taps → card gone, session `abandoned`,
+  `/play/sessions/current` returns `null`.
+- Mom (modern, signed in via an API call): same loop from Play and Home; French + classic dark on
+  both cards ("Reprendre votre partie", "1 point sur 10 · 3 vies sur 3 restantes", "Touchez
+  encore pour terminer" wraps to two lines in the compact Home card — fine); End game from Home.
+
+Fix: **Continue reopened an already answered item** (Sam resumed at item 1 after answering it).
+The cached current-session payload keeps the items from when it was fetched (only `session` was
+synced per answer), and `seedPlaySession` → `mergeItems` let its stale `answered: false`
+overwrite the play cache's `true`. Now `mergeItems` never un-answers an item, and answer results
+also mark the item answered in the current-session cache (`syncCurrentSession(session, itemId)`).
+Pure helpers moved to `src/features/play/sessionItems.ts` (`mergeItems`, `markAnswered`) with
+`__tests__/sessionItems.test.ts`.
+
+No backend bugs found. Cleanup: test sessions 55–57 abandoned, Mom's locale/theme restored (en,
+theme null, scheme system), Mom's QA token logged out, Sam's demo token left valid.
+
+- Checks: `npm test` 321/321, typecheck, lint, format:check green; web export bundles.
+
+### 2026-10-17 - "Continue your game" (current session)
+
+- `useCurrentSession()` (`GET /play/sessions/current`, key `['play','current']`, 404 → `null` while
+  the backend lacks the endpoint) in `src/features/play/api.ts`; `CurrentSession` type.
+- `ResumeGameCard` (`src/features/play/components/`): category name, progress bar + "x of y
+  points · n of m lives left" (out of lives / redemption round instead when paused), hearts on the
+  Play tab; **Continue** seeds the play cache from the payload and opens `play/[session]`; **End
+  game** is two-tap (turns into a red "Tap again to end it" for 4 s, no dialogs) and abandons.
+  On the Play tab (top) and Home (compact, above "Play now"); hidden when there is none. Both
+  screens' pull-to-refresh refetch it.
+- Kept in sync without refetching per answer: answer results / second chance / redemption copy
+  the session into the cached current session (`syncCurrentSession`); start, completion and
+  abandon invalidate it. ✕ still just leaves (no abandon).
+- Pure logic `src/features/play/resume.ts` (`isUnfinished`, `resumeCardModel`: kid copy in
+  playful, progress, clamped fraction, lives/status) + `__tests__/resume.test.ts`. i18n
+  `play.resume.*` en + fr (all plural forms).
+- Checks: test (317), typecheck, lint, format:check green; web export bundles.
+- Web check incomplete: the endpoint was still 404 and `POST /play/sessions` returned 500
+  (`PlaySession::UNFINISHED_STATUSES` undefined; the backend agent was mid-change). Confirmed on
+  web as Sam that the 404 hides the card on Play/Home without errors. To do: start a game, ✕,
+  card on Play + Home, Continue resumes, End game (two taps) hides it; all four themes + French.
 
 ### 2026-10-17 - Regression pass finished (web) + five client fixes
 

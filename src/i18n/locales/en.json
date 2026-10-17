@@ -192,6 +192,21 @@
       "notCompleted": "Watch the video to the end to get your second chance.",
       "noFill": "No video is available right now. Please try again later.",
       "failed": "The video couldn't be shown. Please try again."
+    },
+    "resume": {
+      "title": "Continue your game",
+      "titleKid": "Your game is waiting for you!",
+      "game": "Your game",
+      "continue": "Continue",
+      "continueKid": "Keep playing!",
+      "end": "End game",
+      "endHint": "Tap twice to end this game",
+      "endConfirm": "Tap again to end it",
+      "endConfirmKid": "Tap again to stop this game",
+      "lives_one": "{{count}} of {{total}} lives left",
+      "lives_other": "{{count}} of {{total}} lives left",
+      "outOfLives": "Out of lives, a second chance is waiting",
+      "redemption": "Second-chance round"
     }
   },
   "dev": {
