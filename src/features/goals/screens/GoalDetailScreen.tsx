@@ -55,7 +55,7 @@ function HistoryRow({
         <Text weight="bold">{range}</Text>
         <Text variant="caption" tone="muted">
           {goal.mode === 'cooperation'
-            ? t('goals.teamProgress', { total: entry.team_total, target: entry.target_points })
+            ? t('goals.teamProgress', { count: entry.team_total, target: entry.target_points })
             : winners.length > 0
               ? t('goals.winnerIs', { names: winners.map((w) => w.nickname).join(', ') })
               : t('goals.noWinner')}

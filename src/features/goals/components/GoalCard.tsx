@@ -34,17 +34,17 @@ export function GoalCard({ goal, meId, onPress, featured }: GoalCardProps) {
   if (p) {
     if (goal.mode === 'cooperation') {
       value = p.target_points ? p.team_total / p.target_points : 0;
-      caption = t('goals.teamProgress', { total: p.team_total, target: p.target_points });
+      caption = t('goals.teamProgress', { count: p.team_total, target: p.target_points });
     } else if (mine) {
       value = mine.target ? mine.points / mine.target : 0;
       caption = t('goals.myProgress', {
-        points: mine.points,
+        count: mine.points,
         target: mine.target,
         rank: mine.rank,
       });
     } else if (leader) {
       value = leader.target ? leader.points / leader.target : 0;
-      caption = t('goals.leaderProgress', { name: leader.nickname, points: leader.points });
+      caption = t('goals.leaderProgress', { name: leader.nickname, count: leader.points });
     }
   }
 

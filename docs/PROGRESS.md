@@ -28,15 +28,16 @@ Milestones are defined in `docs/PLAN.md`.
     family on the production backend, screenshots (§8), lawyer review of the legal drafts.
     Open decisions are listed in the 2026-10-16 "F7 release prep" log entry.
 
-1.  **F7 legal vs the real B9 backend — mostly verified on web 2026-10-16** (see log "Regression
-    pass vs B9"). Still to check: join-with-email and social birth-step `accept_terms` 422 messages,
-    paywall legal links (native only), the export share sheet on a phone, Sentry with a DSN,
-    `policy.ad_request` on a dev build. The new native modules (`expo-sharing`,
-    `expo-file-system`, `@sentry/react-native`) need a new EAS development build.
-    **Regression pass not finished (time-boxed):** Play each challenge type (MC, wisdom, sudoku 4×4
-    as Sam, math, anagram, missing letter, word search), feedback/redemption/celebration, member
-    sign-in code / devices / notifications, Profile appearance + FR + notifications, all four
-    themes light/dark, French on key screens, 360 px width.
+1.  **F7 legal vs the real B9 backend — verified on web 2026-10-16/17** (see log "Regression
+    pass vs B9" and "Regression pass finished"). Still to check on a phone / with accounts:
+    the social birth-step `accept_terms` 422 against a real provider (blocked by "Waiting for
+    Moe" 1; mapping covered by `src/lib/__tests__/formErrors.test.ts`), paywall legal links
+    (native only), the export share sheet on a phone, Sentry with a DSN, `policy.ad_request` on a
+    dev build. The new native modules (`expo-sharing`, `expo-file-system`,
+    `@sentry/react-native`) need a new EAS development build.
+    Decision for Moe: leaving a game with ✕ keeps the session `active` on the server (no abandon
+    call, no resume in the app) — starting again creates a new session. Either abandon on leave or
+    offer "Continue your game"; until then old active sessions pile up per member.
 
 0a. Done 2026-10-16: account/family deletion verified on web against live B6c (see log).
 
@@ -80,6 +81,9 @@ Milestones are defined in `docs/PLAN.md`.
 
 ## Known issues and notes
 
+- Type a `t` parameter as `TFunction` (from `i18next`), not `ReturnType<typeof useTranslation>['t']`:
+  with the typed keys the latter hits TS2589 ("excessively deep") once the locale grows.
+- Leaving a game with ✕ leaves the server session `active` (see Next up 1, decision for Moe).
 - Unit tests (`npm test`) cover pure logic only; no component or end-to-end tests yet (Expo
   recommends Maestro for E2E). The first run after an install is slow (~50 s, Babel cache);
   later runs ~10 s. Upgrading to SDK 58 needs Jest 30 (`jest`, `@types/jest`, `jest-expo`
@@ -315,6 +319,62 @@ themes (light/dark).
   splash (blue `#1D6FD8`, dark `#10233F`). `npx expo-doctor` 21/21; `npx expo config --type public`.
 
 ## Log
+
+### 2026-10-17 - Regression pass finished (web) + five client fixes
+
+Verified on web (Chrome, 1920 px and four 360 px iframes) against the live backend, no console
+errors:
+
+- Play as Sam (playful): Sudoku 4×4 (conflict highlight, wrong grid → "Not quite" + solution /
+  my-grid toggle, lost heart, full session → "Target reached!" celebration with points / answered
+  / mistakes), multiple choice (wrong → correct answer + explanation), three mistakes → "Out of
+  lives" → redemption round (3/3 correct → lives restored, play continues), wisdom card, math
+  sprint (keypad, countdown, correct auto-advances, wrong → feedback), anagram (FROG), missing
+  letter (HONEY, keyboard), word search (tap first/last letter, 6 words, live caption). Home stats
+  updated (week 12 → 25 pts, total, streak 1); family goal stays 0 because it is scoped to World
+  Geography (correct).
+- Sign-in code: Mom issues a code for Sam (countdown, share/copy/new), signed-out start → "I have
+  a sign-in code" → wrong code shows `sign_in_code_invalid` text, `a84k-4dc2` is normalized to
+  `A84K4DC2` and signs Sam in (playful Home). Mom → Family → Sam → devices → "Web browser" → tap
+  twice → revoked (the token then gets 401). Per-member notifications (Sam, child quiet hours).
+- Profile (Mom): theme Playful + text 140 % + Dark apply instantly and persist after reload
+  (`PATCH /me/accessibility`, scheme in device prefs); French → whole UI + server locale, back to
+  English. Notifications screen in French.
+- Join with email: a stripped `accept_terms` (fetch patched in the page) gives the server 422
+  under the checkbox ("Please accept the terms…"); throwaway family/owner deleted afterwards.
+- Themes: playful, sleek, modern, classic × light/dark on Home, Family and a play session (incl.
+  feedback panel); French on the same in classic dark; 360 px (classic FR, playful EN) on Home,
+  play, Family, Profile, Goals.
+
+Fixes:
+
+1. **Member editor: devices list sat under "Notifications"** (`MemberEditScreen.tsx`): moved back
+   into "Sign-in & devices".
+2. **Profile: Notifications row had no heading** and looked like part of "Password"
+   (`ProfileScreen.tsx`): own "Notifications" section header.
+3. **Play header said "12 of 10 points"** once the target was passed: now "12 points · target
+   reached!" (`src/features/play/progress.ts` `sessionProgressCaption`, tests in
+   `src/features/play/__tests__/progress.test.ts`).
+4. **French plurals for point counts**: "1 points sur 10", "Équipe : 0 points sur 100" →
+   `play.progress`, `play.progressReached`, `play.failed.body`, `goals.teamProgress`,
+   `goals.myProgress`, `goals.leaderProgress` are plural keys (`count`) in en + fr (French 0/1 →
+   "point").
+5. **Home stats broke words at 360 px** ("Aujourd'h/ui" in classic French): the stat row wraps
+   instead (`HomeScreen.tsx`).
+
+Also: `DevicesList` `platformLabel` typed with `TFunction` (the extra plural keys pushed
+`ReturnType<typeof useTranslation>['t']` into TS2589 "excessively deep"). New
+`src/lib/__tests__/formErrors.test.ts` covers `accept_terms` 422 mapping for join and the social
+birth step.
+
+Cleanup: throwaway family + owner deleted (`DELETE /family`, `delete_my_account`), the code
+device revoked, Mom's QA session logged out, test play sessions abandoned (Sam 48–53, Mom 54),
+Mom's appearance/language restored (auto theme, 100 %, en, system scheme). Sam's points earned
+during the pass stay in the ledger.
+
+- Checks: `npm test` 310/310, typecheck, lint, format:check green; web export bundles.
+- Notes: content (questions) is English only in French UI (seed data, not an app bug). Mom's
+  devices list has an old "claude-web-check" device from an earlier session (not removed).
 
 ### 2026-10-16 - Regression pass vs B9 (web, partial) + two client fixes
 

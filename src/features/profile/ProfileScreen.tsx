@@ -140,14 +140,17 @@ export function ProfileScreen() {
       {policy.collect_email ? <SignInMethods /> : null}
 
       {member && notificationPrefs.data ? (
-        <Card padding="sm">
-          <ListRow
-            title={t('notifications.title')}
-            subtitle={t('notifications.entryHint')}
-            leading={<Icon name="notifications-outline" color={theme.colors.primary} />}
-            onPress={() => router.push('/notifications')}
-          />
-        </Card>
+        <>
+          <SectionHeader title={t('notifications.title')} />
+          <Card padding="sm">
+            <ListRow
+              title={t('notifications.title')}
+              subtitle={t('notifications.entryHint')}
+              leading={<Icon name="notifications-outline" color={theme.colors.primary} />}
+              onPress={() => router.push('/notifications')}
+            />
+          </Card>
+        </>
       ) : null}
 
       <SectionHeader title={t('profile.appearance')} />

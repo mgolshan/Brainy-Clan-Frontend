@@ -8,6 +8,7 @@ import type { PlaySession } from '@/api/types';
 import { getChallenge } from '@/challenges/registry';
 import type { AdStage } from '@/features/play/api';
 import { FeedbackPanel } from '@/features/play/components/FeedbackPanel';
+import { sessionProgressCaption } from '@/features/play/progress';
 import { AdError } from '@/features/play/rewardedAdTypes';
 import { usePlaySession } from '@/features/play/usePlaySession';
 import { askAfterSessionIfUndecided } from '@/features/notifications/usePush';
@@ -51,6 +52,7 @@ function PlayHeader({
   const { t } = useTranslation();
   const theme = useTheme();
   const size = theme.touchTarget - 8;
+  const progress = sessionProgressCaption(session.points, session.target_points);
   return (
     <View style={{ gap: theme.spacing.sm }}>
       <View style={styles.headerRow}>
@@ -86,10 +88,7 @@ function PlayHeader({
           ) : (
             <ProgressBar
               value={session.target_points ? session.points / session.target_points : 0}
-              accessibilityLabel={t('play.progress', {
-                points: session.points,
-                target: session.target_points,
-              })}
+              accessibilityLabel={t(progress.key, progress.options)}
             />
           )}
         </View>
@@ -101,9 +100,7 @@ function PlayHeader({
       </View>
       <View style={styles.headerRow}>
         <Text variant="caption" tone="muted" style={styles.flex}>
-          {inRedemption
-            ? t('play.redemptionBanner')
-            : t('play.progress', { points: session.points, target: session.target_points })}
+          {inRedemption ? t('play.redemptionBanner') : t(progress.key, progress.options)}
         </Text>
         {theme.key === 'classic' && !inRedemption ? (
           <Text variant="caption" tone="muted">
@@ -212,7 +209,7 @@ function FailedView({
           {t('play.failed.title')}
         </Text>
         <Text tone="muted" align="center">
-          {t('play.failed.body', { points: session.points, target: session.target_points })}
+          {t('play.failed.body', { count: session.points, target: session.target_points })}
         </Text>
       </Appear>
       {anyOption ? (

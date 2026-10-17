@@ -145,6 +145,7 @@ function Editor({ member, ownerUserId }: { member: Member; ownerUserId: number }
         />
       </Card>
       <MemberEmailLogin member={member} />
+      <DevicesList memberId={member.id} />
 
       <SectionHeader title={t('notifications.title')} />
       <Card padding="sm">
@@ -160,7 +161,6 @@ function Editor({ member, ownerUserId }: { member: Member; ownerUserId: number }
           }
         />
       </Card>
-      <DevicesList memberId={member.id} />
 
       {!isOwner ? (
         <Card style={{ gap: 8 }}>

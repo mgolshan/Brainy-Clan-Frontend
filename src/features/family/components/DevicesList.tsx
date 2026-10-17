@@ -1,3 +1,4 @@
+import type { TFunction } from 'i18next';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
@@ -27,7 +28,7 @@ const PLATFORM_ICONS: Record<string, IconName> = {
   web: 'globe-outline',
 };
 
-function platformLabel(t: ReturnType<typeof useTranslation>['t'], platform: string): string {
+function platformLabel(t: TFunction, platform: string): string {
   if (platform === 'ios' || platform === 'android' || platform === 'web') {
     return t(`devices.platforms.${platform}`);
   }

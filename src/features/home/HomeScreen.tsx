@@ -122,7 +122,7 @@ export function HomeScreen() {
               })}
             </Text>
             <View style={styles.statRow}>
-              <View style={styles.flex}>
+              <View style={styles.stat}>
                 <Text variant="caption" tone="onPrimary">
                   {t('home.today')}
                 </Text>
@@ -130,7 +130,7 @@ export function HomeScreen() {
                   {formatNumber(stats.data.points_today, i18n.language)}
                 </Text>
               </View>
-              <View style={styles.flex}>
+              <View style={styles.stat}>
                 <Text variant="caption" tone="onPrimary">
                   {t('home.total')}
                 </Text>
@@ -138,7 +138,7 @@ export function HomeScreen() {
                   {formatNumber(stats.data.points_total, i18n.language)}
                 </Text>
               </View>
-              <View style={styles.flex}>
+              <View style={styles.stat}>
                 <Text variant="caption" tone="onPrimary">
                   {t('home.streak')}
                 </Text>
@@ -255,7 +255,9 @@ export function HomeScreen() {
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
   flex: { flex: 1 },
-  statRow: { flexDirection: 'row', gap: 12 },
+  // Wraps instead of breaking words ("Aujourd'hui" in the classic font at 360 px / large text).
+  statRow: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 12, rowGap: 8 },
+  stat: { flexGrow: 1, flexShrink: 1, flexBasis: 'auto' },
   rank: { width: 32, alignItems: 'center' },
   medal: { fontSize: 24 },
 });
