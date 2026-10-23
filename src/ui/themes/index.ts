@@ -6,6 +6,7 @@ import { sleek } from '@/ui/themes/sleek';
 import type { ThemeDefinition, ThemeKey } from '@/ui/themes/types';
 
 export * from '@/ui/themes/types';
+export * from '@/ui/themes/layout';
 
 export const themes: Record<ThemeKey, ThemeDefinition> = { playful, sleek, modern, classic };
 

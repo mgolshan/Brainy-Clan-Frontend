@@ -5,30 +5,44 @@ Milestones are defined in `docs/PLAN.md`.
 
 ## Status
 
-| Milestone                         | Status                                                                                                                            | Notes                                                                                                                                                                                          |
-| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Scaffold                          | Done                                                                                                                              | Expo SDK 57, Expo Router, tabs and join placeholders, core packages, CLAUDE.md                                                                                                                 |
-| F0 Local environment              | Done                                                                                                                              | `npm install` on Node 24, `.env` with LAN IP `192.168.2.23`, expo-doctor 21/21                                                                                                                 |
-| F1 App foundation                 | Done                                                                                                                              | `/api/v1` client + typed errors, health, version gate, age-adaptive themes, base UI, `/dev/themes`                                                                                             |
-| F2 Accounts, family and invites   | Done (sign-in + Family tab checked on web against the mock; real login payload matches)                                           | Welcome/register/login/join, create family, Family + Profile tabs, member editor, invites                                                                                                      |
-| F3 Play loop                      | Done (played against the live backend on web; backend bugs listed in the log)                                                     | Categories + drill-down, play screen, MC + Wisdom Card, feedback, lives, second chances, redemption, offline queue, Home                                                                       |
-| F4 Goals and leaderboard          | Done (verified against the real backend 2026-10-11)                                                                               | Goals list, detail (team bar / race, countdown, history), 7-step wizard, Home + Family entry points                                                                                            |
-| F2b Member sign-in without email  | Done (verified on web against the real backend B2b)                                                                               | Sign-in code screen, admin code screen, member email login, devices list, set/change password                                                                                                  |
-| F5 Remaining challenge types      | Done (played on web against the real B7 backend 2026-10-11; backend bugs in the log)                                              | Sudoku (4/6/9), Math Sprint, Word Puzzles (anagram, missing letter, word search); drafts persisted per item                                                                                    |
-| F4b Social sign-in                | Built, verified on web against a mock (B6b not served yet; no real client IDs yet)                                                | Google + Facebook buttons, birth step, Profile sign-in methods, dev build setup, README guide                                                                                                  |
-| F4c Sign in with Apple            | Built (checks green; only verifiable on an iPhone dev build)                                                                      | Apple's native button on welcome/login/register + Profile sign-in methods, nonce, `authorization_code`, birth step, README setup                                                               |
-| F6 Monetization and notifications | Built (paywall + rewarded ads code done; web checks green; purchases/ads need a dev build + store/AdMob accounts)                 | Family plan card, Notifications, push, account/family deletion (verified on web); RevenueCat paywall and AdMob rewarded ads built 2026-10-16, UMP ad consent 2026-10-17, unverified on a phone |
-| F7 Release                        | In progress: legal client follow-ups + release prep (identity, owl icon/splash, EAS profiles, OTA, docs/STORE.md) done 2026-10-16 | B9 not served yet (preview fallback verified on web, required path via fetch stub); store accounts, screenshots and submission still to do                                                     |
+| Milestone                         | Status                                                                                                                                                              | Notes                                                                                                                                                                                          |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scaffold                          | Done                                                                                                                                                                | Expo SDK 57, Expo Router, tabs and join placeholders, core packages, CLAUDE.md                                                                                                                 |
+| F0 Local environment              | Done                                                                                                                                                                | `npm install` on Node 24, `.env` with LAN IP `192.168.2.23`, expo-doctor 21/21                                                                                                                 |
+| F1 App foundation                 | Done                                                                                                                                                                | `/api/v1` client + typed errors, health, version gate, age-adaptive themes, base UI, `/dev/themes`                                                                                             |
+| F2 Accounts, family and invites   | Done (sign-in + Family tab checked on web against the mock; real login payload matches)                                                                             | Welcome/register/login/join, create family, Family + Profile tabs, member editor, invites                                                                                                      |
+| F3 Play loop                      | Done (played against the live backend on web; backend bugs listed in the log)                                                                                       | Categories + drill-down, play screen, MC + Wisdom Card, feedback, lives, second chances, redemption, offline queue, Home                                                                       |
+| F4 Goals and leaderboard          | Done (verified against the real backend 2026-10-11)                                                                                                                 | Goals list, detail (team bar / race, countdown, history), 7-step wizard, Home + Family entry points                                                                                            |
+| F2b Member sign-in without email  | Done (verified on web against the real backend B2b)                                                                                                                 | Sign-in code screen, admin code screen, member email login, devices list, set/change password                                                                                                  |
+| F5 Remaining challenge types      | Done (played on web against the real B7 backend 2026-10-11; backend bugs in the log)                                                                                | Sudoku (4/6/9), Math Sprint, Word Puzzles (anagram, missing letter, word search); drafts persisted per item                                                                                    |
+| F4b Social sign-in                | Built, verified on web against a mock (B6b not served yet; no real client IDs yet)                                                                                  | Google + Facebook buttons, birth step, Profile sign-in methods, dev build setup, README guide                                                                                                  |
+| F4c Sign in with Apple            | Built (checks green; only verifiable on an iPhone dev build)                                                                                                        | Apple's native button on welcome/login/register + Profile sign-in methods, nonce, `authorization_code`, birth step, README setup                                                               |
+| F6 Monetization and notifications | Built (paywall + rewarded ads code done; web checks green; purchases/ads need a dev build + store/AdMob accounts)                                                   | Family plan card, Notifications, push, account/family deletion (verified on web); RevenueCat paywall and AdMob rewarded ads built 2026-10-16, UMP ad consent 2026-10-17, unverified on a phone |
+| F7 Release                        | In progress: release prep done 2026-10-16; 2026-10-22 lockout UX, forgot password, iPad (all orientations, responsive column), production URLs, store audience docs | Store accounts, screenshots (iPhone 6.9" + iPad 13") and submission still to do                                                                                                                |
 
 ## Next up
 
-0.  **F7 release (Moe):** approve the owl mascot (`assets/brand/owl.svg`, rendered by
+0.  **2026-10-22 phone/iPad checks** (see log "2026-10-22"): (a) **real iPad** (dev build with
+    `supportsTablet: true`, a new native build is needed): every tab in portrait and landscape,
+    rotation while playing, Split View / Slide Over at 1/3 and 1/2 width (the app then gets a
+    phone-width window), Sudoku 9×9 and word search in landscape on an 11" iPad (board shrinks to
+    the height, min cell 36), the paywall and the invite / sign-in-code / goal wizard modals (page
+    sheets), the keyboard on login with a hardware keyboard, Stage Manager window resizing.
+    (b) **iPhone**: still portrait-only (rotate the phone: nothing turns); Android phone/tablet
+    unchanged (portrait). (c) Lockout on a phone: 5 wrong passwords → countdown, VoiceOver /
+    TalkBack announce "Too many attempts" once (not every second), app backgrounded during the
+    countdown resumes with the right time, social buttons still work while locked. (d) Forgot
+    password with a real mailbox (en + fr email, link opens the website page, then sign in with
+    the new password; all other devices are signed out). (e) Profile → Help & support opens
+    `https://brainyclan.com/support` once the website is live; Email us opens the mail app.
+
+1.  **F7 release (Moe):** approve the owl mascot (`assets/brand/owl.svg`, rendered by
     `npm run brand:render`), then follow `docs/STORE.md` §10: store accounts, `eas init`
     (enables OTA updates), fill `eas.json` submit placeholders, production env vars, review
     family on the production backend, screenshots (§8), lawyer review of the legal drafts.
     Open decisions are listed in the 2026-10-16 "F7 release prep" log entry.
 
-1.  **F7 legal vs the real B9 backend — verified on web 2026-10-16/17** (see log "Regression
+2.  **F7 legal vs the real B9 backend — verified on web 2026-10-16/17** (see log "Regression
     pass vs B9" and "Regression pass finished"). Still to check on a phone / with accounts:
     the social birth-step `accept_terms` 422 against a real provider (blocked by "Waiting for
     Moe" 1; mapping covered by `src/lib/__tests__/formErrors.test.ts`), paywall legal links
@@ -332,6 +346,92 @@ themes (light/dark).
   splash (blue `#1D6FD8`, dark `#10233F`). `npx expo-doctor` 21/21; `npx expo config --type public`.
 
 ## Log
+
+### 2026-10-22 Clan characters
+
+Moe's decision "The Clan characters" (docs/PLAN.md); contract API.md "Avatars" (132 keys).
+
+- **Generator** `scripts/clan/` (`npm run clan:build`, Node only, no new deps): `species.mjs` (22
+  species: head shape, ears/mane/horns/trunk/shell/tentacles, markings, colours), `variants.mjs`
+  (kid / teen / mom / dad / grandma / grandpa layers: big eyes + cheeks; hoodie + headphones, cap or
+  beanie; lashes, lipstick, earrings, bow / bun / flower / headband; moustache or beard styles +
+  bow tie / tie / polo; grey curls or bun, round glasses, pearls, cardigan; white beard or
+  moustache, bushy brows, glasses, cardigan, flat cap for some). Flat shapes, soft shading, no
+  outline (like Ollie). Lionesses have no mane, the lion dad/grandpa a full one. The kid owl is Ollie.
+- **Output**: `assets/clan/<key>.svg` (132), `src/ui/avatars/clanSvgs.generated.ts` (key -> SVG,
+  ~0.5 MB, prettier-ignored), contact sheets `assets/clan/_sheets/*.png` (git-ignored, ~2.6 MB).
+- **App**: `src/ui/avatars/` (keys, `AvatarKey`, species/variant parsing, picker groups ordered by the
+  policy age band); `src/api/types.ts` re-exports `AVATAR_KEYS`/`AvatarKey`. `Avatar` renders the
+  character with `SvgXml` (memoized; unknown/null -> person placeholder); emoji map removed.
+  `AvatarPicker`: Kids / Teens / Parents / Grandparents tabs (member's band first: own policy in
+  Profile, `member.age_band` in the member editor, invite preview band in Invite), responsive grid,
+  labels "Tiger, mom" / "Tigre, maman" (`avatarLabel`). Playful empty states show Ollie with the
+  state's emoji; the playful celebration shows the member's character (Ollie by default) with a
+  trophy (goal detail passes the member's avatar).
+- Tests: `src/ui/avatars/__tests__/avatars.test.ts` (132 contract keys, one SVG each, no ids,
+  groups/ordering, en/fr labels). Web bundle +~0.55 MB (uncompressed) for the art.
+- Backend: `User::AVATARS` still lists the 16 old keys; the new keys need the backend update from
+  the contract change before they can be saved.
+
+### 2026-10-22 - Sign-in lockout UX, forgot password, iPad, production URLs, store audience
+
+Moe's answers (2026-10-22) in docs/PLAN.md; contract API.md changelog 2026-10-22.
+
+- **Lockout:** `ApiError` now carries `retryAfter` (body `retry_after`, else the `Retry-After`
+  header, seconds or HTTP date) and `receivedAt`; a bare 429 maps to `rate_limited`
+  (`src/lib/lockout.ts`, `src/api/client.ts`, codes `rate_limited` / `login_locked` in
+  `types.ts`). `useLockout(error)` (`src/features/auth/lockout.ts`) gives a live countdown
+  ("Try again in 4:59" under 15 min, then whole minutes, hours from 2 h; never earlier than the
+  server's time) that stops by itself. Login, sign-in code and join screens show
+  `LockoutNotice` (static announced title, ticking text without live region, hint) and disable
+  submit until it ends; login offers "Forgot password?" and "I have a sign-in code" (social
+  buttons stay at the top), code/join offer sign-in with email (join also the sign-in code).
+  `rate_limited` keeps "Too many attempts. Please wait a minute."; the texts never say whether
+  an email exists.
+- **Forgot password:** "Forgot password?" link under the login button → `/forgot-password`
+  (email prefilled from login through an in-memory hand-off, not a URL param, so the address
+  never lands in the web URL/history) → `POST /auth/password/forgot` with `locale` en/fr →
+  same "Check your email" confirmation for every 202 (60 minutes, check spam) → back to sign
+  in. Network errors / 429 show the usual messages (a `login_locked` would show the countdown).
+- **iPhone + iPad:** `ios.supportsTablet: true`, `requireFullScreen: false`, explicit
+  `UISupportedInterfaceOrientations~ipad` (all four); `orientation: portrait` keeps iPhone and
+  Android portrait. Checked with `npx expo config --type introspect` (iPhone: Portrait +
+  UpsideDown; iPad: all four; `UIRequiresFullScreen` false). No expo-screen-orientation needed.
+- **Responsive layout:** `theme.layout` (`src/ui/themes/layout.ts`: reading 640, wide 900) with
+  pure helpers `maxContentWidth`, `contentWidth`, `gridColumns`, `fitCellToHeight`. `Screen` got
+  `width="reading" | "wide" | "full"` (default reading) for scroll, list and fixed modes and the
+  footer. Category grids are `wide` with 2 columns on phones and up to 4 on iPad (measured
+  width); the play screen is `wide` for board challenges (registry `wide`), reading otherwise.
+  Sudoku and word search fit the window height in landscape (`useFitToHeight`, reserve
+  `touchTarget * 6 + 260`, min cell 36). Touch targets and type scale unchanged; no device-type
+  checks.
+- **URLs:** `src/config/links.ts` (`EXPO_PUBLIC_WEBSITE_URL` default `https://brainyclan.com`,
+  `EXPO_PUBLIC_SUPPORT_EMAIL` default `support@brainyclan.com`, privacy/terms/support/account
+  deletion paths). Paywall legal links now always show (`GET /legal`, else
+  `EXPO_PUBLIC_TERMS_URL` / `EXPO_PUBLIC_PRIVACY_URL`, defaulting to the website pages, opened
+  with `?lang=fr` for French). Profile → About: "Help & support" (website `/support`, everyone)
+  and "Email us" (mailto, not for children). `.env.example`, `eas.json` production `env`
+  (`EXPO_PUBLIC_API_URL=https://api.brainyclan.com` + website/support/legal URLs).
+- **Docs:** STORE.md §1 (iPad, orientation, public URLs table), §4/§5 links, §6 rewritten (Play
+  target audience 6–8 → 18+, Families Policy requirements and how the app meets them, IARC
+  Everyone, Teacher Approved optional; Apple not Kids Category and why, Education, 4+ answers),
+  §7 deletion URL + advertising ID, §8 iPad 13" screenshots (2064×2752), §9/§10 URLs.
+  README "Rewarded ads — AdMob setup": new step 8 blocking controls (sensitive categories, max
+  rating G at app level, child-directed settings, mediation off, ad review center), children
+  never see ads; RevenueCat legal links step updated.
+- **Tests (339 → 375):** `src/lib/__tests__/lockout.test.ts` (header/body parsing, countdown
+  format, clamped seconds left), `src/features/auth/__tests__/lockout.test.ts` (`lockoutOf`,
+  countdown strings, `apiRequest` 429 parsing with a fetch stub),
+  `src/features/auth/__tests__/forgotPassword.test.ts`, `src/ui/themes/__tests__/layout.test.ts`,
+  errorMessage cases for `rate_limited` / `login_locked`; i18n parity green (new `lockout.*`,
+  `forgot.*`, `profile.helpSupport*`, `login.forgotPassword`, `errors.loginLocked`).
+- **Verified on web against the live backend** (it already serves the lockout): 5 wrong logins
+  for a fake email → "Too many attempts / Try again in 4:48" ticking, submit disabled, Forgot
+  password + sign-in code offered; forgot password → "Check your email". iPad sizes via
+  exact-size iframes: Home (portrait, playful), Play categories (4 columns, 1024×1366 and
+  1366×1024), Sudoku 6×6 in landscape (board + Check fit after tuning the reserve), Profile
+  (sleek dark) at 390×844 and 1024×1366 with the new About rows. Not checked on web: paywall
+  (native only), Sudoku 9×9 (Sam/Alex only get 4×4/6×6), French screens (strings reviewed).
 
 ### 2026-10-17 - Google UMP ad consent (F6 next-up d)
 

@@ -5,6 +5,7 @@ import { useReducedMotion } from 'react-native-reanimated';
 import type { ColorSchemePreference } from '@/store/preferences';
 import {
   DEFAULT_THEME,
+  LAYOUT,
   themes,
   type ColorScheme,
   type Theme,
@@ -64,6 +65,7 @@ export function resolveTheme(
     textScale,
     reducedMotion,
     calmTimers: selection.calmTimers === true,
+    layout: LAYOUT,
   };
 }
 

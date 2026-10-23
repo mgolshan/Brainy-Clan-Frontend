@@ -8,6 +8,8 @@ import type {
   AuthPayload,
   CodeSignInBody,
   Envelope,
+  ForgotPasswordBody,
+  ForgotPasswordResult,
   JoinBody,
   LoginBody,
   MePayload,
@@ -100,6 +102,17 @@ export function useCodeSignIn() {
         })
       ).data,
     onSuccess: applyAuth,
+  });
+}
+
+/**
+ * `POST /auth/password/forgot`: asks the server to email a reset link (always 202, also for an
+ * unknown email). The reset itself happens on the website page from the email.
+ */
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: async (body: ForgotPasswordBody) =>
+      (await api.post<Envelope<ForgotPasswordResult>>('/auth/password/forgot', body)).data,
   });
 }
 

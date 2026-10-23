@@ -1,5 +1,6 @@
 import type { ApiErrorBody, ApiErrorCode } from '@/api/types';
 import { API_URL, APP_VERSION } from '@/config/env';
+import { parseRetryAfter } from '@/lib/lockout';
 import { useAppStatus } from '@/store/appStatus';
 import { useSession } from '@/store/session';
 
@@ -14,12 +15,16 @@ export type ClientErrorCode = 'network_error' | 'timeout' | 'unknown';
  * - `status` is the HTTP status, or 0 for network errors / timeouts.
  * - `code` is the contract error code (see API.md) or a ClientErrorCode.
  * - `fieldErrors` holds the 422 `errors` object (field -> messages).
+ * - `retryAfter` (seconds) on a 429: the body's `retry_after` (`login_locked`) or the `Retry-After`
+ *   header; `receivedAt` is when the answer arrived, so a countdown can be derived without guessing.
  */
 export class ApiError extends Error {
   readonly status: number;
   readonly code: ApiErrorCode | ClientErrorCode | (string & {});
   readonly fieldErrors: Record<string, string[]>;
   readonly body: unknown;
+  readonly retryAfter: number | null;
+  readonly receivedAt: number;
 
   constructor(
     status: number,
@@ -27,6 +32,7 @@ export class ApiError extends Error {
     code: ApiError['code'],
     body?: unknown,
     fieldErrors: Record<string, string[]> = {},
+    retryAfter: number | null = null,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -34,6 +40,8 @@ export class ApiError extends Error {
     this.code = code;
     this.body = body;
     this.fieldErrors = fieldErrors;
+    this.retryAfter = retryAfter;
+    this.receivedAt = Date.now();
   }
 
   /** True when the request never got an HTTP answer (offline, DNS, timeout...). */
@@ -78,6 +86,8 @@ function defaultCodeForStatus(status: number): string {
       return 'validation_failed';
     case 426:
       return 'app_update_required';
+    case 429:
+      return 'rate_limited';
     default:
       return 'unknown';
   }
@@ -147,7 +157,19 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       useSession.getState().clear();
     }
 
-    throw new ApiError(response.status, message, code, payload, errorBody?.errors ?? {});
+    const retryAfter =
+      response.status === 429
+        ? parseRetryAfter(errorBody?.retry_after, response.headers.get('retry-after'))
+        : null;
+
+    throw new ApiError(
+      response.status,
+      message,
+      code,
+      payload,
+      errorBody?.errors ?? {},
+      retryAfter,
+    );
   }
 
   return payload as T;

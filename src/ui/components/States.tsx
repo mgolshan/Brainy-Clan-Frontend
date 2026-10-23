@@ -10,9 +10,11 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+import { SvgXml } from 'react-native-svg';
 
 import { ApiError } from '@/api/client';
 import { errorMessage } from '@/lib/errorMessage';
+import { CLAN_SVGS } from '@/ui/avatars/clanSvgs.generated';
 import { Appear } from '@/ui/components/Appear';
 import { Button } from '@/ui/components/Button';
 import { Icon, type IconName } from '@/ui/components/Icon';
@@ -94,7 +96,15 @@ export function EmptyState({
           },
         ]}>
         {theme.emojiIcons ? (
-          <RNText style={styles.emoji}>{emoji}</RNText>
+          <>
+            {/* Ollie (the Clan's owl) holds the state's emoji in the playful theme. */}
+            <View style={styles.clip}>
+              <SvgXml xml={CLAN_SVGS.owl} width={84} height={84} />
+            </View>
+            <View style={[styles.badge, { backgroundColor: theme.colors.surface }]}>
+              <RNText style={styles.badgeEmoji}>{emoji}</RNText>
+            </View>
+          </>
         ) : (
           <Icon name={icon} size={36} color={theme.colors.primary} />
         )}
@@ -171,4 +181,16 @@ const styles = StyleSheet.create({
   dot: { width: 16, height: 16, borderRadius: 8 },
   illustration: { width: 84, height: 84, alignItems: 'center', justifyContent: 'center' },
   emoji: { fontSize: 42 },
+  badge: {
+    position: 'absolute',
+    right: -6,
+    bottom: -4,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeEmoji: { fontSize: 20 },
+  clip: { width: 84, height: 84, borderRadius: 42, overflow: 'hidden' },
 });

@@ -50,7 +50,8 @@
     "socialAccountTaken": "This account is already connected to another Brainy Clan user.",
     "lastSignInMethod": "This is your only way to sign in. Set a password or connect another account first.",
     "familyOwnerCannotLeave": "The family owner can't delete their account while others are in the family. Delete the family instead.",
-    "adRewardPending": "We couldn't confirm your reward yet. Please try again in a moment."
+    "adRewardPending": "We couldn't confirm your reward yet. Please try again in a moment.",
+    "loginLocked": "Too many sign-in attempts. Please wait a few minutes and try again."
   },
   "update": {
     "title": "Time for an update",
@@ -236,7 +237,8 @@
     "subtitle": "Sign in with your email and password.",
     "submit": "Sign in",
     "noAccount": "New here? Create a parent account",
-    "haveCode": "I have an invite code"
+    "haveCode": "I have an invite code",
+    "forgotPassword": "Forgot password?"
   },
   "register": {
     "title": "Create your account",
@@ -365,7 +367,10 @@
     "language": "Language",
     "about": "About",
     "version": "App version",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "helpSupport": "Help & support",
+    "helpSupportSubtitle": "Questions, problems or ideas",
+    "emailSupport": "Email us"
   },
   "avatars": {
     "fox": "Fox",
@@ -383,7 +388,29 @@
     "unicorn": "Unicorn",
     "dragon": "Dragon",
     "turtle": "Turtle",
-    "octopus": "Octopus"
+    "octopus": "Octopus",
+    "elephant": "Elephant",
+    "giraffe": "Giraffe",
+    "hedgehog": "Hedgehog",
+    "otter": "Otter",
+    "raccoon": "Raccoon",
+    "monkey": "Monkey",
+    "variants": {
+      "kid": "kid",
+      "teen": "teen",
+      "mom": "mom",
+      "dad": "dad",
+      "grandma": "grandma",
+      "grandpa": "grandpa"
+    },
+    "groups": {
+      "kids": "Kids",
+      "teens": "Teens",
+      "parents": "Parents",
+      "grandparents": "Grandparents"
+    },
+    "label": "{{species}}, {{variant}}",
+    "groupsLabel": "Character groups"
   },
   "goals": {
     "title": "Family goals",
@@ -834,5 +861,28 @@
     "adPrivacyChoices": "Privacy choices for ads",
     "adPrivacyChoicesHint": "Change what you allow for the short videos",
     "adPrivacyChoicesFailed": "The privacy choices couldn't be opened. Please try again."
+  },
+  "lockout": {
+    "title": "Too many attempts",
+    "tryAgainClock": "Try again in {{time}}.",
+    "tryAgainMinutes_one": "Try again in {{count}} minute.",
+    "tryAgainMinutes_other": "Try again in {{count}} minutes.",
+    "tryAgainHours_one": "Try again in {{count}} hour.",
+    "tryAgainHours_other": "Try again in {{count}} hours.",
+    "loginHint": "For your safety, signing in with a password is paused for a while. You can still reset your password, use a sign-in code from a family admin, or sign in with Apple, Google or Facebook if your account uses one.",
+    "codeHint": "For your safety, codes can't be entered from this device for a while. Wait for the timer, then type the code again. Adults can sign in with their email instead.",
+    "joinHint": "For your safety, codes can't be entered from this device for a while. Wait for the timer, then type the code again.",
+    "forgotHint": "Wait for the timer, then try again.",
+    "signInWithEmail": "Sign in with email instead"
+  },
+  "forgot": {
+    "title": "Forgot your password?",
+    "subtitle": "Enter the email you sign in with. We'll send you a link to choose a new password.",
+    "submit": "Send reset link",
+    "sentTitle": "Check your email",
+    "sentBody": "If an account uses this email, we sent a link to reset the password. It works for 60 minutes.",
+    "sentSpam": "Nothing there? Check your spam folder, or try again in a few minutes. Open the link on any device to choose a new password, then sign in here.",
+    "backToSignIn": "Back to sign in",
+    "tryAnother": "Use a different email"
   }
 }

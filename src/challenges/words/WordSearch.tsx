@@ -14,6 +14,7 @@ import type { GridCell, WordPlacement, WordSearchPayload, WordSearchResponse } f
 import { draftKey, useChallengeDraft } from '@/challenges/drafts';
 import type { ChallengeComponentProps } from '@/challenges/registry';
 import { useCellFont } from '@/challenges/useCellFont';
+import { useFitToHeight } from '@/challenges/useFitToHeight';
 import { useMeasuredWidth } from '@/challenges/useMeasuredWidth';
 import { useScreenReaderEnabled } from '@/challenges/useScreenReader';
 import {
@@ -184,7 +185,11 @@ export function WordSearch({
     return c.categories[(i < 0 ? 0 : i) % c.categories.length];
   };
 
-  const cell = width ? Math.floor(Math.min((width - 4) / cols, theme.touchTarget)) : 0;
+  // Fitted to the window height in landscape (iPad sideways), like the Sudoku board.
+  const cell = useFitToHeight(
+    width ? Math.floor(Math.min((width - 4) / cols, theme.touchTarget)) : 0,
+    rows,
+  );
 
   // Every word found → submit (the last band shows briefly first).
   const allFound = !result && !pending && remaining.length === 0;

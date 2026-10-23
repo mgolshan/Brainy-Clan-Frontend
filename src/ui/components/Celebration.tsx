@@ -11,7 +11,10 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+import { SvgXml } from 'react-native-svg';
 
+import { clanSvg } from '@/ui/avatars';
+import { CLAN_SVGS } from '@/ui/avatars/clanSvgs.generated';
 import { withAlpha } from '@/ui/components/Card';
 import { Icon } from '@/ui/components/Icon';
 import { useTheme } from '@/ui/ThemeProvider';
@@ -105,12 +108,19 @@ export function Confetti({ count = 46 }: { count?: number }) {
 
 /**
  * The theme's success moment (completed session):
- * - playful: bouncing trophy + confetti
+ * - playful: the member's Clan character (or Ollie) bouncing with a trophy + confetti
  * - sleek: pulsing gradient glow ring
  * - modern: springy check
  * - classic: calm check that fades in
  */
-export function Celebration({ size = 132 }: { size?: number }) {
+export function Celebration({
+  size = 132,
+  avatar,
+}: {
+  size?: number;
+  /** The member's avatar key, shown in the playful theme (Ollie when missing/unknown). */
+  avatar?: string | null;
+}) {
   const theme = useTheme();
   const scale = useSharedValue(theme.reducedMotion ? 1 : 0.3);
   const pulse = useSharedValue(0);
@@ -177,7 +187,21 @@ export function Celebration({ size = 132 }: { size?: number }) {
                 backgroundColor: withAlpha(c.accent, 0.3),
               },
             ]}>
-            <RNText style={{ fontSize: size * 0.55 }}>🏆</RNText>
+            <View style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden' }}>
+              <SvgXml xml={clanSvg(avatar) ?? CLAN_SVGS.owl} width={size} height={size} />
+            </View>
+            <View
+              style={[
+                styles.trophy,
+                {
+                  width: size * 0.4,
+                  height: size * 0.4,
+                  borderRadius: size * 0.2,
+                  backgroundColor: c.surface,
+                },
+              ]}>
+              <RNText style={{ fontSize: size * 0.24 }}>🏆</RNText>
+            </View>
           </View>
         ) : theme.celebration === 'glow' ? (
           <View
@@ -220,4 +244,11 @@ const styles = StyleSheet.create({
   celebration: { alignItems: 'center', justifyContent: 'center', alignSelf: 'center' },
   glowRing: { position: 'absolute', overflow: 'hidden' },
   circle: { alignItems: 'center', justifyContent: 'center' },
+  trophy: {
+    position: 'absolute',
+    right: -4,
+    bottom: -4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

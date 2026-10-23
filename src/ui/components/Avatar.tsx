@@ -1,36 +1,13 @@
-import { StyleSheet, Text as RNText, View } from 'react-native';
+import { memo } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { SvgXml } from 'react-native-svg';
 
-import { AVATAR_KEYS, type AvatarKey } from '@/api/types';
+import { clanSvg, parseAvatarKey } from '@/ui/avatars';
 import { withAlpha } from '@/ui/components/Card';
+import { Icon } from '@/ui/components/Icon';
 import { useTheme } from '@/ui/ThemeProvider';
 
-/** The fixed avatar set from the API contract, rendered as emoji. */
-export const AVATAR_EMOJI: Record<AvatarKey, string> = {
-  fox: '🦊',
-  owl: '🦉',
-  panda: '🐼',
-  lion: '🦁',
-  koala: '🐨',
-  penguin: '🐧',
-  tiger: '🐯',
-  rabbit: '🐰',
-  bear: '🐻',
-  frog: '🐸',
-  cat: '🐱',
-  dog: '🐶',
-  unicorn: '🦄',
-  dragon: '🐲',
-  turtle: '🐢',
-  octopus: '🐙',
-};
-
-export function isAvatarKey(value: unknown): value is AvatarKey {
-  return typeof value === 'string' && (AVATAR_KEYS as readonly string[]).includes(value);
-}
-
-export function avatarEmoji(key: string | null | undefined): string {
-  return isAvatarKey(key) ? AVATAR_EMOJI[key] : '🙂';
-}
+export { isAvatarKey } from '@/ui/avatars';
 
 function hash(value: string): number {
   let h = 0;
@@ -46,11 +23,22 @@ interface AvatarProps {
   accessibilityLabel?: string;
 }
 
-/** Round avatar bubble with the member's animal; the bubble tint comes from the theme palette. */
-export function Avatar({ avatar, size = 48, ring, accessibilityLabel }: AvatarProps) {
+/**
+ * Round avatar bubble with the member's Clan character (generated SVG art, see
+ * scripts/clan). The bubble tint comes from the theme palette (one tint per species, so a
+ * family of tigers shares it). Unknown or missing keys show a neutral person placeholder.
+ */
+export const Avatar = memo(function Avatar({
+  avatar,
+  size = 48,
+  ring,
+  accessibilityLabel,
+}: AvatarProps) {
   const theme = useTheme();
   const palette = theme.colors.categories;
-  const tint = palette[hash(avatar ?? 'none') % palette.length];
+  const xml = clanSvg(avatar);
+  const species = parseAvatarKey(avatar)?.species;
+  const tint = species ? palette[hash(species) % palette.length] : theme.colors.textMuted;
   const isClassic = theme.surface === 'outlined';
 
   return (
@@ -79,12 +67,14 @@ export function Avatar({ avatar, size = 48, ring, accessibilityLabel }: AvatarPr
               : withAlpha(tint, 0.6),
         },
       ]}>
-      <RNText style={{ fontSize: size * 0.56, lineHeight: size * 0.72 }} allowFontScaling={false}>
-        {avatarEmoji(avatar)}
-      </RNText>
+      {xml ? (
+        <SvgXml xml={xml} width={size} height={size} />
+      ) : (
+        <Icon name="person" size={size * 0.52} color={theme.colors.textMuted} />
+      )}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   bubble: { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },

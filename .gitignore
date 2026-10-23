@@ -46,3 +46,6 @@ local-dev
 
 # IDEs
 .idea/
+
+# Clan avatar contact sheets (regenerate with npm run clan:build)
+assets/clan/_sheets/

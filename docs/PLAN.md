@@ -59,6 +59,35 @@ the OS "reduce motion" setting). Components read tokens only through `useTheme()
   the provider and sends the token to `POST /auth/social/{provider}` (backend milestone B6b).
   Setup instructions must ship with the feature in the README. See milestone F4b.
 
+- **Moe's answers (2026-10-22):**
+  - **iPhone and iPad.** `supportsTablet: true`. On wide screens content sits in a centered column
+    (max width from the theme, ~640 for reading screens, ~900 for grids/boards), touch targets and
+    font scale unchanged. iPhone stays portrait; iPad supports all orientations (required for iPad
+    multitasking) and every screen must work in landscape. Store needs iPad screenshots (13").
+  - **Audience:** parents and children under 13 can both find and install the app. Google Play
+    target audience 6–8 through 18+ (Families Policy, mixed audience); Apple: not Kids Category,
+    Education, 4+. Children never see ads; teen/adult rewarded ads are non-personalized, rating G.
+  - **URLs:** website `https://brainyclan.com` (privacy `…/privacy`, terms `…/terms`, support
+    `…/support`, account deletion `…/account/delete`), API `https://api.brainyclan.com/api/v1`,
+    support email `support@brainyclan.com`.
+  - **Sign-in lockout + forgot password** (contract: Auth → Lockout, `POST /auth/password/forgot`):
+    the login and code screens show `login_locked` with a live "try again in N min" and offer the
+    other ways in (forgot password, sign-in code, social); login gets "Forgot password?".
+
+- **The Clan characters (2026-10-22, Moe):** the mascot becomes a clan of animal characters led by
+  Ollie the owl (Ollie stays the app icon). 22 species × 6 variants (kid, teen, mom, dad, grandma,
+  grandpa) = 132 avatars, replacing the emoji avatars (keys in the contract). Variants are the same
+  character grown up and dressed: teen (headphones/cap/hoodie collar), mom (lashes, blush, lipstick,
+  earrings, hair bow or bun), dad (moustache or beard, bow tie), grandma (glasses, grey curls,
+  pearls), grandpa (glasses, grey eyebrows/beard, cardigan collar). One original, consistent flat
+  style (no imitation of any existing brand; not green like Duolingo's owl), built from a
+  parametric generator (`scripts/clan/`) so every species and variant shares proportions, line
+  weight and palette rules; rendered with `react-native-svg`. Placeholders until an illustrator
+  redraws them; the generator keeps keys/files stable so swapping art is a drop-in. The avatar
+  picker groups by variant (Kids, Teens, Parents, Grandparents) and suggests the group matching the
+  member's age band first (ordering only, no rule). Characters also appear in celebrations and
+  empty states in the `playful` theme, small in others.
+
 ## Working rules
 
 - One milestone at a time. At the end of each, stop, summarize what was built and explain how to test it on the phone.
@@ -154,18 +183,7 @@ the OS "reduce motion" setting). Components read tokens only through `useTheme()
 
 ## Open questions
 
-- **Waiting for Moe (2026-10-16):**
-  1. Norton Web/Mail Shield intercepts HTTPS in Docker (cURL error 60): disable HTTPS scanning for
-     Docker or drop the Norton root cert into `Brainy-Clan-Backend/docker/php/extra-ca/` and rebuild.
-  2. Lawyer review of the legal drafts, company details (`LEGAL_*`), then `LEGAL_DRAFT=false`.
-  3. Accounts: Hetzner, Apple Developer, Google Play Console, RevenueCat, AdMob, Sentry, SMTP
-     provider, Anthropic API key (AI content generator).
-  4. Approve or replace the owl mascot "Ollie".
-  5. iPhone-only for v1 (`supportsTablet: false`)?
-  6. Google Play target audience: include under-13 age groups (Families Policy) or mixed audience
-     where children only join through a parent's family?
-  7. Support email and website URLs for the store listings; production review account.
-  8. EU/UK release needs Google's UMP ad-consent form (not built).
-
-- Whether teens on the free tier see rewarded ads.
-- Logo and mascot (the theme palettes above are decided; a mascot would fit the `playful` theme).
+- **Answered by Moe (2026-10-22)** — see "Moe's answers (2026-10-22)" in Decisions.
+- **Still waiting for Moe:** Norton certificate (backend dev only); lawyer review of the legal
+  drafts; accounts (Apple Developer, Google Play Console, RevenueCat, AdMob + UMP message, Sentry,
+  EAS) and a production review account; approve or replace the owl mascot "Ollie".

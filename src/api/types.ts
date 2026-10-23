@@ -3,6 +3,8 @@
  * Source of truth: ../Brainy-Clan-Backend/docs/API.md — keep these in sync with it, never guess.
  */
 
+import { AVATAR_KEYS, type AvatarKey } from '@/ui/avatars/keys';
+
 // ---------------------------------------------------------------------------
 // Envelope & errors
 // ---------------------------------------------------------------------------
@@ -34,6 +36,8 @@ export type ApiErrorCode =
   | 'ad_reward_pending'
   | 'app_update_required'
   | 'goal_limit_reached'
+  | 'rate_limited'
+  | 'login_locked'
   | 'not_found';
 
 /** Error body: `errors` only on 422. */
@@ -41,31 +45,16 @@ export interface ApiErrorBody {
   message: string;
   code?: ApiErrorCode | (string & {});
   errors?: Record<string, string[]>;
+  /** `login_locked` (429): seconds until sign-in may be tried again (also the `Retry-After` header). */
+  retry_after?: number;
 }
 
 // ---------------------------------------------------------------------------
 // Shared objects
 // ---------------------------------------------------------------------------
 
-export const AVATAR_KEYS = [
-  'fox',
-  'owl',
-  'panda',
-  'lion',
-  'koala',
-  'penguin',
-  'tiger',
-  'rabbit',
-  'bear',
-  'frog',
-  'cat',
-  'dog',
-  'unicorn',
-  'dragon',
-  'turtle',
-  'octopus',
-] as const;
-export type AvatarKey = (typeof AVATAR_KEYS)[number];
+/** The Clan avatar keys (22 species × kid/teen/mom/dad/grandma/grandpa), see `@/ui/avatars`. */
+export { AVATAR_KEYS, type AvatarKey };
 
 export const THEME_KEYS = ['playful', 'sleek', 'modern', 'classic'] as const;
 export type ThemeKey = (typeof THEME_KEYS)[number];
@@ -297,6 +286,20 @@ export interface JoinBody extends DeviceInfo {
 /** `POST /auth/code`: sign in with an admin-issued one-time sign-in code. */
 export interface CodeSignInBody extends DeviceInfo {
   code: string;
+}
+
+/**
+ * `POST /auth/password/forgot` (public). Always **202** `{ data: { sent: true } }`, whether or not
+ * the email has an account (no account discovery); the reset itself happens on the website page
+ * linked from the email.
+ */
+export interface ForgotPasswordBody {
+  email: string;
+  locale?: 'en' | 'fr';
+}
+
+export interface ForgotPasswordResult {
+  sent: true;
 }
 
 /** Social sign-in providers (`/auth/social/{provider}`, `/me/social-accounts/{provider}`). */

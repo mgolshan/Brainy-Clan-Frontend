@@ -6,3 +6,4 @@ ios
 android
 package-lock.json
 assets
+src/ui/avatars/clanSvgs.generated.ts

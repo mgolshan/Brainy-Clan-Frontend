@@ -80,6 +80,7 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "brand:render": "node scripts/render-brand.mjs",
+    "clan:build": "node scripts/clan/build.mjs",
     "test": "jest",
     "test:watch": "jest --watch"
   },

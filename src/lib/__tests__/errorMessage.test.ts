@@ -40,6 +40,8 @@ const MAPPED: [string, number, string][] = [
   ['ad_reward_pending', 409, 'errors.adRewardPending'],
   ['app_update_required', 426, 'errors.updateRequired'],
   ['not_found', 404, 'errors.notFound'],
+  ['rate_limited', 429, 'errors.rateLimited'],
+  ['login_locked', 429, 'errors.loginLocked'],
   // Client-side codes (no HTTP answer).
   ['network_error', 0, 'errors.network'],
   ['timeout', 0, 'errors.timeout'],

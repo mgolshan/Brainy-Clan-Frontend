@@ -54,6 +54,11 @@ export function errorMessage(error: unknown, t: TFunction): string {
       return t('errors.familyOwnerCannotLeave');
     case 'not_found':
       return t('errors.notFound');
+    case 'rate_limited':
+      return t('errors.rateLimited');
+    case 'login_locked':
+      // Screens with a sign-in form show a live countdown instead (`useLockout`).
+      return t('errors.loginLocked');
     case 'validation_failed': {
       const first = Object.values(error.fieldErrors)[0]?.[0];
       return first ?? error.message ?? t('errors.validation');

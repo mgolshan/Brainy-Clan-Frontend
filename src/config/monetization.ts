@@ -1,6 +1,8 @@
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { Platform } from 'react-native';
 
+import { WEBSITE_LINKS } from '@/config/links';
+
 /**
  * RevenueCat (purchases) and AdMob (rewarded ads) settings, read from `EXPO_PUBLIC_*` env vars
  * (README "RevenueCat setup" / "AdMob setup"). Both are native modules: they only work in an EAS
@@ -62,6 +64,10 @@ export const ADMOB_REWARDED_UNIT_ID: string | null = isNativeBuild ? rewardedUni
 /** Rewarded ads can be shown in this build. */
 export const adsSupported = ADMOB_REWARDED_UNIT_ID !== null;
 
-/** Fallback paywall legal links when the backend serves no `GET /legal`; hidden when unset. */
-export const TERMS_URL: string | null = clean(process.env.EXPO_PUBLIC_TERMS_URL);
-export const PRIVACY_URL: string | null = clean(process.env.EXPO_PUBLIC_PRIVACY_URL);
+/**
+ * Fallback paywall legal links when the backend serves no `GET /legal`: the env values, else the
+ * website pages (`https://brainyclan.com/terms`, `/privacy`).
+ */
+export const TERMS_URL: string = clean(process.env.EXPO_PUBLIC_TERMS_URL) ?? WEBSITE_LINKS.terms;
+export const PRIVACY_URL: string =
+  clean(process.env.EXPO_PUBLIC_PRIVACY_URL) ?? WEBSITE_LINKS.privacy;

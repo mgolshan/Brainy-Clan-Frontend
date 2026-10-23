@@ -1,8 +1,11 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text as RNText, View } from 'react-native';
 
+import { LockoutNotice } from '@/features/auth/components/LockoutNotice';
 import { useJoin } from '@/features/auth/hooks';
+import { useLockout } from '@/features/auth/lockout';
 import { AcceptTerms } from '@/features/legal/components';
 import { CODE_LENGTH, normalizeCode } from '@/lib/code';
 import { formErrors } from '@/lib/formErrors';
@@ -24,8 +27,11 @@ export function JoinScreen() {
   const [accepted, setAccepted] = useState(false);
   const errors = formErrors(join.error, t, ['code', 'email', 'password', 'accept_terms']);
 
+  const lockout = useLockout(join.error);
   const ready =
-    code.length === CODE_LENGTH && (!withLogin || (email.trim() && password && accepted));
+    !lockout.locked &&
+    code.length === CODE_LENGTH &&
+    (!withLogin || (email.trim() && password && accepted));
 
   const submit = () => {
     if (!ready) return;
@@ -84,7 +90,23 @@ export function JoinScreen() {
             />
           </>
         ) : null}
-        {errors.general ? (
+        {lockout.locked && lockout.countdown ? (
+          <LockoutNotice countdown={lockout.countdown} hint={t('lockout.joinHint')}>
+            <Button
+              title={t('welcome.haveSignInCode')}
+              variant="ghost"
+              size="sm"
+              onPress={() => router.replace('/code')}
+            />
+            <Button
+              title={t('lockout.signInWithEmail')}
+              variant="ghost"
+              size="sm"
+              icon="mail-outline"
+              onPress={() => router.replace('/login')}
+            />
+          </LockoutNotice>
+        ) : errors.general ? (
           <Text tone="danger" accessibilityLiveRegion="polite">
             {errors.general}
           </Text>

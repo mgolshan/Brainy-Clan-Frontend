@@ -453,11 +453,10 @@ button (store billing needs the native app; web billing is a later milestone).
    EXPO_PUBLIC_REVENUECAT_ANDROID_KEY=goog_...
    ```
    These are public SDK keys (safe in the app); never put a secret key in an `EXPO_PUBLIC_` var.
-5. **Legal links** (required by both stores on a subscription screen): set
-   `EXPO_PUBLIC_TERMS_URL` and `EXPO_PUBLIC_PRIVACY_URL` (the links are hidden until set; Apple's
-   standard EULA `https://www.apple.com/legal/internet-services/itunes/dev/stdeula/` is fine as
-   terms of use if you have no own terms yet). The privacy policy URL is also needed in both store
-   listings.
+5. **Legal links** (required by both stores on a subscription screen): the paywall opens the
+   backend's `GET /legal` pages, else `EXPO_PUBLIC_TERMS_URL` / `EXPO_PUBLIC_PRIVACY_URL`, which
+   default to `https://brainyclan.com/terms` and `https://brainyclan.com/privacy` (the website,
+   `EXPO_PUBLIC_WEBSITE_URL`). The privacy policy URL is also needed in both store listings.
 6. **Development build** (purchases never work in Expo Go or on web):
    `npx eas-cli@latest build --profile development --platform ios|android`, install it, then
    `npm run start:dev-client`. No config plugin is needed for RevenueCat.
@@ -482,7 +481,8 @@ see ads**. Only **non-personalized** ads are requested (`requestNonPersonalizedA
 **G**, so there is no tracking and no App Tracking Transparency prompt. The option is hidden on
 web, in Expo Go and in release builds without an ad unit. Where the law requires it (EU/EEA, UK,
 Switzerland, some US states), Google's **UMP consent message** is shown right before the first
-ad (step 7).
+ad (step 7). AdMob's **blocking controls** (step 8) keep sensitive ad categories out as a second
+guard.
 
 How the reward is verified: the app creates a random `reward_ref` (UUID), passes it to AdMob as
 server-side verification (SSV) custom data `"<reward_ref>:<session_id>"` with user id = member
@@ -524,10 +524,10 @@ id. AdMob calls the backend's SSV callback; the app then calls
      privacy manifest notes if App Review asks (the SDK ships its own `PrivacyInfo.xcprivacy`).
    - Google Play Data safety: declare "Device or other IDs" collected and shared for advertising
      by the AdMob SDK; the app contains ads ("Contains ads" = yes). Because children use the app,
-     Google Play's **Families policy** applies: keep ads rated G (done in code), and choose the
-     target audience carefully (if under-13s are a target audience, Play requires Families
-     self-certified ad SDKs and child-directed settings — the app already never shows ads to
-     children, which the server enforces).
+     Google Play's **Families policy** applies: the target audience includes under-13s
+     (docs/STORE.md §6), so Play requires a Families self-certified ad SDK (AdMob is), ads rated
+     G (done in code + step 8), the Families ads declaration, and no ads to children — the server
+     never allows a child an ad, so a child's device never requests one.
    - EU/UK users: non-personalized ads still need consent for cookies/identifiers under GDPR —
      the app asks with Google's UMP consent message (step 7).
 7. **Consent message (Google UMP, AdMob → Privacy & messaging)**. The app uses the `AdsConsent`
@@ -573,7 +573,37 @@ id. AdMob calls the backend's SSV callback; the app then calls
       `app.config.ts`), and App Store privacy answers say "not used for tracking". If the policy
       ever allows personalized ads on iOS, an ATT prompt (and that Info.plist string) must be
       added first.
-8. **Check on the phone**: as an adult on the free tier, start a game, lose all lives → **Watch a
+8. **Blocking controls (AdMob → Blocking controls)** — a second guard on top of the code, so a
+   family app never shows an unsuitable ad even if a request were mis-tagged. **Children never see
+   ads at all** (the server policy never allows them; no ad request is made for a child), so these
+   settings only shape what teens and adults on the free tier can see:
+   1. **Content → Sensitive categories**: block every category that can be blocked, at least
+      **Dating**, **Gambling & betting** (including sports betting, lotteries, social casino
+      games), **Alcohol**, **Politics**, **Religion**, **Get rich quick**, **Sexual & reproductive
+      health**, **Weight loss**, **Cosmetic procedures & body modification**, **Drugs &
+      supplements**, **References to sex & sexuality**, **Sensational & shocking**, **Black magic,
+      astrology & esoteric**, **Personal loans** / **Cryptocurrencies** (financial), and
+      **Firearms & weapons** where offered. Google's list changes; when in doubt, block.
+   2. **Content → General categories**: leave allowed (they are ordinary ads), but review the list
+      once for anything that doesn't fit a family app.
+   3. **Content → Max ad content rating**: set **G** at the **app level** for both apps (Apps →
+      the app → Blocking controls, or account level if every app is a family app). The app already
+      sends `maxAdContentRating: G` from `policy.ad_request` on each request; the AdMob setting
+      enforces it even if a request weren't tagged.
+   4. **Child-directed treatment**: AdMob → **Settings → Account → Tag for child-directed
+      treatment** stays **off** at the account level (the app is mixed-audience; tagging every
+      request as child-directed would block all ads for teens and adults). Child-directed and
+      under-age-of-consent tags are set **per request** by the app from `policy.ad_request`
+      (teens: `tagForUnderAgeOfConsent`; children never request ads). The contract's
+      `ad_request` has no `tagForChildDirectedTreatment` today; if Google Play's Families review
+      asks for it, add it to the contract and the app first.
+   5. **Advertiser URLs / ad networks**: block competitor or problem advertisers as you notice
+      them (Ad review center → block the ad). Keep **mediation off** (only Google's
+      Families-certified demand); if mediation is ever added, use only Families self-certified
+      networks.
+   6. **Ad review center** (Blocking controls → Ad review center): check it once a week during
+      the first months and block anything that slipped through.
+9. **Check on the phone**: as an adult on the free tier, start a game, lose all lives → **Watch a
    short video** → "Loading the video…" → the ad plays → close it after the reward → "Checking
    your reward…" → the game continues with full lives. Closing the ad early shows "Watch the video
    to the end…" (no second chance). As a child, the option never appears. With the EEA debug

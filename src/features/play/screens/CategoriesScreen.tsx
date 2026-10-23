@@ -1,9 +1,10 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import type { Category } from '@/api/types';
+import { useMeasuredWidth } from '@/challenges/useMeasuredWidth';
 import { useCategories, useCurrentSession } from '@/features/play/api';
 import { findCategory } from '@/features/play/categoryVisuals';
 import { CategoryTile } from '@/features/play/components/CategoryTile';
@@ -19,8 +20,14 @@ import {
   Loading,
   Screen,
   Text,
+  contentWidth,
+  gridColumns,
   useTheme,
 } from '@/ui';
+
+/** Narrowest category tile; wider windows get more columns (2 on phones, up to 4 on iPad). */
+const MIN_TILE = 150;
+const GRID_GAP = 12;
 
 interface CategoryGridProps {
   categories: Category[];
@@ -28,10 +35,17 @@ interface CategoryGridProps {
 }
 
 function CategoryGrid({ categories, onSelect }: CategoryGridProps) {
+  const theme = useTheme();
+  const window = useWindowDimensions();
+  const [measured, onLayout] = useMeasuredWidth();
+  // The measured width is exact (scrollbars, safe areas); the window estimate covers the first frame.
+  const available = measured || contentWidth(window.width, 'wide', theme.spacing.lg, theme.layout);
+  const columns = gridColumns(available, MIN_TILE, GRID_GAP);
+  const basis = Math.floor((available - GRID_GAP * (columns - 1)) / columns);
   return (
-    <View style={styles.grid}>
+    <View style={styles.grid} onLayout={onLayout}>
       {categories.map((cat, i) => (
-        <Appear key={cat.id} index={i} style={styles.cell}>
+        <Appear key={cat.id} index={i} style={[styles.cell, { flexBasis: basis }]}>
           <CategoryTile category={cat} index={i} onPress={() => onSelect(cat)} />
         </Appear>
       ))}
@@ -94,6 +108,7 @@ export function CategoriesScreen() {
 
   return (
     <Screen
+      width="wide"
       title={t('play.title')}
       subtitle={t('play.subtitle')}
       onRefresh={() => {
@@ -143,7 +158,7 @@ export function CategoryScreen({ id }: { id: number }) {
   }
 
   return (
-    <Screen title={category.name} subtitle={t('play.pickTopic')} back>
+    <Screen title={category.name} subtitle={t('play.pickTopic')} back width="wide">
       <Button
         title={t('play.playAll', { name: category.name })}
         icon="play"
@@ -158,6 +173,6 @@ export function CategoryScreen({ id }: { id: number }) {
 }
 
 const styles = StyleSheet.create({
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  cell: { flexBasis: '46%', flexGrow: 1 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GRID_GAP },
+  cell: { flexGrow: 1 },
 });

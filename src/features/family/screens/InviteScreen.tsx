@@ -156,7 +156,7 @@ export function InviteScreen() {
           monthError={errors.field('birth_month')}
           hint={t('invite.birthHint')}
         />
-        <AvatarPicker value={avatar} onChange={setAvatar} />
+        <AvatarPicker value={avatar} onChange={setAvatar} ageBand={previewBand} />
         {previewBand ? (
           <Text variant="caption" tone="muted" accessibilityLiveRegion="polite">
             {t('invite.ageGroup', { band: ageBandLabel(t, previewBand) })}

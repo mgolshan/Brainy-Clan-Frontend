@@ -329,6 +329,8 @@ export function PlayScreen({ sessionId }: { sessionId: number }) {
 
   return (
     <Screen
+      // Boards (Sudoku, word puzzles) get the wide column on iPad / desktop; the rest reads at 640.
+      width={showHeader && definition?.wide ? 'wide' : 'reading'}
       plain={phase === 'question' || phase === 'feedback'}
       edges={['top', 'bottom']}
       contentStyle={phase === 'completed' || phase === 'failed' ? styles.centerFill : undefined}>

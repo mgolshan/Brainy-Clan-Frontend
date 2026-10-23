@@ -3,7 +3,9 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text as RNText, View } from 'react-native';
 
+import { LockoutNotice } from '@/features/auth/components/LockoutNotice';
 import { useCodeSignIn } from '@/features/auth/hooks';
+import { useLockout } from '@/features/auth/lockout';
 import { CODE_LENGTH, normalizeCode } from '@/lib/code';
 import { formErrors } from '@/lib/formErrors';
 import { Button, Card, Screen, Text, TextField, useTheme } from '@/ui';
@@ -19,7 +21,8 @@ export function CodeSignInScreen() {
   const signIn = useCodeSignIn();
   const [code, setCode] = useState('');
   const errors = formErrors(signIn.error, t, ['code']);
-  const ready = code.length === CODE_LENGTH;
+  const lockout = useLockout(signIn.error);
+  const ready = code.length === CODE_LENGTH && !lockout.locked;
 
   const submit = () => {
     if (ready && !signIn.isPending) signIn.mutate({ code });
@@ -36,7 +39,8 @@ export function CodeSignInScreen() {
           value={code}
           onChangeText={(v) => {
             setCode(normalizeCode(v));
-            if (signIn.error) signIn.reset();
+            // Keep a running lock visible while typing; clear other errors.
+            if (signIn.error && !lockout.locked) signIn.reset();
           }}
           autoCapitalize="characters"
           autoCorrect={false}
@@ -49,7 +53,17 @@ export function CodeSignInScreen() {
           error={errors.field('code')}
           hint={t('codeSignIn.codeHint')}
         />
-        {errors.general ? (
+        {lockout.locked && lockout.countdown ? (
+          <LockoutNotice countdown={lockout.countdown} hint={t('lockout.codeHint')}>
+            <Button
+              title={t('lockout.signInWithEmail')}
+              variant="ghost"
+              size="sm"
+              icon="mail-outline"
+              onPress={() => router.replace('/login')}
+            />
+          </LockoutNotice>
+        ) : errors.general ? (
           <Text tone="danger" accessibilityLiveRegion="polite">
             {errors.general}
           </Text>

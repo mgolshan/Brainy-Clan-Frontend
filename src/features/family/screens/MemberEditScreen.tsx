@@ -91,7 +91,7 @@ function Editor({ member, ownerUserId }: { member: Member; ownerUserId: number }
           onChangeText={setNickname}
           error={errors.field('nickname')}
         />
-        <AvatarPicker value={avatar} onChange={setAvatar} />
+        <AvatarPicker value={avatar} onChange={setAvatar} ageBand={member.age_band} />
       </Card>
 
       <SectionHeader title={t('member.difficulty')} />

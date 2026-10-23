@@ -1,4 +1,5 @@
 import type { ThemeKey } from '@/api/types';
+import type { ThemeLayout } from '@/ui/themes/layout';
 
 export type { ThemeKey };
 export type ColorScheme = 'light' | 'dark';
@@ -143,4 +144,6 @@ export interface Theme extends Omit<ThemeDefinition, 'colors'> {
   /** Member setting or OS "reduce motion": animations must be skipped. */
   reducedMotion: boolean;
   calmTimers: boolean;
+  /** Max content widths (centered column on tablets / desktop web), see `layout.ts`. */
+  layout: ThemeLayout;
 }

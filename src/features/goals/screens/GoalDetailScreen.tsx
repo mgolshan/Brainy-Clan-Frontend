@@ -235,7 +235,7 @@ export function GoalDetailScreen({ id }: { id: number }) {
 
       {reached ? (
         <Card style={styles.center}>
-          <Celebration size={96} />
+          <Celebration size={96} avatar={me?.member?.avatar ?? me?.user.avatar} />
           <Text variant="heading" align="center">
             {t('goals.reachedTitle')}
           </Text>

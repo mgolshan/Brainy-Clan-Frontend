@@ -1,14 +1,16 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
+import { Linking, View } from 'react-native';
 
 import type { AvatarKey } from '@/api/types';
 import { API_URL, APP_VERSION } from '@/config/env';
+import { SUPPORT_EMAIL, WEBSITE_LINKS, supportMailto } from '@/config/links';
 import { useHealth } from '@/features/app/useHealth';
 import { useMe, useSignOut } from '@/features/auth/hooks';
 import { SignInMethods } from '@/features/auth/social/SignInMethods';
 import { DevicesList } from '@/features/family/components/DevicesList';
+import { openLegalPage } from '@/features/legal/hooks';
 import { PrivacySection } from '@/features/legal/PrivacySection';
 import { useNotificationPreferences } from '@/features/notifications/hooks';
 import { AccessibilityEditor } from '@/features/profile/AccessibilityEditor';
@@ -212,6 +214,28 @@ export function ProfileScreen() {
 
       <SectionHeader title={t('profile.about')} />
       <Card padding="sm">
+        <ListRow
+          title={t('profile.helpSupport')}
+          subtitle={t('profile.helpSupportSubtitle')}
+          leading={<Icon name="help-buoy-outline" color={theme.colors.primary} />}
+          accessibilityHint={t('legal.opensBrowser')}
+          onPress={() => openLegalPage(WEBSITE_LINKS.support)}
+        />
+        {/* Children get the help page only; adults and teens can also write to support. */}
+        {policy.is_child ? null : (
+          <>
+            <Divider />
+            <ListRow
+              title={t('profile.emailSupport')}
+              subtitle={SUPPORT_EMAIL}
+              leading={<Icon name="mail-outline" color={theme.colors.primary} />}
+              onPress={() =>
+                void Linking.openURL(supportMailto(`Brainy Clan ${APP_VERSION}`)).catch(() => {})
+              }
+            />
+          </>
+        )}
+        <Divider />
         <ListRow title={t('profile.version')} subtitle={APP_VERSION} chevron={false} />
         <Divider />
         <ListRow

@@ -18,6 +18,7 @@ export default function AuthLayout() {
       <Stack.Screen name="register" />
       <Stack.Screen name="join" />
       <Stack.Screen name="code" />
+      <Stack.Screen name="forgot-password" />
     </Stack>
   );
 }

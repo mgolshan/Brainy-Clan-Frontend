@@ -14,7 +14,7 @@ import { store } from '@/features/billing/store';
 import { type PaywallPackage, StoreError } from '@/features/billing/storeTypes';
 import { Unlocks } from '@/features/billing/SubscriptionCard';
 import { PRIVACY_URL, TERMS_URL } from '@/config/monetization';
-import { openInAppBrowser, openLegalPage, useLegal } from '@/features/legal/hooks';
+import { openLegalPage, useLegal } from '@/features/legal/hooks';
 import { errorMessage } from '@/lib/errorMessage';
 import {
   Badge,
@@ -190,19 +190,10 @@ export function PaywallScreen() {
     );
   }
 
-  // Backend legal pages (`GET /legal`, localized) first; the env URLs are the fallback.
-  const termsFallback = TERMS_URL;
-  const privacyFallback = PRIVACY_URL;
-  const openTerms = legal?.terms
-    ? () => openLegalPage(legal.terms.url)
-    : termsFallback
-      ? () => openInAppBrowser(termsFallback)
-      : null;
-  const openPrivacy = legal?.privacy
-    ? () => openLegalPage(legal.privacy.url)
-    : privacyFallback
-      ? () => openInAppBrowser(privacyFallback)
-      : null;
+  // Backend legal pages (`GET /legal`, localized) first; the website pages are the fallback
+  // (`EXPO_PUBLIC_TERMS_URL` / `EXPO_PUBLIC_PRIVACY_URL`, default https://brainyclan.com/…).
+  const openTerms = () => openLegalPage(legal?.terms ? legal.terms.url : TERMS_URL);
+  const openPrivacy = () => openLegalPage(legal?.privacy ? legal.privacy.url : PRIVACY_URL);
   const list = packages.data ?? [];
   const selected = list.find((p) => p.id === chosen) ?? list[0];
   const busy = run.isPending;
@@ -280,26 +271,15 @@ export function PaywallScreen() {
       <Text variant="caption" tone="muted" align="center">
         {t('billing.paywall.legal')}
       </Text>
-      {openTerms || openPrivacy ? (
-        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: theme.spacing.md }}>
-          {openTerms ? (
-            <Button
-              title={t('billing.paywall.terms')}
-              variant="ghost"
-              size="sm"
-              onPress={openTerms}
-            />
-          ) : null}
-          {openPrivacy ? (
-            <Button
-              title={t('billing.paywall.privacy')}
-              variant="ghost"
-              size="sm"
-              onPress={openPrivacy}
-            />
-          ) : null}
-        </View>
-      ) : null}
+      <View style={{ flexDirection: 'row', justifyContent: 'center', gap: theme.spacing.md }}>
+        <Button title={t('billing.paywall.terms')} variant="ghost" size="sm" onPress={openTerms} />
+        <Button
+          title={t('billing.paywall.privacy')}
+          variant="ghost"
+          size="sm"
+          onPress={openPrivacy}
+        />
+      </View>
     </Screen>
   );
 }

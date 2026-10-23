@@ -19,6 +19,7 @@ import { Icon } from '@/ui/components/Icon';
 import { PressableScale } from '@/ui/components/PressableScale';
 import { Text } from '@/ui/components/Text';
 import { useTheme } from '@/ui/ThemeProvider';
+import { maxContentWidth, type ContentWidth } from '@/ui/themes/layout';
 
 /** What `Screen` hands to a `list` renderer. */
 export interface ScreenListParts {
@@ -54,6 +55,12 @@ export interface ScreenProps {
    * the title block + children as its header; never nest a list inside the default ScrollView.
    */
   list?: (parts: ScreenListParts) => ReactNode;
+  /**
+   * Content column on wide windows (iPad, desktop web): `reading` (default, ~640) for forms,
+   * lists and text; `wide` (~900) for grids and boards; `full` for full-bleed screens. Widths
+   * come from `theme.layout`.
+   */
+  width?: ContentWidth;
 }
 
 /** Concentric translucent circles: a cheap radial glow that works on every platform. */
@@ -175,6 +182,7 @@ export function Screen({
   contentStyle,
   plain,
   list,
+  width = 'reading',
 }: ScreenProps) {
   const theme = useTheme();
   const { t } = useTranslation();
@@ -235,14 +243,14 @@ export function Screen({
     </>
   );
 
-  // Phone-width column on tablets and desktop web.
+  // Centered column on tablets and desktop web (phones are narrower than any max width).
+  const maxWidth = maxContentWidth(width, theme.layout);
+  const column: ViewStyle = { width: '100%', maxWidth, alignSelf: 'center' };
   const padding: ViewStyle = {
     padding: s.lg,
     paddingBottom: s.xxl,
     gap: s.md,
-    width: '100%',
-    maxWidth: 640,
-    alignSelf: 'center',
+    ...column,
   };
 
   const refreshControl = onRefresh ? (
@@ -261,7 +269,7 @@ export function Screen({
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         {list ? (
-          <View style={[styles.flex, styles.column]}>
+          <View style={[styles.flex, column]}>
             {list({
               header: <View style={{ gap: s.md, paddingBottom: s.md }}>{content}</View>,
               contentContainerStyle: { padding: s.lg, paddingBottom: s.xxl },
@@ -291,7 +299,13 @@ export function Screen({
                 backgroundColor: theme.colors.background,
               },
             ]}>
-            <View style={[styles.footerInner, { gap: s.sm }]}>{footer}</View>
+            <View
+              style={[
+                styles.footerInner,
+                { gap: s.sm, maxWidth: maxWidth === undefined ? undefined : maxWidth - s.lg * 2 },
+              ]}>
+              {footer}
+            </View>
           </View>
         ) : null}
       </KeyboardAvoidingView>
@@ -311,7 +325,6 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   flex: { flex: 1 },
   grow: { flexGrow: 1 },
-  column: { width: '100%', maxWidth: 640, alignSelf: 'center' },
   header: { marginBottom: 4 },
   headerRow: {
     flexDirection: 'row',
@@ -322,7 +335,7 @@ const styles = StyleSheet.create({
   backButton: { alignItems: 'center', justifyContent: 'center' },
   rule: { height: 3, width: 56, marginTop: 6, borderRadius: 2 },
   footer: { borderTopWidth: StyleSheet.hairlineWidth },
-  footerInner: { width: '100%', maxWidth: 592, alignSelf: 'center' },
+  footerInner: { width: '100%', alignSelf: 'center' },
   blob: { position: 'absolute', borderRadius: 999 },
   glowBox: { position: 'absolute' },
 });

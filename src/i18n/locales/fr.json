@@ -50,7 +50,8 @@
     "socialAccountTaken": "Ce compte est déjà associé à un autre utilisateur Brainy Clan.",
     "lastSignInMethod": "C'est votre seul moyen de connexion. Définissez d'abord un mot de passe ou associez un autre compte.",
     "familyOwnerCannotLeave": "Le propriétaire ne peut pas supprimer son compte tant que d'autres membres sont dans la famille. Supprimez plutôt la famille.",
-    "adRewardPending": "Nous n’avons pas encore pu confirmer votre récompense. Réessayez dans un instant."
+    "adRewardPending": "Nous n’avons pas encore pu confirmer votre récompense. Réessayez dans un instant.",
+    "loginLocked": "Trop de tentatives de connexion. Patientez quelques minutes, puis réessayez."
   },
   "update": {
     "title": "C'est l'heure de la mise à jour",
@@ -251,7 +252,8 @@
     "subtitle": "Connectez-vous avec votre courriel et votre mot de passe.",
     "submit": "Se connecter",
     "noAccount": "Nouveau ? Créez un compte parent",
-    "haveCode": "J'ai un code d'invitation"
+    "haveCode": "J'ai un code d'invitation",
+    "forgotPassword": "Mot de passe oublié ?"
   },
   "register": {
     "title": "Créer votre compte",
@@ -382,7 +384,10 @@
     "language": "Langue",
     "about": "À propos",
     "version": "Version de l'application",
-    "signOut": "Se déconnecter"
+    "signOut": "Se déconnecter",
+    "helpSupport": "Aide et assistance",
+    "helpSupportSubtitle": "Questions, problèmes ou idées",
+    "emailSupport": "Nous écrire"
   },
   "avatars": {
     "fox": "Renard",
@@ -400,7 +405,29 @@
     "unicorn": "Licorne",
     "dragon": "Dragon",
     "turtle": "Tortue",
-    "octopus": "Pieuvre"
+    "octopus": "Pieuvre",
+    "elephant": "Éléphant",
+    "giraffe": "Girafe",
+    "hedgehog": "Hérisson",
+    "otter": "Loutre",
+    "raccoon": "Raton laveur",
+    "monkey": "Singe",
+    "variants": {
+      "kid": "enfant",
+      "teen": "ado",
+      "mom": "maman",
+      "dad": "papa",
+      "grandma": "mamie",
+      "grandpa": "papi"
+    },
+    "groups": {
+      "kids": "Enfants",
+      "teens": "Ados",
+      "parents": "Parents",
+      "grandparents": "Grands-parents"
+    },
+    "label": "{{species}}, {{variant}}",
+    "groupsLabel": "Groupes de personnages"
   },
   "goals": {
     "title": "Objectifs familiaux",
@@ -867,5 +894,30 @@
     "adPrivacyChoices": "Choix de confidentialité pour les publicités",
     "adPrivacyChoicesHint": "Modifiez ce que vous autorisez pour les courtes vidéos",
     "adPrivacyChoicesFailed": "Les choix de confidentialité n’ont pas pu s’ouvrir. Veuillez réessayer."
+  },
+  "lockout": {
+    "title": "Trop de tentatives",
+    "tryAgainClock": "Réessayez dans {{time}}.",
+    "tryAgainMinutes_one": "Réessayez dans {{count}} minute.",
+    "tryAgainMinutes_many": "Réessayez dans {{count}} minutes.",
+    "tryAgainMinutes_other": "Réessayez dans {{count}} minutes.",
+    "tryAgainHours_one": "Réessayez dans {{count}} heure.",
+    "tryAgainHours_many": "Réessayez dans {{count}} heures.",
+    "tryAgainHours_other": "Réessayez dans {{count}} heures.",
+    "loginHint": "Pour votre sécurité, la connexion par mot de passe est suspendue pour un moment. Vous pouvez quand même réinitialiser votre mot de passe, utiliser un code de connexion d'un administrateur de la famille, ou vous connecter avec Apple, Google ou Facebook si votre compte en utilise un.",
+    "codeHint": "Pour votre sécurité, les codes ne peuvent pas être saisis sur cet appareil pour un moment. Attendez la fin du minuteur, puis retapez le code. Les adultes peuvent se connecter avec leur courriel.",
+    "joinHint": "Pour votre sécurité, les codes ne peuvent pas être saisis sur cet appareil pour un moment. Attendez la fin du minuteur, puis retapez le code.",
+    "forgotHint": "Attendez la fin du minuteur, puis réessayez.",
+    "signInWithEmail": "Me connecter avec mon courriel"
+  },
+  "forgot": {
+    "title": "Mot de passe oublié ?",
+    "subtitle": "Entrez le courriel avec lequel vous vous connectez. Nous vous enverrons un lien pour choisir un nouveau mot de passe.",
+    "submit": "Envoyer le lien",
+    "sentTitle": "Vérifiez vos courriels",
+    "sentBody": "Si un compte utilise ce courriel, nous avons envoyé un lien pour réinitialiser le mot de passe. Il est valable 60 minutes.",
+    "sentSpam": "Rien reçu ? Regardez dans vos indésirables (spam) ou réessayez dans quelques minutes. Ouvrez le lien sur n'importe quel appareil pour choisir un nouveau mot de passe, puis connectez-vous ici.",
+    "backToSignIn": "Retour à la connexion",
+    "tryAnother": "Utiliser un autre courriel"
   }
 }

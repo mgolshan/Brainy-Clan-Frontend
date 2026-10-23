@@ -18,6 +18,7 @@ import {
   toggleNote,
 } from '@/challenges/sudoku/logic';
 import { useCellFont } from '@/challenges/useCellFont';
+import { useFitToHeight } from '@/challenges/useFitToHeight';
 import { useMeasuredWidth } from '@/challenges/useMeasuredWidth';
 import { useRenderCount } from '@/challenges/useRenderCount';
 import { CHALLENGE_ROOT_ID, useWebKeys } from '@/challenges/useWebKeys';
@@ -177,10 +178,12 @@ export function Sudoku({
     return false;
   }, !locked);
 
-  // Layout: square cells from the measured width, capped so a 4×4 doesn't get huge.
-  const cell = width
-    ? Math.floor(Math.min((width - OUTER * 2) / size, theme.touchTarget * 1.5))
-    : 0;
+  // Layout: square cells from the measured width, capped so a 4×4 doesn't get huge, and fitted
+  // to the window height in landscape (iPad sideways).
+  const cell = useFitToHeight(
+    width ? Math.floor(Math.min((width - OUTER * 2) / size, theme.touchTarget * 1.5)) : 0,
+    size,
+  );
   const gridSize = cell * size + OUTER * 2;
   const thin = StyleSheet.hairlineWidth > 0.5 ? 1 : StyleSheet.hairlineWidth * 2;
   const thick = 2;

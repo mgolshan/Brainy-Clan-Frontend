@@ -3,7 +3,7 @@ export { ThemeProvider, useTheme, makeStyles, resolveTheme } from '@/ui/ThemePro
 export type { ThemeSelection } from '@/ui/ThemeProvider';
 export * from '@/ui/themes';
 export { Appear } from '@/ui/components/Appear';
-export { Avatar, AVATAR_EMOJI, avatarEmoji, isAvatarKey } from '@/ui/components/Avatar';
+export { Avatar, isAvatarKey } from '@/ui/components/Avatar';
 export { Badge, type BadgeTone } from '@/ui/components/Badge';
 export { Button, type ButtonProps, type ButtonVariant } from '@/ui/components/Button';
 export { Card, surfaceStyle, withAlpha } from '@/ui/components/Card';

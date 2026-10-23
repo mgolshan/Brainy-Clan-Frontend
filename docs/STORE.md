@@ -4,29 +4,51 @@ Everything needed to put Brainy Clan on the App Store and Google Play that does 
 accounts themselves: app identity, build/update setup, listing texts (English + French), age
 rating and privacy answers, screenshot plan, review notes and a step-by-step checklist.
 
-**Before submitting:** the privacy policy and terms (served by the backend at `/legal/privacy` and
-`/legal/terms`) must be reviewed by a lawyer and published with `LEGAL_DRAFT=false`. The answers
-below describe what the app does today (F7, 2026-10-16); re-check them whenever a feature or SDK
-changes what is collected.
+**Before submitting:** the privacy policy and terms (served by the backend on the website,
+`https://brainyclan.com/privacy` and `/terms`) must be reviewed by a lawyer and published with
+`LEGAL_DRAFT=false`. The answers below describe what the app does today (F7, 2026-10-16; audience,
+iPad and URLs updated 2026-10-22); re-check them whenever a feature or SDK changes what is
+collected.
 
 ## 1. App identity
 
-| Setting             | Value                                                                      | Where                         |
-| ------------------- | -------------------------------------------------------------------------- | ----------------------------- |
-| Name                | Brainy Clan                                                                | `app.json` `name`             |
-| Slug                | `brainy-clan`                                                              | `app.json` `slug`             |
-| URL scheme          | `brainyclan` (+ `fb<APP_ID>` when Facebook is configured)                  | `app.json` / `app.config.ts`  |
-| iOS bundle ID       | `app.brainyclan` (also the Apple `aud` for Sign in with Apple)             | `ios.bundleIdentifier`        |
-| Android package     | `app.brainyclan`                                                           | `android.package`             |
-| Marketing version   | `1.0.0` — bump by hand for each store release (`expo.version`)             | `app.json` `version`          |
-| Build numbers       | iOS `buildNumber` / Android `versionCode` managed by EAS (remote, auto +1) | `eas.json` `appVersionSource` |
-| Runtime version     | `fingerprint` policy (changes whenever native code/config changes)         | `app.json` `runtimeVersion`   |
-| Orientation         | Portrait                                                                   | `orientation`                 |
-| Dark mode           | Follows the system (`userInterfaceStyle: automatic`)                       |                               |
-| iPad                | Not a native iPad app in v1 (`supportsTablet: false`; runs in iPhone mode) | `ios.supportsTablet`          |
-| Encryption          | `ITSAppUsesNonExemptEncryption: false` (HTTPS only → no export paperwork)  | `ios.infoPlist`               |
-| iOS usage strings   | None needed: no camera, photos, location, contacts, microphone, Face ID    |                               |
-| Android permissions | INTERNET, VIBRATE, notifications, billing, AD_ID/network state from SDKs   | `android.blockedPermissions`  |
+| Setting             | Value                                                                       | Where                          |
+| ------------------- | --------------------------------------------------------------------------- | ------------------------------ |
+| Name                | Brainy Clan                                                                 | `app.json` `name`              |
+| Slug                | `brainy-clan`                                                               | `app.json` `slug`              |
+| URL scheme          | `brainyclan` (+ `fb<APP_ID>` when Facebook is configured)                   | `app.json` / `app.config.ts`   |
+| iOS bundle ID       | `app.brainyclan` (also the Apple `aud` for Sign in with Apple)              | `ios.bundleIdentifier`         |
+| Android package     | `app.brainyclan`                                                            | `android.package`              |
+| Marketing version   | `1.0.0` — bump by hand for each store release (`expo.version`)              | `app.json` `version`           |
+| Build numbers       | iOS `buildNumber` / Android `versionCode` managed by EAS (remote, auto +1)  | `eas.json` `appVersionSource`  |
+| Runtime version     | `fingerprint` policy (changes whenever native code/config changes)          | `app.json` `runtimeVersion`    |
+| Orientation         | iPhone + Android: portrait. iPad: all four (required for iPad multitasking) | `orientation`, `ios.infoPlist` |
+| Dark mode           | Follows the system (`userInterfaceStyle: automatic`)                        |                                |
+| iPad                | Native iPad app (`supportsTablet: true`, `requireFullScreen: false`)        | `ios.supportsTablet`           |
+| Encryption          | `ITSAppUsesNonExemptEncryption: false` (HTTPS only → no export paperwork)   | `ios.infoPlist`                |
+| iOS usage strings   | None needed: no camera, photos, location, contacts, microphone, Face ID     |                                |
+| Android permissions | INTERNET, VIBRATE, notifications, billing, AD_ID/network state from SDKs    | `android.blockedPermissions`   |
+
+iPad layout: content sits in a centered column (about 640 pt for reading screens, 900 pt for grids
+and boards, `theme.layout`), touch targets and text size unchanged; Sudoku and word-search boards
+fit the window height in landscape. `UISupportedInterfaceOrientations` (iPhone) is portrait only,
+and `UISupportedInterfaceOrientations~ipad` lists all four orientations (verified with
+`npx expo config --type introspect`).
+
+### Public URLs and contact
+
+| What                         | Value                                   | Used in                                                     |
+| ---------------------------- | --------------------------------------- | ----------------------------------------------------------- |
+| Marketing / website          | `https://brainyclan.com`                | App Store marketing URL, Play website                       |
+| Support URL                  | `https://brainyclan.com/support`        | App Store support URL, app Profile → Help & support         |
+| Privacy policy               | `https://brainyclan.com/privacy`        | Both stores, paywall fallback, UMP consent message          |
+| Terms of use                 | `https://brainyclan.com/terms`          | Store description, paywall fallback                         |
+| Account deletion (web)       | `https://brainyclan.com/account/delete` | Play Data safety → deletion URL                             |
+| Password reset (from emails) | `https://brainyclan.com/password/reset` | Linked from the "forgot password" email only                |
+| Support email                | `support@brainyclan.com`                | Play contact email, App Review contact, Profile → Email us  |
+| API                          | `https://api.brainyclan.com/api/v1`     | `EXPO_PUBLIC_API_URL=https://api.brainyclan.com` (eas.json) |
+
+French pages: the same URLs with `?lang=fr` (the app adds it for French users).
 
 Removed defaults: `SYSTEM_ALERT_WINDOW`, `READ/WRITE_EXTERNAL_STORAGE` (the data export is written
 to the app cache and shared via the share sheet, so no storage permission is needed) and the Face ID
@@ -120,7 +142,8 @@ age in your family — with shared goals and a friendly family leaderboard.
 > automatically unless cancelled at least 24 hours before the end of the period. Manage or cancel
 > in your account settings.
 >
-> Terms: <https://…/legal/terms> · Privacy: <https://…/legal/privacy>
+> Terms: <https://brainyclan.com/terms> · Privacy: <https://brainyclan.com/privacy> · Help:
+> <https://brainyclan.com/support>
 
 **Keywords (iOS, 100):** `family,quiz,trivia,brain games,kids,learning,puzzle,sudoku,math,word,goals,leaderboard`
 
@@ -171,7 +194,8 @@ tous les âges de la famille — avec des objectifs communs et un classement fam
 > et se renouvelle automatiquement sauf annulation au moins 24 heures avant la fin de la période.
 > Gérez ou annulez l'abonnement dans les réglages de votre compte.
 >
-> Conditions : <https://…/legal/terms?lang=fr> · Confidentialité : <https://…/legal/privacy?lang=fr>
+> Conditions : <https://brainyclan.com/terms?lang=fr> · Confidentialité :
+> <https://brainyclan.com/privacy?lang=fr> · Aide : <https://brainyclan.com/support?lang=fr>
 
 **Mots-clés (iOS, 100) :** `famille,quiz,jeu,cerveau,enfants,apprendre,énigme,sudoku,maths,mots,objectifs,classement`
 
@@ -179,31 +203,66 @@ tous les âges de la famille — avec des objectifs communs et un classement fam
 
 ## 6. Category, audience and age rating
 
-- **App Store:** primary category **Education**, secondary **Games** (subcategories Family,
-  Trivia, Puzzle). **Not** in the Kids Category: Kids Category apps may not contain third-party
-  advertising or analytics and need a parental gate before any purchase or external link;
-  Brainy Clan is a family (mixed-audience) app with ads for adults, RevenueCat and Sentry.
-  Children use it inside a parent-managed family (parent creates the child profile and consents).
-- **Google Play:** category **Education** (tags: Family, Trivia, Puzzle, Educational). In
-  "Target audience and content" select the age groups the app is designed for — if they include
-  under-13s (5–8, 9–12), the **Families Policy** applies: only Families-certified ad SDKs
-  (AdMob is), no ads to children (the policy's `ads_allowed` is false for children), no
-  personalized ads to anyone (all ad requests are non-personalized; teens are also tagged
-  `tagForUnderAgeOfConsent` and capped by `maxAdContentRating` from `policy.ad_request`), and the
-  Families ads declaration. Answer
-  "appeals to children: yes" and "mixed audience".
-- **Age rating, Apple questionnaire** (expected **4+**): no violence, horror, profanity, sexual
-  content, drugs, alcohol, gambling or simulated gambling, no medical/treatment info; no
-  unrestricted web access (the in-app browser only opens the legal pages and sign-in providers);
-  no user-generated content shared outside the family (nicknames/avatars are visible only to the
-  family; no chat); contests: no; advertising: **yes** (rewarded ads, adults/teens on the free
-  plan only, non-personalized); in-app purchases: yes; age assurance: birth year/month asked at
-  sign-up, policies decided by the backend.
-- **Age rating, Google IARC** (expected **Everyone / PEGI 3 / ESRB E**): category "Game or
-  reference/education"; violence none; fear none; sexuality none; gambling none; language none;
-  controlled substances none; crude humour none. Interactive elements: **In-app purchases**,
-  **Users interact** (family leaderboard inside a private family — answer "no" to unrestricted
-  chat), **Shares location: no**, **Digital purchases: yes**.
+Decision (docs/PLAN.md "Moe's answers (2026-10-22)"): parents **and children under 13** can both
+find and install the app. It is a **mixed-audience** family app: children play inside a family a
+parent created (the parent consents for them); teens and adults on the free plan may see opt-in
+rewarded ads; children never see ads.
+
+### Google Play: target audience and Families Policy
+
+- **Category:** Education (tags: Family, Trivia, Puzzle, Educational).
+- **Target audience and content → age groups:** select **6–8, 9–12, 13–15, 16–17 and 18+** (not
+  "5 and under"). Because under-13 groups are selected, the app is in scope of the **Families
+  Policy** and Play treats it as **mixed audience** (designed for children and older users). The
+  store listing must not suggest the app is only for children.
+- What the Families Policy requires, and how the app meets it:
+  - **Ads only through a Families self-certified ad SDK** → Google AdMob (Google Mobile Ads SDK)
+    is certified. No mediation, and no other SDK that collects advertising IDs (Sentry runs with
+    `sendDefaultPii: false`, RevenueCat is a purchase SDK; neither is an ad network).
+  - **No ads to children** → the server policy never allows ads for the child band and a child's
+    device never requests one (the UI reads `policy.second_chance.ad_allowed`). Teens and adults
+    only see rewarded videos they choose to watch.
+  - **Child-directed treatment / age-appropriate ads** → every ad request is non-personalized with
+    `maxAdContentRating: G` (from `policy.ad_request`); teens are also tagged
+    `tagForUnderAgeOfConsent`. AdMob blocking controls block sensitive categories and cap the app
+    at G as a second guard (README "Rewarded ads — AdMob setup" step 8). No advertising ID is used
+    for children, because no ad request is made for them.
+  - **Families ads declaration** ("Ads" → contains ads: **yes**; in the Families section confirm
+    the ad SDK is Families certified and that ads comply — none are shown to children).
+  - **Data safety** (§7) must match what the SDKs do; children's data is minimised (nickname,
+    avatar, birth year/month, gameplay; no email, no social sign-in, no purchases, no ads).
+  - **Content rating** through IARC → expected **Everyone** (below).
+  - **Parental consent** for children: the parent creates the child profile and consents in the
+    app.
+  - **Teacher Approved** (optional, later): Google picks apps for the "Teacher Approved" badge in
+    the Kids tab; there is nothing to submit, just keep content and listing clean.
+- **IARC questionnaire** (expected **Everyone / PEGI 3 / ESRB E / USK 0**): category "Game or
+  reference/education"; violence none; fear none; sexuality none; gambling none (no real or
+  simulated gambling, no loot boxes); language none; controlled substances none; crude humour none.
+  Interactive elements: **In-app purchases**, **Users interact** (family leaderboard inside a
+  private family, no open chat), **Shares location: no**, **Digital purchases: yes**.
+
+### Apple: category, Kids Category and age rating
+
+- **Primary category: Education**, secondary **Games** (subcategories Family, Trivia, Puzzle).
+- **Not in the Kids Category.** Kids Category apps may not show third-party advertising or use
+  third-party analytics, and need a parental gate before purchases and external links. Brainy Clan
+  shows opt-in, non-personalized AdMob rewarded ads to **teens and adults** on the free plan and
+  uses RevenueCat and Sentry, so it does not qualify. It is a general family app that children use
+  inside a parent-managed family; children never see ads, purchases or the paywall.
+- **Age rating: 4+.** Questionnaire answers:
+  - Violence (cartoon, fantasy, realistic), horror/fear, profanity or crude humour, sexual content
+    or nudity, alcohol/tobacco/drugs, simulated gambling, mature or suggestive themes, medical or
+    treatment information: **None**.
+  - Contests: **No**. Gambling (real money): **No**. Loot boxes: **No**.
+  - Unrestricted web access: **No** (the in-app browser only opens our own legal and help pages and
+    the sign-in providers).
+  - User-generated content / messaging: **No** open UGC; nicknames and avatars are visible only
+    inside the family; no chat.
+  - Advertising: **Yes** (rewarded videos, teens/adults on the free plan, non-personalized, rated
+    G). In-app purchases: **Yes** (Family plan subscription).
+  - Parental controls / age assurance: parents create child profiles; birth year/month is asked
+    at sign-up; age rules come from the backend policy.
 
 ## 7. Privacy answers
 
@@ -237,12 +296,13 @@ Sentry runs with `sendDefaultPii: false` and scrubs events; traces are off.
 ### Google Play — Data safety
 
 - Data encrypted in transit: **Yes** (HTTPS). Users can request deletion: **Yes** (in-app
-  Profile → Privacy → Delete account; also needs a **web URL** for deletion requests — see open
-  questions). Data shared with third parties: **Yes** for AdMob (device/advertising ID and
+  Profile → Privacy → Delete account; web deletion URL
+  **`https://brainyclan.com/account/delete`**). Data shared with third parties: **Yes** for AdMob (device/advertising ID and
   ad interaction for adults/teens on the free plan, non-personalized) — everything else goes
   to service providers acting on our behalf (Sentry, RevenueCat), which Play does not count as
   "sharing".
 - Collected (all "required for the app" unless noted; none "optional"; purposes in brackets):
+  Advertising ID only on teen/adult devices that request an ad (AdMob), never for children.
   Personal info → **Email** (account management), **Name** (app functionality), **Other info:
   birth year/month** (app functionality); Financial info → **Purchase history** (app
   functionality); App activity → **App interactions** (app functionality), **Other actions**
@@ -268,8 +328,12 @@ seeded demo family with friendly names; light mode; status bar clean (9:41, full
 | 7   | Classic theme, large text                         | classic | Easy to read for grandparents / Lisible pour les grands-parents    |
 | 8   | Profile → Privacy (download data, delete account) | modern  | Your data, your choice / Vos données, votre choix                  |
 
-Sizes: **iPhone 6.9"** (1320×2868, required; Apple scales it down for smaller iPhones). No iPad
-set needed while `supportsTablet` is false. **Google Play phone**: 1080×1920 or larger, 2–8
+Sizes: **iPhone 6.9"** (1320×2868, required; Apple scales it down for smaller iPhones) and,
+because the app is a native iPad app (`supportsTablet: true`), **iPad 13"**: **2064×2752**
+portrait (or 2752×2064 landscape; App Store Connect also accepts 2048×2732 / 2732×2048), required,
+scaled by Apple for smaller iPads. Capture the same 8 scenes on the iPad 13" simulator in portrait,
+plus one or two landscape shots (Sudoku board, category grid) if they look better. Check App Store
+Connect help "Screenshot specifications" for the current list before uploading. **Google Play phone**: 1080×1920 or larger, 2–8
 images (use the same 8); feature graphic `assets/images/store/play-feature-graphic.png`
 (1024×500); 512² icon. Optional later: 7"/10" tablet sets, a 30 s preview video.
 
@@ -279,7 +343,7 @@ captions in a frame tool (Figma/Canva/AppScreens) with the brand blue background
 ## 9. Review notes (App Review / Play "App access")
 
 Create a dedicated review family on the **production** backend before submitting (not the
-`.test` seed), e.g. `review@brainyclan.app` with a strong password stored in the password
+`.test` seed), e.g. `review@brainyclan.com` with a strong password stored in the password
 manager, a child "Sam" (9) and a teen "Alex" (14), a few completed sessions and one active goal.
 
 > **Demo account:** email `review@…` / password `…` (adult family admin).
@@ -317,9 +381,11 @@ and instructions.
    upload its JSON key to EAS (`npx eas-cli@latest credentials` → Android → Google Service
    Account), not to git.
 5. EAS environment variables for `production` (and `preview`): `EXPO_PUBLIC_API_URL`
-   (production HTTPS URL), social client IDs, `EXPO_PUBLIC_REVENUECAT_*`, `ADMOB_*_APP_ID`,
+   (`https://api.brainyclan.com`; `eas.json` already sets it plus `EXPO_PUBLIC_WEBSITE_URL`,
+   `EXPO_PUBLIC_SUPPORT_EMAIL`, `EXPO_PUBLIC_TERMS_URL` and `EXPO_PUBLIC_PRIVACY_URL` in the
+   `production` profile's `env`), social client IDs, `EXPO_PUBLIC_REVENUECAT_*`, `ADMOB_*_APP_ID`,
    `EXPO_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`/`SENTRY_PROJECT` + secret `SENTRY_AUTH_TOKEN`,
-   `EXPO_PUBLIC_TERMS_URL`/`EXPO_PUBLIC_PRIVACY_URL` if used. Push: APNs key and FCM V1 key in
+   Push: APNs key and FCM V1 key in
    EAS credentials. See README sections for each service.
 6. Backend: production deployment over HTTPS, `LEGAL_DRAFT=false` after the lawyer's review,
    RevenueCat + AdMob SSV webhooks pointing at production, review family created.
@@ -333,14 +399,16 @@ and instructions.
    (already declared in the Info.plist).
 3. TestFlight: internal testers (your team) immediately; external testers (waitlist families)
    after a short Beta App Review — fill "What to test" and the demo account.
-4. App Store Connect → the version: screenshots (6.9"), texts from §4/§5, keywords, support URL,
-   marketing URL, privacy policy URL, App Privacy (§7), age rating (§6), category, in-app
+4. App Store Connect → the version: screenshots (iPhone 6.9" and iPad 13", §8), texts from
+   §4/§5, keywords, support URL `https://brainyclan.com/support`, marketing URL
+   `https://brainyclan.com`, privacy policy URL `https://brainyclan.com/privacy`, App Privacy (§7), age rating (§6), category, in-app
    purchases/subscriptions attached to the version (first subscription must be submitted with
    the app), review notes + demo account (§9), "Sign in with Apple" capability enabled.
 5. Submit for review. Apple will look closely at: account deletion in the app (yes), Sign in with
    Apple offered alongside Google (yes), subscription terms in the description and paywall
    (auto-renew text, links to terms/privacy), children's data and ads (not Kids Category; no ads
-   for children), demo account working, no placeholder content.
+   for children), demo account working, no placeholder content, and the iPad layout (every screen
+   in portrait and landscape, including Split View).
 6. After approval: release manually or automatically; then use phased release (7 days).
 
 **Android: internal → closed → production**
@@ -351,14 +419,16 @@ and instructions.
    release) so Play links the package name; afterwards
    `npx eas-cli@latest submit --platform android --profile production --latest` sends drafts to
    the internal track.
-3. Complete "App content": privacy policy URL, app access (§9), ads: **contains ads**, content
-   rating (§6), target audience (§6, Families Policy if under-13 selected), data safety (§7),
-   government/financial/health: no, account deletion URL (needs a web page).
+3. Complete "App content": privacy policy URL `https://brainyclan.com/privacy`, app access (§9),
+   ads: **contains ads**, content rating (§6), target audience **6–8, 9–12, 13–15, 16–17, 18+**
+   with the Families Policy declarations (§6), data safety (§7), government/financial/health: no,
+   account deletion URL `https://brainyclan.com/account/delete`.
 4. Internal testing (up to 100 testers, instant) → **Closed testing** with the waitlist families
    (≥ 12 testers for 14 days for new personal accounts) → apply for production access →
    **Production** with a staged rollout (e.g. 20 % → 100 %).
-5. Store listing: texts §4/§5, 512² icon, feature graphic, phone screenshots, category, contact
-   email, website.
+5. Store listing: texts §4/§5, 512² icon, feature graphic, phone screenshots (optional 7"/10"
+   tablet sets; Android tablets run the app in portrait), category Education, contact email
+   `support@brainyclan.com`, website `https://brainyclan.com`.
 
 **Every later release**
 
