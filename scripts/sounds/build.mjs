@@ -1,6 +1,6 @@
 /**
  * Builds the world sound packs (run `npm run sounds:build`):
- *   assets/sounds/<pack>/<sound>.wav|mp3        6 packs × 6 sounds, 44.1 kHz mono, < 30 KB each
+ *   assets/sounds/<pack>/<sound>.wav|mp3        12 packs × 6 sounds, 44.1 kHz mono, < 30 KB each
  *   src/features/sound/soundAssets.generated.ts  pack -> sound -> require(asset)
  * Every sound is synthesized here from plain oscillators (scripts/sounds/synth.mjs), so nothing is
  * licensed or sampled. Short sounds (tap, correct, wrong) are 16-bit WAV for instant start; the
@@ -21,7 +21,20 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const outDir = join(root, 'assets/sounds');
 const tsOut = join(root, 'src/features/sound/soundAssets.generated.ts');
 
-export const PACKS = ['candy', 'jungle', 'space', 'neon', 'glass', 'calm'];
+export const PACKS = [
+  'candy',
+  'jungle',
+  'space',
+  'neon',
+  'glass',
+  'calm',
+  'sea',
+  'dino',
+  'sticker',
+  'lofi',
+  'nature',
+  'midnight',
+];
 export const SOUNDS = ['tap', 'correct', 'wrong', 'celebrate', 'levelUp', 'unlock'];
 const MP3 = new Set(['celebrate', 'levelUp', 'unlock']);
 const MAX_BYTES = 30 * 1024;
@@ -34,6 +47,12 @@ const PACK = {
   neon: { shift: 0, gain: 0.8, lp: 4200 },
   glass: { shift: 7, gain: 0.9, lp: 9000, echo: [0.07, 0.18] },
   calm: { shift: -5, gain: 0.6, lp: 2400 },
+  sea: { shift: 0, gain: 0.95, lp: 6500, echo: [0.06, 0.22] },
+  dino: { shift: -12, gain: 1, lp: 3200 },
+  sticker: { shift: 0, gain: 0.85, lp: 8000 },
+  lofi: { shift: -5, gain: 0.7, lp: 2600, echo: [0.16, 0.2] },
+  nature: { shift: 0, gain: 0.6, lp: 3200, echo: [0.18, 0.15] },
+  midnight: { shift: 0, gain: 0.65, lp: 6000, echo: [0.14, 0.3] },
 };
 
 /** Note lists: [time s, midi (before shift), opts]. Times/midis are shared; voices differ. */

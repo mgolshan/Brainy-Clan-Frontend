@@ -51,7 +51,8 @@
     "lastSignInMethod": "This is your only way to sign in. Set a password or connect another account first.",
     "familyOwnerCannotLeave": "The family owner can't delete their account while others are in the family. Delete the family instead.",
     "adRewardPending": "We couldn't confirm your reward yet. Please try again in a moment.",
-    "loginLocked": "Too many sign-in attempts. Please wait a few minutes and try again."
+    "loginLocked": "Too many sign-in attempts. Please wait a few minutes and try again.",
+    "worldLocked": "That world isn't unlocked yet. The list has been refreshed."
   },
   "update": {
     "title": "Time for an update",
@@ -99,7 +100,13 @@
       "classic": "Classic",
       "jungle": "Jungle Adventure",
       "space": "Space Explorers",
-      "neon": "Neon Arcade"
+      "neon": "Neon Arcade",
+      "sea": "Under the Sea",
+      "dino": "Dino Valley",
+      "sticker": "Sticker Street",
+      "lofi": "Lo-fi Dusk",
+      "nature": "Calm Nature",
+      "midnight": "Midnight"
     },
     "light": "Light",
     "dark": "Dark",
@@ -114,7 +121,13 @@
       "classic": "large and easy to read",
       "jungle": "leaves, vines and animal friends",
       "space": "stars, planets and rockets",
-      "neon": "glowing arcade lights"
+      "neon": "glowing arcade lights",
+      "sea": "bubbles, coral and friendly fish",
+      "dino": "volcanoes, ferns and a friendly dino",
+      "sticker": "bold stickers, tape and doodles",
+      "lofi": "pastel sunset, city lights and soft rain",
+      "nature": "soft green hills and birds, calm and easy to read",
+      "midnight": "deep blue night, moon and gold"
     },
     "lookOnly": "The theme only changes how the app looks — never the content or the rules.",
     "reducedMotionHint": "Fewer animations and no confetti.",
@@ -259,7 +272,13 @@
       "space": "Space",
       "neon": "Neon",
       "glass": "Glass",
-      "calm": "Calm"
+      "calm": "Calm",
+      "sea": "Sea",
+      "dino": "Dino",
+      "sticker": "Sticker",
+      "lofi": "Lo-fi",
+      "nature": "Nature",
+      "midnight": "Midnight"
     },
     "soundNames": {
       "tap": "Tap",
@@ -930,5 +949,29 @@
     "sentSpam": "Nothing there? Check your spam folder, or try again in a few minutes. Open the link on any device to choose a new password, then sign in here.",
     "backToSignIn": "Back to sign in",
     "tryAnother": "Use a different email"
+  },
+  "worlds": {
+    "locked": "Locked",
+    "hint": {
+      "points_one": "{{progress}} / {{required}} point",
+      "points_other": "{{progress}} / {{required}} points",
+      "streak_one": "{{progress}} / {{required}}-day streak",
+      "streak_other": "{{progress}} / {{required}}-day streak",
+      "familyPlan": "Family plan",
+      "locked": "Locked"
+    },
+    "howTo": {
+      "points_one": "Earn {{count}} more point to unlock {{name}}. You have {{progress}} of {{required}}.",
+      "points_other": "Earn {{count}} more points to unlock {{name}}. You have {{progress}} of {{required}}.",
+      "streak_one": "Play {{count}} day in a row to unlock {{name}}. Your best streak so far: {{progress}}.",
+      "streak_other": "Play {{count}} days in a row to unlock {{name}}. Your best streak so far: {{progress}}.",
+      "other": "{{name}} isn't unlocked yet. Keep playing!"
+    },
+    "askParent": "Ask a parent to get the Family plan",
+    "storedLocked": "{{name}} is locked right now, so you see your automatic world. Your pick comes back when it unlocks again.",
+    "unlockedTitle": "New world unlocked!",
+    "unlockedBody": "{{name}} is ready for you.",
+    "tryIt": "Try it",
+    "later": "Later"
   }
 }

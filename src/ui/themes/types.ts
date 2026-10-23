@@ -121,7 +121,19 @@ export interface ThemeMotion {
 }
 
 /** Background scene behind `Screen` (`src/ui/scenes/`). */
-export type SceneKey = 'none' | 'candy' | 'jungle' | 'space' | 'neon' | 'glass';
+export type SceneKey =
+  | 'none'
+  | 'candy'
+  | 'jungle'
+  | 'space'
+  | 'neon'
+  | 'glass'
+  | 'sea'
+  | 'dino'
+  | 'sticker'
+  | 'lofi'
+  | 'nature'
+  | 'midnight';
 
 /**
  * Card look:
@@ -131,20 +143,58 @@ export type SceneKey = 'none' | 'candy' | 'jungle' | 'space' | 'neon' | 'glass';
  * - `chunky`: wooden plank with a deep bottom edge and a leaf on the corner
  * - `porthole`: round-cornered ship panel with a double rim and rivets
  * - `neon`: dark panel with a glowing outline
+ * - `aqua`: rounded sea-glass panel with a soft water glow and a bubble cluster on the corner
+ * - `stone`: stone slab with a deep bottom edge and a fern frond on the corner
+ * - `taped`: die-cut sticker with an ink outline, a hard offset edge, tape strips and a doodle
+ * - `framed`: fine double-rule frame in the glow color (an elegant invitation card)
  */
-export type CardStyle = 'flat' | 'glass' | 'sticker' | 'chunky' | 'porthole' | 'neon';
+export type CardStyle =
+  | 'flat'
+  | 'glass'
+  | 'sticker'
+  | 'chunky'
+  | 'porthole'
+  | 'neon'
+  | 'aqua'
+  | 'stone'
+  | 'taped'
+  | 'framed';
 
-/** Button look: `flat` (solid/gradient), `press3d` (candy edge that squishes), `glow`. */
-export type ButtonStyle = 'flat' | 'press3d' | 'glow';
+/**
+ * Button look: `flat` (solid/gradient), `press3d` (candy edge that squishes), `glow`, `ink`
+ * (ink outline + hard offset edge down-right that the face presses into).
+ */
+export type ButtonStyle = 'flat' | 'press3d' | 'glow' | 'ink';
 
-/** Progress bar look: `bar`, `vine` (grows leaves), `rocket` (flies along), `neon`. */
-export type ProgressStyle = 'bar' | 'vine' | 'rocket' | 'neon';
+/**
+ * Progress bar look: `bar`, `vine` (grows leaves), `rocket` (flies along), `neon`, `submarine`
+ * (dives along a bubbly current), `footprints` (dino tracks toward an egg), `cassette` (tape
+ * winds from one reel to the other), `marker` (a highlighter stroke on a taped strip).
+ */
+export type ProgressStyle =
+  'bar' | 'vine' | 'rocket' | 'neon' | 'submarine' | 'footprints' | 'cassette' | 'marker';
 
-/** The success moment (completed session, goal reached). */
-export type CelebrationStyle = 'confetti' | 'stars' | 'bubbles' | 'sprinkles' | 'calm';
+/**
+ * The success moment (completed session, goal reached). `stickers`: die-cut stickers slap down
+ * with a tilt; `notes`: music notes drift slowly upward.
+ */
+export type CelebrationStyle =
+  'confetti' | 'stars' | 'bubbles' | 'sprinkles' | 'calm' | 'stickers' | 'notes';
 
 /** Sound pack key read by `useSoundEffects` (`src/features/sound`). */
-export type SoundPackKey = 'candy' | 'jungle' | 'space' | 'neon' | 'glass' | 'calm';
+export type SoundPackKey =
+  | 'candy'
+  | 'jungle'
+  | 'space'
+  | 'neon'
+  | 'glass'
+  | 'calm'
+  | 'sea'
+  | 'dino'
+  | 'sticker'
+  | 'lofi'
+  | 'nature'
+  | 'midnight';
 
 /**
  * Overall tone shared by worlds, for the few places that differ beyond tokens: `kid` (emoji,

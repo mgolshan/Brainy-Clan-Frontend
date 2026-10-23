@@ -17,6 +17,8 @@ import { AccessibilityEditor } from '@/features/profile/AccessibilityEditor';
 import { AvatarPicker } from '@/features/profile/AvatarPicker';
 import { PasswordForm } from '@/features/profile/PasswordForm';
 import { useUpdateAccessibility, useUpdateMe } from '@/features/profile/hooks';
+import { canPurchaseFamilyPlan } from '@/features/worlds/catalog';
+import { useMyWorlds } from '@/features/worlds/hooks';
 import i18n, { supportedLanguages, type AppLanguage } from '@/i18n';
 import { errorMessage } from '@/lib/errorMessage';
 import { formErrors } from '@/lib/formErrors';
@@ -49,6 +51,7 @@ export function ProfileScreen() {
   const updateMe = useUpdateMe();
   const updateA11y = useUpdateAccessibility();
   const signOut = useSignOut();
+  const worlds = useMyWorlds();
   const health = useHealth();
   const theme = useTheme();
   // null = endpoint not deployed yet (404): hide the entry.
@@ -164,6 +167,8 @@ export function ProfileScreen() {
             value={a11y}
             autoTheme={policy.ui_theme}
             autoSound={policy.accessibility_defaults?.sound_effects ?? false}
+            worlds={worlds.data}
+            canPurchase={canPurchaseFamilyPlan(policy, member.role === 'admin')}
             onChange={(patch) => updateA11y.mutate(patch)}
           />
         ) : (

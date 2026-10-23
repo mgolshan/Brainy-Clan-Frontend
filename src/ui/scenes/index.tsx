@@ -2,11 +2,17 @@ import { memo, useState, type ComponentType } from 'react';
 import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 
 import { CandyScene } from '@/ui/scenes/CandyScene';
+import { DinoScene } from '@/ui/scenes/DinoScene';
 import { GlassScene } from '@/ui/scenes/GlassScene';
 import { JungleScene } from '@/ui/scenes/JungleScene';
+import { LofiScene } from '@/ui/scenes/LofiScene';
+import { MidnightScene } from '@/ui/scenes/MidnightScene';
+import { NatureScene } from '@/ui/scenes/NatureScene';
 import { NeonScene } from '@/ui/scenes/NeonScene';
+import { SeaScene } from '@/ui/scenes/SeaScene';
 import type { SceneProps } from '@/ui/scenes/shared';
 import { SpaceScene } from '@/ui/scenes/SpaceScene';
+import { StickerScene } from '@/ui/scenes/StickerScene';
 import { useTheme } from '@/ui/ThemeProvider';
 import type { SceneKey } from '@/ui/themes';
 
@@ -16,6 +22,12 @@ const SCENES: Record<Exclude<SceneKey, 'none'>, ComponentType<SceneProps>> = {
   space: SpaceScene,
   neon: NeonScene,
   glass: GlassScene,
+  sea: SeaScene,
+  dino: DinoScene,
+  sticker: StickerScene,
+  lofi: LofiScene,
+  nature: NatureScene,
+  midnight: MidnightScene,
 };
 
 export interface SceneViewProps {

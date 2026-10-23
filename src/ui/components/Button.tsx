@@ -92,12 +92,15 @@ function variantColors(theme: Theme, variant: ButtonVariant): VariantColors {
 }
 
 const EDGE = 5;
+/** Ink buttons: hard offset (down-right) the face presses into. */
+const INK = 4;
 
 /**
  * The world's button.
  * - `press3d` (Candy, Jungle, Space): chunky candy button with a 3D bottom edge that squishes
  * - `glow` (Glass, Neon): gradient face with a colored glow; a glowing ring flares on press
  * - `flat` (Modern, Classic): solid, soft shadow / clear border, gentle or no press animation
+ * - `ink` (Sticker Street): ink outline with a hard offset edge down-right; the face presses into it
  */
 export function Button({
   title,
@@ -121,6 +124,7 @@ export function Button({
   const inactive = disabled || loading;
   const press3d = theme.button === 'press3d' && variant !== 'ghost';
   const glow = theme.button === 'glow' && variant !== 'ghost';
+  const ink = theme.button === 'ink' && variant !== 'ghost';
   const filled = variant !== 'ghost' && variant !== 'outline';
   const withTap = tapSound ?? (variant === 'primary' && size !== 'sm');
 
@@ -137,8 +141,12 @@ export function Button({
   const usesScale = theme.motion.pressScale < 1;
 
   const faceStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: press3d ? press.get() * (EDGE - 1) : 0 }, { scale: scale.get() }],
-    opacity: !usesScale && !press3d ? 1 - press.get() * 0.2 : 1,
+    transform: [
+      { translateX: ink ? press.get() * INK : 0 },
+      { translateY: press3d ? press.get() * (EDGE - 1) : ink ? press.get() * INK : 0 },
+      { scale: scale.get() },
+    ],
+    opacity: !usesScale && !press3d && !ink ? 1 - press.get() * 0.2 : 1,
   }));
   const ringStyle = useAnimatedStyle(() => ({
     opacity: press.get() * 0.9,
@@ -187,13 +195,14 @@ export function Button({
     justifyContent: 'center',
     overflow: 'hidden',
     backgroundColor: colors.gradient ? undefined : colors.bg,
-    borderWidth:
-      variant === 'outline'
+    borderWidth: ink
+      ? theme.borderWidth
+      : variant === 'outline'
         ? theme.borderWidth
         : theme.surface === 'outlined' && variant !== 'ghost'
           ? 2
           : 0,
-    borderColor: colors.border,
+    borderColor: ink ? theme.colors.borderStrong : colors.border,
   };
 
   const shadow: ViewStyle | undefined =
@@ -237,14 +246,14 @@ export function Button({
         onPress?.();
       }}
       onPressIn={() => {
-        if (press3d) press.set(withTiming(1, { duration: 70 }));
+        if (press3d || ink) press.set(withTiming(1, { duration: 70 }));
         else if (glow && !theme.reducedMotion) press.set(withTiming(1, { duration: 90 }));
         else press.set(1);
         if (usesScale && !press3d)
           scale.set(withSpring(theme.motion.pressScale, theme.motion.spring));
       }}
       onPressOut={() => {
-        if (press3d || glow) press.set(withSpring(0, theme.motion.spring));
+        if (press3d || glow || ink) press.set(withSpring(0, theme.motion.spring));
         else press.set(0);
         if (usesScale && !press3d) scale.set(withSpring(1, theme.motion.spring));
       }}
@@ -255,6 +264,12 @@ export function Button({
             backgroundColor: colors.edge,
             borderRadius: radius,
             paddingBottom: EDGE,
+          },
+          ink && {
+            backgroundColor: theme.colors.borderStrong,
+            borderRadius: radius,
+            paddingBottom: INK,
+            paddingRight: INK,
           },
           shadow,
           { borderRadius: radius },

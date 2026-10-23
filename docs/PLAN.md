@@ -110,6 +110,18 @@ the OS "reduce motion" setting). Components read tokens only through `useTheme()
   - **Unlocks (phase 2, Moe: both):** most worlds unlock with streaks/points (server decides);
     2–3 special worlds are Family-plan only. Phase 1: every world available to everyone.
   - Phase 1 is reviewed by Moe on web (`/dev/themes` and real screens) before phase 2.
+  - **Phase 2 (2026-10-23, Moe: "Go for phase 2"):** six more worlds — `sea` ("Under the Sea",
+    kids: bubbles, coral, swimming fish, a submarine progress bar), `dino` ("Dino Valley", kids,
+    Family plan: volcanoes, ferns, friendly dinos, footprints progress), `sticker` ("Sticker
+    Street", teens: bold type, sticker-bombed cards, tape and doodles), `lofi` ("Lo-fi Dusk",
+    teens: pastel sunset, city silhouette, gentle rain, cassette progress), `nature` ("Calm
+    Nature", everyone: soft greens, hills, birds, calm), `midnight` ("Midnight", everyone, Family
+    plan: deep blue, moon, subtle stars, elegant). Unlocks come from the server (`GET /me/worlds`;
+    free / points / streak / family_plan, thresholds are server data). Picker: locked worlds show
+    a lock + progress ("23 / 50 points", "2 / 3-day streak") or "Family plan" (opens the paywall
+    for admins who can buy; others see "Ask a parent"). After a world unlocks, the app shows a
+    "New world unlocked!" celebration once (seen state kept locally per member; UI only). If the
+    member's stored world is locked again (`theme_unlocked: false`), the app shows the default.
 
 ## Working rules
 

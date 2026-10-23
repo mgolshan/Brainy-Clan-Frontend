@@ -13,6 +13,7 @@ import type {
   UpdatePasswordBody,
   User,
 } from '@/api/types';
+import { recoverFromWorldLocked } from '@/features/worlds/hooks';
 
 /** `GET /me/stats`: points and streak. */
 export function useMeStats() {
@@ -50,14 +51,21 @@ export function useUpdateAccessibility() {
         prev?.member
           ? {
               ...prev,
-              member: { ...prev.member, accessibility: { ...prev.member.accessibility, ...body } },
+              member: {
+                ...prev.member,
+                accessibility: { ...prev.member.accessibility, ...body },
+                // The picker only offers unlocked worlds (the server confirms in the response).
+                ...(body.theme !== undefined ? { theme_unlocked: true } : {}),
+              },
             }
           : prev,
       );
       return { previous };
     },
-    onError: (_error, _body, context) => {
+    onError: (error, _body, context) => {
       if (context?.previous) client.setQueryData(queryKeys.me, context.previous);
+      // Raced an unlock change (403 `world_locked`): refetch the catalog + member.
+      recoverFromWorldLocked(error);
     },
     onSuccess: (member) => {
       client.setQueryData<MePayload>(queryKeys.me, (prev) => (prev ? { ...prev, member } : prev));

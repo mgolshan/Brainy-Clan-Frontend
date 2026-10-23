@@ -10,6 +10,8 @@ import { MemberEmailLogin } from '@/features/family/components/MemberEmailLogin'
 import { useFamily, useRemoveMember, useUpdateMember } from '@/features/family/hooks';
 import { AccessibilityEditor } from '@/features/profile/AccessibilityEditor';
 import { AvatarPicker } from '@/features/profile/AvatarPicker';
+import { canPurchaseFamilyPlan } from '@/features/worlds/catalog';
+import { useMemberWorlds } from '@/features/worlds/hooks';
 import { goBack } from '@/lib/navigation';
 import { formErrors } from '@/lib/formErrors';
 import { ageBandLabel } from '@/lib/labels';
@@ -37,7 +39,9 @@ function Editor({ member, ownerUserId }: { member: Member; ownerUserId: number }
   const theme = useTheme();
   const me = useMe().data;
   const policy = usePolicy();
+  const isAdmin = useIsAdmin();
   const update = useUpdateMember(member.id);
+  const worlds = useMemberWorlds(member.id);
   const remove = useRemoveMember();
   const [nickname, setNickname] = useState(member.nickname);
   const [avatar, setAvatar] = useState<string | null>(member.avatar);
@@ -52,13 +56,18 @@ function Editor({ member, ownerUserId }: { member: Member; ownerUserId: number }
     ? member.default_ui_theme
     : (policy?.ui_theme ?? 'modern');
 
+  // An unchanged (maybe re-locked) world isn't re-sent: the server would answer 403
+  // `world_locked` for a stored pick the family plan no longer covers.
+  const accessibility: Partial<Accessibility> = { ...a11y };
+  if (a11y.theme === member.accessibility.theme) delete accessibility.theme;
+
   const save = () =>
     update.mutate(
       {
         nickname: nickname.trim(),
         ...(avatar ? { avatar: avatar as AvatarKey } : {}),
         difficulty_override: difficulty,
-        accessibility: a11y,
+        accessibility,
       },
       { onSuccess: () => goBack('/family') },
     );
@@ -128,6 +137,8 @@ function Editor({ member, ownerUserId }: { member: Member; ownerUserId: number }
         <AccessibilityEditor
           value={a11y}
           autoTheme={autoTheme}
+          worlds={worlds.data}
+          canPurchase={canPurchaseFamilyPlan(policy, isAdmin)}
           onChange={(patch) => setA11y((prev) => ({ ...prev, ...patch }))}
         />
       </Card>

@@ -20,6 +20,7 @@ import type {
   UpdateMemberBody,
 } from '@/api/types';
 import { useIsAdmin } from '@/features/auth/hooks';
+import { recoverFromWorldLocked } from '@/features/worlds/hooks';
 
 /** `GET /family`: family + members. */
 export function useFamily() {
@@ -92,6 +93,9 @@ export function useUpdateMember(memberId: number) {
   return useMutation({
     mutationFn: async (body: UpdateMemberBody) =>
       (await api.patch<Envelope<Member>>(`/family/members/${memberId}`, body)).data,
+    onError: (error) => {
+      recoverFromWorldLocked(error);
+    },
     onSuccess: (member) => {
       patchMemberInCache(client, member);
       void client.invalidateQueries({ queryKey: queryKeys.family });

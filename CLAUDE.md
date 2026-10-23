@@ -39,7 +39,7 @@ src/
   challenges/        registry.ts (type key -> renderer + payload guard) + MultipleChoice, WisdomCard
   store/             zustand: session.ts (token in SecureStore), preferences.ts, appStatus.ts
   i18n/              i18next setup + locales (en, fr)
-  ui/                ThemeProvider.tsx (useTheme), themes/ (7 worlds), scenes/ (world backgrounds),
+  ui/                ThemeProvider.tsx (useTheme), themes/ (13 worlds), scenes/ (world backgrounds),
                      components/ (Screen, Text, Button, Card, TextField, Avatar, ProgressBar, ...)
   lib/               small pure helpers (errors, formatting, labels, version compare)
 ```

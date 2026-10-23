@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import type { ReactNode } from 'react';
 import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import Svg, { G, Path } from 'react-native-svg';
+import Svg, { Circle, G, Path } from 'react-native-svg';
 
 import { PressableScale } from '@/ui/components/PressableScale';
 import { useTheme } from '@/ui/ThemeProvider';
@@ -157,6 +157,58 @@ export function surfaceStyle(theme: Theme, opts: { tint?: string; selected?: boo
         elevation: 0,
       } satisfies ViewStyle;
     }
+    case 'aqua':
+      return {
+        backgroundColor: c.surface,
+        borderRadius: theme.radius.xl,
+        borderWidth: opts.selected ? 3 : 2.5,
+        borderBottomWidth: 6,
+        borderColor: ring ?? withAlpha(opts.tint ?? c.glow, dark ? 0.55 : 0.6),
+        borderBottomColor: ring ?? (opts.tint ? withAlpha(opts.tint, 0.85) : c.borderStrong),
+        shadowColor: c.glow,
+        shadowOpacity: dark ? 0.32 : 0.22,
+        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 3,
+      } satisfies ViewStyle;
+    case 'stone':
+      return {
+        backgroundColor: c.surface,
+        borderRadius: theme.radius.lg,
+        borderWidth: opts.selected ? 3 : 2,
+        borderBottomWidth: 8,
+        borderColor: ring ?? (opts.tint ? withAlpha(opts.tint, 0.65) : c.border),
+        borderBottomColor: ring ?? c.borderStrong,
+        shadowColor: c.shadow,
+        shadowOpacity: dark ? 0.5 : 0.14,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 2,
+      } satisfies ViewStyle;
+    case 'taped':
+      // Ink outline + a hard offset edge (right and bottom) in the tint or ink: a die-cut sticker.
+      return {
+        backgroundColor: c.surface,
+        borderRadius: theme.radius.md,
+        borderWidth: opts.selected ? 3 : 2.5,
+        borderRightWidth: 6,
+        borderBottomWidth: 6,
+        borderColor: ring ?? c.borderStrong,
+        borderRightColor: ring ?? opts.tint ?? c.borderStrong,
+        borderBottomColor: ring ?? opts.tint ?? c.borderStrong,
+      } satisfies ViewStyle;
+    case 'framed':
+      return {
+        backgroundColor: c.surface,
+        borderRadius: theme.radius.md,
+        borderWidth: opts.selected ? 2 : 1,
+        borderColor: ring ?? withAlpha(opts.tint ?? c.glow, dark ? 0.55 : 0.65),
+        shadowColor: c.shadow,
+        shadowOpacity: dark ? 0.55 : 0.1,
+        shadowRadius: 18,
+        shadowOffset: { width: 0, height: 8 },
+        elevation: 2,
+      } satisfies ViewStyle;
   }
 }
 
@@ -201,7 +253,111 @@ function PortholeRim({ theme }: { theme: Theme }) {
   );
 }
 
-/** The world's card: sticker (Candy), plank (Jungle), porthole (Space), glass, neon, or flat. */
+/** Three bubbles drifting off the top-right corner of sea cards. */
+function BubbleCorner({ theme }: { theme: Theme }) {
+  const c = theme.colors;
+  const line = withAlpha(c.glow, 0.9);
+  const fill = withAlpha(c.glow, theme.scheme === 'dark' ? 0.18 : 0.14);
+  const shine = withAlpha(c.surface, theme.scheme === 'dark' ? 0.4 : 1);
+  return (
+    <View pointerEvents="none" style={styles.bubbleCorner}>
+      <Svg width={34} height={34}>
+        <Circle cx={10} cy={24} r={7} fill={fill} stroke={line} strokeWidth={1.6} />
+        <Circle cx={7.5} cy={21.5} r={1.8} fill={shine} />
+        <Circle cx={23} cy={13} r={5} fill={fill} stroke={line} strokeWidth={1.4} />
+        <Circle cx={29} cy={4} r={3} fill={fill} stroke={line} strokeWidth={1.2} />
+      </Svg>
+    </View>
+  );
+}
+
+function leaflet(l: number): string {
+  return `M0 0 C 2.4 -2 2.4 ${1 - l} 0 ${-l} C -2.4 ${1 - l} -2.4 -2 0 0 Z`;
+}
+
+/** A small fern frond over the top-left corner of dino stone cards. */
+function FernCorner({ theme }: { theme: Theme }) {
+  const a = theme.colors.sceneAccent;
+  const leaflets = [];
+  for (let i = 1; i <= 5; i++) {
+    const y = -i * 5;
+    const l = 10 - i;
+    leaflets.push(
+      <G key={`a${i}`} transform={`translate(0 ${y}) rotate(-58)`}>
+        <Path d={leaflet(l)} fill={a[0]} />
+      </G>,
+      <G key={`b${i}`} transform={`translate(0 ${y}) rotate(58)`}>
+        <Path d={leaflet(l)} fill={a[1]} />
+      </G>,
+    );
+  }
+  return (
+    <View pointerEvents="none" style={styles.fernCorner}>
+      <Svg width={40} height={40}>
+        <G transform="translate(14 38) rotate(-38)">
+          <Path d="M0 0 L0 -30" stroke={a[1]} strokeWidth={2} strokeLinecap="round" />
+          {leaflets}
+        </G>
+      </Svg>
+    </View>
+  );
+}
+
+/** A strip of tape on the top-left corner and a marker doodle star on the top-right. */
+function TapeAndDoodle({ theme }: { theme: Theme }) {
+  const c = theme.colors;
+  const dark = theme.scheme === 'dark';
+  return (
+    <>
+      <View
+        pointerEvents="none"
+        style={[
+          styles.tape,
+          { backgroundColor: withAlpha(dark ? c.textSubtle : c.accent, dark ? 0.45 : 0.6) },
+        ]}
+      />
+      <View pointerEvents="none" style={styles.doodle}>
+        <Svg width={30} height={30}>
+          <Path
+            d="M15 3 L18 11.5 L27 12 L20 17.5 L22.5 26 L15 21 L7.5 26 L10 17.5 L3 12 L12 11.5 Z"
+            fill={c.surface}
+            stroke={c.primary}
+            strokeWidth={2.2}
+            strokeLinejoin="round"
+            transform="rotate(12 15 15)"
+          />
+        </Svg>
+      </View>
+    </>
+  );
+}
+
+/** Fine inner rule and a small diamond on the top edge of midnight cards. */
+function FrameRule({ theme }: { theme: Theme }) {
+  const c = theme.colors;
+  const line = withAlpha(c.glow, theme.scheme === 'dark' ? 0.32 : 0.4);
+  return (
+    <>
+      <View
+        pointerEvents="none"
+        style={[styles.rule, { borderRadius: Math.max(2, theme.radius.md - 4), borderColor: line }]}
+      />
+      <View pointerEvents="none" style={styles.diamondWrap}>
+        <View
+          style={[
+            styles.diamond,
+            { backgroundColor: c.surface, borderColor: withAlpha(c.glow, 0.85) },
+          ]}
+        />
+      </View>
+    </>
+  );
+}
+
+/**
+ * The world's card: sticker (Candy), plank (Jungle), porthole (Space), aqua (Sea), stone (Dino),
+ * taped (Sticker Street), framed (Midnight), glass (Glass, Lo-fi), neon, or flat.
+ */
 export function Card({
   children,
   onPress,
@@ -225,9 +381,16 @@ export function Card({
     variant === 'tinted' && {
       backgroundColor: withAlpha(tint ?? c.primary, dark ? 0.18 : 0.12),
     },
-    variant === 'hero' && { borderWidth: 0, borderBottomWidth: 0, overflow: 'hidden' },
-    // The porthole rim needs a little more room inside.
-    { padding: pad + (theme.card === 'porthole' && pad > 0 ? 4 : 0) },
+    variant === 'hero' && {
+      borderWidth: 0,
+      borderBottomWidth: 0,
+      borderRightWidth: 0,
+      overflow: 'hidden',
+    },
+    // The porthole rim and the midnight frame need a little more room inside.
+    {
+      padding: pad + ((theme.card === 'porthole' || theme.card === 'framed') && pad > 0 ? 4 : 0),
+    },
     style,
   ];
 
@@ -266,8 +429,12 @@ export function Card({
         />
       ) : null}
       {ornaments && theme.card === 'porthole' ? <PortholeRim theme={theme} /> : null}
+      {ornaments && theme.card === 'framed' ? <FrameRule theme={theme} /> : null}
       {children}
       {ornaments && theme.card === 'chunky' ? <LeafCorner theme={theme} /> : null}
+      {ornaments && theme.card === 'aqua' ? <BubbleCorner theme={theme} /> : null}
+      {ornaments && theme.card === 'stone' ? <FernCorner theme={theme} /> : null}
+      {ornaments && theme.card === 'taped' ? <TapeAndDoodle theme={theme} /> : null}
     </>
   );
 
@@ -305,4 +472,18 @@ const styles = StyleSheet.create({
   },
   rivet: { position: 'absolute', width: 6, height: 6, borderRadius: 3 },
   gloss: { position: 'absolute', top: 6, left: 18, width: '34%', height: 7 },
+  bubbleCorner: { position: 'absolute', top: -14, right: -4 },
+  fernCorner: { position: 'absolute', top: -18, left: 2 },
+  tape: {
+    position: 'absolute',
+    top: -6,
+    left: -12,
+    width: 54,
+    height: 18,
+    transform: [{ rotate: '-28deg' }],
+  },
+  doodle: { position: 'absolute', top: -14, right: -12 },
+  rule: { position: 'absolute', top: 4, left: 4, right: 4, bottom: 4, borderWidth: 0.75 },
+  diamondWrap: { position: 'absolute', top: -5, left: 0, right: 0, alignItems: 'center' },
+  diamond: { width: 9, height: 9, borderWidth: 1, transform: [{ rotate: '45deg' }] },
 });

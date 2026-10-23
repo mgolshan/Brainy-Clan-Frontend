@@ -1,16 +1,22 @@
-import { memo, useState } from 'react';
+import { router } from 'expo-router';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 
 import type { Accessibility, ThemeKey } from '@/api/types';
+import {
+  formatWorldHint,
+  howToUnlockText,
+  pickerWorlds,
+  worldHint,
+  worldTapAction,
+  type World,
+} from '@/features/worlds/catalog';
+import { WorldThumbnail } from '@/features/worlds/WorldThumbnail';
 import { usePreferences, type ColorSchemePreference } from '@/store/preferences';
 import {
-  Button,
-  Card,
   Icon,
   PressableScale,
-  ProgressBar,
-  SceneView,
   Segmented,
   Text,
   ThemeProvider,
@@ -23,61 +29,31 @@ import {
 } from '@/ui';
 
 const TEXT_SCALES = [0.9, 1, 1.2, 1.4, 1.6] as const;
-const PREVIEW_H = 120;
 const MIN_OPTION = 128;
 const GAP = 10;
 
 type SoundChoice = 'auto' | 'on' | 'off';
-
-/** Live miniature of the active (nested) world: its scene, a card and a button. Static. */
-const WorldThumbnail = memo(function WorldThumbnail({ width }: { width: number }) {
-  const theme = useTheme();
-  const { t } = useTranslation();
-  return (
-    <View
-      style={[
-        styles.thumb,
-        {
-          height: PREVIEW_H,
-          backgroundColor: theme.colors.background,
-          borderRadius: Math.max(8, theme.radius.md - 2),
-        },
-      ]}>
-      <SceneView width={width} height={PREVIEW_H} animated={false} />
-      <View style={[styles.thumbContent, { gap: 8 }]}>
-        <Card padding="xs" plain style={styles.thumbCard}>
-          <Text variant="caption" weight="bold" numberOfLines={1}>
-            {t('appearance.previewTitle')}
-          </Text>
-          <ProgressBar value={0.6} />
-        </Card>
-        <Button
-          title={t('appearance.previewButton')}
-          size="sm"
-          icon="play"
-          fullWidth={false}
-          tapSound={false}
-          accessibilityLabel=""
-        />
-      </View>
-    </View>
-  );
-});
 
 interface WorldOptionProps {
   themeKey: ThemeKey | null;
   /** World shown for the "automatic" option (the policy default). */
   autoTheme: ThemeKey;
   selected: boolean;
+  /** The catalog entry (undefined for "automatic"). */
+  world?: World;
   onPress: () => void;
   schemePreference: ColorSchemePreference;
 }
 
-/** One world in the picker: a live preview, its name and an audience hint (a label only). */
+/**
+ * One world in the picker: a live preview, its name and an audience hint (a label only). A
+ * locked world stays visible: dimmed preview, lock badge and its unlock hint / progress.
+ */
 function WorldOption({
   themeKey,
   autoTheme,
   selected,
+  world,
   onPress,
   schemePreference,
 }: WorldOptionProps) {
@@ -88,7 +64,9 @@ function WorldOption({
   const def = themes[key];
   const name = t(def.displayName);
   const label = themeKey ? name : t('appearance.automatic');
-  const hint = t(`appearance.audience.${def.audience}`);
+  const audience = t(`appearance.audience.${def.audience}`);
+  const hint = world ? worldHint(world) : null;
+  const hintText = hint ? formatWorldHint(hint, t) : null;
 
   return (
     <PressableScale
@@ -97,7 +75,11 @@ function WorldOption({
       accessibilityRole="radio"
       accessibilityLabel={
         themeKey
-          ? `${name}, ${t(`appearance.themeDescriptions.${themeKey}`)}, ${hint}`
+          ? [
+              name,
+              t(`appearance.themeDescriptions.${themeKey}`),
+              hintText ? `${t('worlds.locked')}, ${hintText}` : audience,
+            ].join(', ')
           : `${label}, ${name}`
       }
       accessibilityState={{ checked: selected }}
@@ -115,13 +97,24 @@ function WorldOption({
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
         pointerEvents="none">
-        <ThemeProvider
-          themeKey={key}
-          schemePreference={schemePreference}
-          textScale={0.8}
-          reducedMotion>
-          <WorldThumbnail width={width} />
-        </ThemeProvider>
+        <View style={hint ? styles.dimmed : undefined}>
+          <ThemeProvider
+            themeKey={key}
+            schemePreference={schemePreference}
+            textScale={0.8}
+            reducedMotion>
+            <WorldThumbnail width={width} />
+          </ThemeProvider>
+        </View>
+        {hint ? (
+          <View
+            style={[
+              styles.lock,
+              { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+            ]}>
+            <Icon name="lock-closed" size={16} color={theme.colors.text} />
+          </View>
+        ) : null}
         {selected ? (
           <View style={[styles.check, { backgroundColor: theme.colors.surface }]}>
             <Icon name="checkmark-circle" size={22} color={theme.colors.primary} />
@@ -132,9 +125,38 @@ function WorldOption({
         <Text variant="label" weight="bold" numberOfLines={2}>
           {label}
         </Text>
-        <Text variant="caption" tone="muted" numberOfLines={1}>
-          {themeKey ? hint : name}
-        </Text>
+        {hintText ? (
+          <View style={styles.hintRow}>
+            {hint?.kind === 'familyPlan' ? (
+              <Icon name="star" size={12} color={theme.colors.accent} />
+            ) : null}
+            <Text variant="caption" tone="muted" numberOfLines={1} style={styles.flex}>
+              {hintText}
+            </Text>
+          </View>
+        ) : (
+          <Text variant="caption" tone="muted" numberOfLines={1}>
+            {themeKey ? audience : name}
+          </Text>
+        )}
+        {hint?.kind === 'progress' ? (
+          <View
+            style={[
+              styles.miniTrack,
+              { backgroundColor: theme.colors.surfaceAlt, borderRadius: 999 },
+            ]}>
+            <View
+              style={[
+                styles.miniFill,
+                {
+                  width: `${Math.round(hint.ratio * 100)}%`,
+                  backgroundColor: theme.colors.primary,
+                  borderRadius: 999,
+                },
+              ]}
+            />
+          </View>
+        ) : null}
       </View>
     </PressableScale>
   );
@@ -148,6 +170,13 @@ interface AccessibilityEditorProps {
   /** The policy's `accessibility_defaults.sound_effects` (what "automatic" means). */
   autoSound?: boolean;
   disabled?: boolean;
+  /**
+   * The member's world catalog (`GET /me/worlds` or the admin member variant): order + unlocks.
+   * `null`/`undefined` (loading, or a backend without it) = every app world, unlocked.
+   */
+  worlds?: readonly World[] | null;
+  /** The signed-in member may buy the Family plan (tapping a Family-plan world opens the paywall). */
+  canPurchase?: boolean;
 }
 
 /**
@@ -160,11 +189,34 @@ export function AccessibilityEditor({
   autoTheme,
   autoSound,
   disabled,
+  worlds,
+  canPurchase = false,
 }: AccessibilityEditorProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const schemePreference = usePreferences((s) => s.colorScheme);
   const [gridWidth, setGridWidth] = useState(0);
+  // Explanation for the last tapped locked world ("Earn 27 more points…", "Ask a parent…").
+  const [lockInfo, setLockInfo] = useState<{ key: ThemeKey; text: string } | null>(null);
+  const list = pickerWorlds(worlds, WORLD_ORDER);
+  const storedLocked =
+    value.theme !== null && list.some((w) => w.key === value.theme && !w.unlocked);
+
+  const pressWorld = (world: World) => {
+    const action = worldTapAction(world, canPurchase);
+    if (action === 'select') {
+      setLockInfo(null);
+      onChange({ theme: world.key });
+    } else if (action === 'paywall') {
+      setLockInfo(null);
+      router.push('/family-plan');
+    } else {
+      setLockInfo({
+        key: world.key,
+        text: howToUnlockText(world, t(themes[world.key].displayName), t),
+      });
+    }
+  };
   const nearestScale = TEXT_SCALES.reduce((best, s) =>
     Math.abs(s - value.text_scale) < Math.abs(best - value.text_scale) ? s : best,
   );
@@ -181,18 +233,49 @@ export function AccessibilityEditor({
         accessibilityRole="radiogroup"
         accessibilityLabel={t('appearance.theme')}
         onLayout={(e: LayoutChangeEvent) => setGridWidth(Math.round(e.nativeEvent.layout.width))}>
-        {([null, ...WORLD_ORDER] as (ThemeKey | null)[]).map((key) => (
-          <View key={key ?? 'auto'} style={{ width: cell ?? '47%' }}>
+        <View style={{ width: cell ?? '47%' }}>
+          <WorldOption
+            themeKey={null}
+            autoTheme={autoTheme}
+            selected={value.theme === null}
+            onPress={() => {
+              setLockInfo(null);
+              onChange({ theme: null });
+            }}
+            schemePreference={schemePreference}
+          />
+        </View>
+        {list.map((world) => (
+          <View key={world.key} style={{ width: cell ?? '47%' }}>
             <WorldOption
-              themeKey={key}
+              themeKey={world.key}
               autoTheme={autoTheme}
-              selected={(value.theme ?? null) === key}
-              onPress={() => onChange({ theme: key })}
+              selected={value.theme === world.key}
+              world={world}
+              onPress={() => pressWorld(world)}
               schemePreference={schemePreference}
             />
           </View>
         ))}
       </View>
+      {lockInfo ? (
+        <View
+          accessibilityLiveRegion="polite"
+          style={[
+            styles.note,
+            { backgroundColor: theme.colors.warningSoft, borderRadius: theme.radius.md },
+          ]}>
+          <Icon name="lock-closed-outline" size={18} color={theme.colors.text} />
+          <Text variant="caption" style={styles.flex}>
+            {lockInfo.text}
+          </Text>
+        </View>
+      ) : null}
+      {storedLocked && value.theme ? (
+        <Text variant="caption" tone="muted">
+          {t('worlds.storedLocked', { name: t(themes[value.theme].displayName) })}
+        </Text>
+      ) : null}
       <View
         style={[
           styles.note,
@@ -260,9 +343,21 @@ export function AccessibilityEditor({
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP },
   option: { padding: 6, gap: 6, overflow: 'hidden' },
-  thumb: { overflow: 'hidden' },
-  thumbContent: { flex: 1, padding: 10, justifyContent: 'center' },
-  thumbCard: { gap: 6 },
+  dimmed: { opacity: 0.45 },
+  lock: {
+    position: 'absolute',
+    top: 6,
+    left: 6,
+    width: 28,
+    height: 28,
+    borderRadius: 999,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hintRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  miniTrack: { height: 5, overflow: 'hidden', marginTop: 3 },
+  miniFill: { height: 5 },
   check: { position: 'absolute', top: 6, right: 6, borderRadius: 999 },
   optionLabel: { gap: 1, paddingHorizontal: 4, paddingBottom: 2 },
   flex: { flex: 1 },

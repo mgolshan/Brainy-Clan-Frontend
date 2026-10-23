@@ -8,6 +8,7 @@ import type { Invite, Member } from '@/api/types';
 import { useIsAdmin, useMe, usePolicy } from '@/features/auth/hooks';
 import { SubscriptionCard } from '@/features/billing/SubscriptionCard';
 import { useDeleteInvite, useFamily, useInvites } from '@/features/family/hooks';
+import { invalidateWorlds } from '@/features/worlds/hooks';
 import { formatDate } from '@/lib/format';
 import { ageBandLabel, tierLabel } from '@/lib/labels';
 import {
@@ -125,6 +126,7 @@ export function FamilyScreen() {
         if (isAdmin) {
           void invites.refetch();
           void client.invalidateQueries({ queryKey: queryKeys.subscription });
+          void invalidateWorlds();
         }
       }}
       refreshing={family.isRefetching}

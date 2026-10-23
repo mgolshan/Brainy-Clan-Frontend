@@ -130,6 +130,87 @@ export const VOICES = {
       return amp * env(t, 0.025, tau) * (sine(ph) + 0.06 * sine(2 * ph));
     });
   },
+  /** Sea: round "bloop" bubbles: every note starts low and slides up, with a watery wobble. */
+  sea(out, t0, m, { dur = 0.4, amp = 1, tau = 0.11, glide } = {}) {
+    const f = midiHz(m);
+    const p = phaser(f * 2 ** (-5 / 12), glide ?? 5, 0.035);
+    addNote(out, t0, dur, (t) => {
+      const wob = 1 + 0.012 * Math.sin(TAU * 9 * t);
+      const ph = p(t) * wob;
+      return amp * env(t, 0.004, tau) * (sine(ph) + 0.18 * sine(2 * ph) + 0.05 * tri(3 * ph));
+    });
+  },
+  /** Dino: low wooden "stomp" toms: triangle body with a pitch drop and a soft thump. */
+  dino(out, t0, m, { dur = 0.45, amp = 1, tau = 0.12, glide = 0 } = {}) {
+    const f = midiHz(m);
+    const p = phaser(f * 2 ** (3 / 12), glide - 3, 0.05);
+    const noise = rng(m * 17 + Math.round(t0 * 1000));
+    let lp = 0;
+    addNote(out, t0, dur, (t) => {
+      const ph = p(t);
+      lp += 0.08 * (noise() * 2 - 1 - lp);
+      const thump = t < 0.03 ? lp * 1.6 * (1 - t / 0.03) : 0;
+      return amp * (env(t, 0.003, tau) * (0.8 * tri(ph) + 0.35 * sine(ph * 2)) + thump);
+    });
+  },
+  /** Sticker: snappy pluck (bright harmonics that close fast) with a tiny paper "slap". */
+  sticker(out, t0, m, { dur = 0.3, amp = 1, tau = 0.08, glide = 0 } = {}) {
+    const f = midiHz(m);
+    const p = phaser(f, glide, 0.08);
+    const noise = rng(m * 7 + Math.round(t0 * 1000));
+    addNote(out, t0, dur, (t) => {
+      const ph = p(t);
+      const bright = Math.exp(-t / 0.03);
+      let s = sine(ph);
+      for (let k = 2; k <= 5; k++) s += (bright / k) * sine(k * ph);
+      const slap = t < 0.006 ? (noise() * 2 - 1) * 0.5 * (1 - t / 0.006) : 0;
+      return amp * (env(t, 0.002, tau) * s * 0.7 + slap);
+    });
+  },
+  /** Lo-fi: warm electric piano (soft FM bell), detuned and wobbling like an old tape. */
+  lofi(out, t0, m, { dur = 0.7, amp = 1, tau = 0.3, glide = 0 } = {}) {
+    const f = midiHz(m);
+    const p1 = phaser(f, glide, 0.2);
+    const p2 = phaser(f * 1.004, glide, 0.2);
+    addNote(out, t0, dur, (t) => {
+      const flutter = 1 + 0.004 * Math.sin(TAU * 4.2 * t + m);
+      const a = p1(t) * flutter;
+      const mod = 0.9 * Math.exp(-t / 0.12) * sine(a);
+      return (
+        amp *
+        env(t, 0.006, tau) *
+        (0.8 * Math.sin(TAU * a + mod) + 0.3 * sine(p2(t)) + 0.06 * sine(2 * a))
+      );
+    });
+  },
+  /** Nature: breathy wooden flute: sine with a slow attack, gentle vibrato and a little air. */
+  nature(out, t0, m, { dur = 0.6, amp = 1, tau = 0.24, glide = 0 } = {}) {
+    const f = midiHz(m);
+    const p = phaser(f, glide, 0.2);
+    const noise = rng(m * 13 + Math.round(t0 * 1000));
+    let lp = 0;
+    addNote(out, t0, dur, (t) => {
+      const vib = 1 + 0.004 * Math.sin(TAU * 5 * t) * Math.min(1, t / 0.15);
+      const ph = p(t) * vib;
+      lp += 0.05 * (noise() * 2 - 1 - lp);
+      const e = env(t, 0.03, tau);
+      return amp * e * (sine(ph) + 0.12 * sine(2 * ph) + 0.05 * sine(3 * ph) + lp * 0.5);
+    });
+  },
+  /** Midnight: soft celesta / music box: a pure tone with a quiet bright overtone, long decay. */
+  midnight(out, t0, m, { dur = 0.9, amp = 1, tau = 0.4, glide = 0 } = {}) {
+    const f = midiHz(m);
+    const p = phaser(f, glide, 0.2);
+    addNote(out, t0, dur, (t) => {
+      const ph = p(t);
+      return (
+        amp *
+        (sine(ph) * env(t, 0.004, tau) +
+          0.22 * sine(4 * ph) * env(t, 0.002, tau * 0.18) +
+          0.08 * sine(3 * ph) * env(t, 0.003, tau * 0.4))
+      );
+    });
+  },
 };
 
 // ---------------------------------------------------------------------------

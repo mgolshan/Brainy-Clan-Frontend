@@ -7,6 +7,8 @@ export const queryKeys = {
   /** Public `GET /legal` (current terms/privacy versions + URLs). */
   legal: ['legal'] as const,
   meStats: ['me', 'stats'] as const,
+  /** `GET /me/worlds`: the signed-in member's world unlock catalog. */
+  myWorlds: ['me', 'worlds'] as const,
   deletionCheck: ['me', 'deletion-check'] as const,
   socialAccounts: ['me', 'social-accounts'] as const,
   notificationPreferences: ['me', 'notification-preferences'] as const,
@@ -15,6 +17,8 @@ export const queryKeys = {
   invitePreview: (birthYear: number, birthMonth: number) =>
     ['invite-preview', birthYear, birthMonth] as const,
   subscription: ['family', 'subscription'] as const,
+  /** `GET /family/members/{member}/worlds` (admin): that member's world catalog. */
+  memberWorlds: (memberId: number) => ['family', 'members', memberId, 'worlds'] as const,
   memberDevices: (memberId: number) => ['family', 'members', memberId, 'devices'] as const,
   memberNotificationPreferences: (memberId: number) =>
     ['family', 'members', memberId, 'notification-preferences'] as const,

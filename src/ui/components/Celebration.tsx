@@ -14,7 +14,7 @@ import Animated, {
 
 import { withAlpha } from '@/ui/components/Card';
 import { ClanReaction } from '@/ui/components/ClanReaction';
-import { Icon } from '@/ui/components/Icon';
+import { Icon, type IconName } from '@/ui/components/Icon';
 import { useTheme } from '@/ui/ThemeProvider';
 import type { CelebrationStyle, Theme } from '@/ui/themes';
 
@@ -68,13 +68,27 @@ function Piece({
 }) {
   const progress = useSharedValue(0);
   useEffect(() => {
-    const duration = kind === 'stars' ? spec.duration * 0.7 : spec.duration;
+    const duration =
+      kind === 'stars'
+        ? spec.duration * 0.7
+        : kind === 'notes'
+          ? spec.duration * 1.7
+          : kind === 'stickers'
+            ? spec.duration * 1.7
+            : spec.duration;
+    const delay =
+      kind === 'stars' ? spec.delay * 0.4 : kind === 'stickers' ? spec.delay * 2.2 : spec.delay;
     progress.set(
       withDelay(
-        kind === 'stars' ? spec.delay * 0.4 : spec.delay,
+        delay,
         withTiming(1, {
           duration,
-          easing: kind === 'bubbles' ? Easing.inOut(Easing.sin) : Easing.out(Easing.quad),
+          easing:
+            kind === 'bubbles' || kind === 'notes'
+              ? Easing.inOut(Easing.sin)
+              : kind === 'stickers'
+                ? Easing.linear
+                : Easing.out(Easing.quad),
         }),
       ),
     );
@@ -92,6 +106,29 @@ function Piece({
           { translateY: height * 0.32 + Math.sin(spec.angle) * dist },
           { rotate: `${p * spec.spin * 0.5}deg` },
           { scale: 0.6 + p * 0.8 },
+        ],
+      };
+    }
+    if (kind === 'stickers') {
+      // Slap down from big to sticker size, hold, then fade.
+      const slap = Math.min(1, p / 0.12);
+      return {
+        opacity: p < 0.04 ? p / 0.04 : p > 0.85 ? (1 - p) / 0.15 : 1,
+        transform: [
+          { translateX: spec.x },
+          { translateY: height * (0.08 + ((spec.angle / (Math.PI * 2)) % 1) * 0.7) },
+          { rotate: `${(spec.spin > 0 ? 1 : -1) * (8 + (spec.drift % 18))}deg` },
+          { scale: 1.9 - slap * 0.9 },
+        ],
+      };
+    }
+    if (kind === 'notes') {
+      return {
+        opacity: p < 0.15 ? p / 0.15 : p > 0.75 ? ((1 - p) / 0.25) * 0.95 : 0.95,
+        transform: [
+          { translateX: spec.x + Math.sin(p * Math.PI * 2) * spec.drift },
+          { translateY: height * 0.95 - p * height * 0.85 },
+          { rotate: `${Math.sin(p * Math.PI * 3) * 14}deg` },
         ],
       };
     }
@@ -120,6 +157,47 @@ function Piece({
     return (
       <Animated.View style={[styles.piece, style]}>
         <Icon name={spec.round ? 'sparkles' : 'star'} size={spec.size + 8} color={spec.color} />
+      </Animated.View>
+    );
+  }
+  if (kind === 'stickers') {
+    const d = spec.size * 4.6;
+    const glyph: IconName[] = ['star', 'heart', 'flash', 'happy', 'thumbs-up', 'flame'];
+    return (
+      <Animated.View
+        style={[
+          styles.piece,
+          styles.center,
+          {
+            width: d,
+            height: d,
+            borderRadius: d / 2,
+            backgroundColor: spec.color,
+            borderWidth: 3,
+            borderColor: theme.scheme === 'dark' ? c.borderStrong : c.surface,
+            shadowColor: c.shadow,
+            shadowOpacity: 0.25,
+            shadowRadius: 4,
+            shadowOffset: { width: 1, height: 3 },
+          },
+          style,
+        ]}>
+        <Icon
+          name={glyph[Math.floor(spec.drift) % glyph.length]}
+          size={d * 0.52}
+          color={theme.scheme === 'dark' ? c.background : c.surface}
+        />
+      </Animated.View>
+    );
+  }
+  if (kind === 'notes') {
+    return (
+      <Animated.View style={[styles.piece, style]}>
+        <Icon
+          name={spec.round ? 'musical-notes' : 'musical-note'}
+          size={spec.size + 14}
+          color={spec.color}
+        />
       </Animated.View>
     );
   }
@@ -168,8 +246,9 @@ function Piece({
 }
 
 /**
- * The world's success effect overlay (absolute, ignores touches): confetti (jungle), sprinkles
- * (candy), a star burst (space, neon) or rising bubbles (glass). Nothing for calm worlds or with
+ * The world's success effect overlay (absolute, ignores touches): confetti (jungle, dino),
+ * sprinkles (candy), a star burst (space, neon, midnight), rising bubbles (glass, sea), stickers
+ * slapping down (sticker street) or music notes drifting up (lo-fi). Nothing for calm worlds or with
  * reduced motion. Render it once per success (remount with a new `key` to replay).
  */
 export function Confetti({ count }: { count?: number }) {
@@ -177,7 +256,18 @@ export function Confetti({ count }: { count?: number }) {
   const { width, height } = useWindowDimensions();
   const kind = theme.celebration;
   const n =
-    count ?? (kind === 'sprinkles' ? 60 : kind === 'stars' ? 30 : kind === 'bubbles' ? 18 : 46);
+    count ??
+    (kind === 'sprinkles'
+      ? 60
+      : kind === 'stars'
+        ? 30
+        : kind === 'bubbles'
+          ? 18
+          : kind === 'stickers'
+            ? 14
+            : kind === 'notes'
+              ? 14
+              : 46);
   const pieces = useMemo(
     () => makePieces(n, width, theme.colors.confetti),
     [n, width, theme.colors.confetti],
@@ -335,6 +425,7 @@ const styles = StyleSheet.create({
   celebration: { alignItems: 'center', justifyContent: 'center', alignSelf: 'center' },
   glowRing: { position: 'absolute', overflow: 'hidden' },
   circle: { alignItems: 'center', justifyContent: 'center' },
+  center: { alignItems: 'center', justifyContent: 'center' },
   trophy: {
     position: 'absolute',
     right: -4,

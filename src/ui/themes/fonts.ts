@@ -7,6 +7,7 @@ import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
 import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
 import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
 import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
+import { LilitaOne_400Regular } from '@expo-google-fonts/lilita-one/400Regular';
 import { Lora_400Regular_Italic } from '@expo-google-fonts/lora/400Regular_Italic';
 import { Lora_600SemiBold } from '@expo-google-fonts/lora/600SemiBold';
 import { Lora_700Bold } from '@expo-google-fonts/lora/700Bold';
@@ -16,6 +17,9 @@ import { Nunito_800ExtraBold } from '@expo-google-fonts/nunito/800ExtraBold';
 import { Nunito_900Black } from '@expo-google-fonts/nunito/900Black';
 import { PixelifySans_600SemiBold } from '@expo-google-fonts/pixelify-sans/600SemiBold';
 import { PixelifySans_700Bold } from '@expo-google-fonts/pixelify-sans/700Bold';
+import { PlayfairDisplay_400Regular_Italic } from '@expo-google-fonts/playfair-display/400Regular_Italic';
+import { PlayfairDisplay_600SemiBold } from '@expo-google-fonts/playfair-display/600SemiBold';
+import { PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display/700Bold';
 import { SpaceGrotesk_500Medium } from '@expo-google-fonts/space-grotesk/500Medium';
 import { SpaceGrotesk_600SemiBold } from '@expo-google-fonts/space-grotesk/600SemiBold';
 import { SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk/700Bold';
@@ -47,6 +51,10 @@ export const themeFonts = {
   Fredoka_700Bold,
   PixelifySans_600SemiBold,
   PixelifySans_700Bold,
+  LilitaOne_400Regular,
+  PlayfairDisplay_400Regular_Italic,
+  PlayfairDisplay_600SemiBold,
+  PlayfairDisplay_700Bold,
 } as const;
 
 export type FontName = keyof typeof themeFonts;

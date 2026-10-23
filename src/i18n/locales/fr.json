@@ -51,7 +51,8 @@
     "lastSignInMethod": "C'est votre seul moyen de connexion. Définissez d'abord un mot de passe ou associez un autre compte.",
     "familyOwnerCannotLeave": "Le propriétaire ne peut pas supprimer son compte tant que d'autres membres sont dans la famille. Supprimez plutôt la famille.",
     "adRewardPending": "Nous n’avons pas encore pu confirmer votre récompense. Réessayez dans un instant.",
-    "loginLocked": "Trop de tentatives de connexion. Patientez quelques minutes, puis réessayez."
+    "loginLocked": "Trop de tentatives de connexion. Patientez quelques minutes, puis réessayez.",
+    "worldLocked": "Ce monde n'est pas encore débloqué. La liste a été actualisée."
   },
   "update": {
     "title": "C'est l'heure de la mise à jour",
@@ -103,7 +104,13 @@
       "classic": "Classique",
       "jungle": "Aventure dans la jungle",
       "space": "Explorateurs de l'espace",
-      "neon": "Arcade néon"
+      "neon": "Arcade néon",
+      "sea": "Sous la mer",
+      "dino": "Vallée des dinos",
+      "sticker": "Rue des stickers",
+      "lofi": "Crépuscule lo-fi",
+      "nature": "Nature paisible",
+      "midnight": "Minuit"
     },
     "light": "Clair",
     "dark": "Sombre",
@@ -118,7 +125,13 @@
       "classic": "grand et facile à lire",
       "jungle": "feuilles, lianes et amis animaux",
       "space": "étoiles, planètes et fusées",
-      "neon": "lumières d'arcade lumineuses"
+      "neon": "lumières d'arcade lumineuses",
+      "sea": "bulles, coraux et poissons rigolos",
+      "dino": "volcans, fougères et un gentil dino",
+      "sticker": "stickers, scotch et gribouillis",
+      "lofi": "coucher de soleil pastel, lumières de la ville et pluie douce",
+      "nature": "collines vertes et oiseaux, calme et facile à lire",
+      "midnight": "nuit bleu profond, lune et or"
     },
     "lookOnly": "Le thème change seulement l'apparence de l'application — jamais le contenu ni les règles.",
     "reducedMotionHint": "Moins d'animations et pas de confettis.",
@@ -274,7 +287,13 @@
       "space": "Espace",
       "neon": "Néon",
       "glass": "Verre",
-      "calm": "Calme"
+      "calm": "Calme",
+      "sea": "Mer",
+      "dino": "Dino",
+      "sticker": "Stickers",
+      "lofi": "Lo-fi",
+      "nature": "Nature",
+      "midnight": "Minuit"
     },
     "soundNames": {
       "tap": "Toucher",
@@ -965,5 +984,33 @@
     "sentSpam": "Rien reçu ? Regardez dans vos indésirables (spam) ou réessayez dans quelques minutes. Ouvrez le lien sur n'importe quel appareil pour choisir un nouveau mot de passe, puis connectez-vous ici.",
     "backToSignIn": "Retour à la connexion",
     "tryAnother": "Utiliser un autre courriel"
+  },
+  "worlds": {
+    "locked": "Verrouillé",
+    "hint": {
+      "points_one": "{{progress}} / {{required}} point",
+      "points_many": "{{progress}} / {{required}} points",
+      "points_other": "{{progress}} / {{required}} points",
+      "streak_one": "Série de {{progress}} / {{required}} jour",
+      "streak_many": "Série de {{progress}} / {{required}} jours",
+      "streak_other": "Série de {{progress}} / {{required}} jours",
+      "familyPlan": "Formule Famille",
+      "locked": "Verrouillé"
+    },
+    "howTo": {
+      "points_one": "Gagne encore {{count}} point pour débloquer {{name}}. Tu en as {{progress}} sur {{required}}.",
+      "points_many": "Gagne encore {{count}} points pour débloquer {{name}}. Tu en as {{progress}} sur {{required}}.",
+      "points_other": "Gagne encore {{count}} points pour débloquer {{name}}. Tu en as {{progress}} sur {{required}}.",
+      "streak_one": "Joue {{count}} jour d'affilée pour débloquer {{name}}. Ta meilleure série : {{progress}}.",
+      "streak_many": "Joue {{count}} jours d'affilée pour débloquer {{name}}. Ta meilleure série : {{progress}}.",
+      "streak_other": "Joue {{count}} jours d'affilée pour débloquer {{name}}. Ta meilleure série : {{progress}}.",
+      "other": "{{name}} n'est pas encore débloqué. Continue à jouer !"
+    },
+    "askParent": "Demande à un parent de prendre la formule Famille",
+    "storedLocked": "{{name}} est verrouillé pour le moment : tu vois ton monde automatique. Ton choix reviendra quand il sera de nouveau débloqué.",
+    "unlockedTitle": "Nouveau monde débloqué !",
+    "unlockedBody": "{{name}} t'attend.",
+    "tryIt": "Essayer",
+    "later": "Plus tard"
   }
 }

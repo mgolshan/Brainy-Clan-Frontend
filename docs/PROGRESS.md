@@ -347,6 +347,70 @@ themes (light/dark).
 
 ## Log
 
+### 2026-10-23 worlds phase 2: six new worlds
+
+Moe: "Go for phase 2" (docs/PLAN.md). Contract keys `sea`, `dino`, `sticker`, `lofi`, `nature`,
+`midnight` added to `THEME_KEYS` and `WORLD_ORDER` (kids, teens, then calm worlds).
+
+- **Worlds** (`src/ui/themes/`, light + dark each, all 13 worlds pass the AA contrast test):
+  Under the Sea (kids: sea-glass cards with bubbles, submarine progress, bubble celebration),
+  Dino Valley (kids: stone cards with a fern, dino footprints walking to an egg, leafy confetti),
+  Sticker Street (teens: Lilita One display type, taped die-cut cards with ink offset + doodle star,
+  ink buttons, highlighter progress, stickers slap down when you win), Lo-fi Dusk (teens: pastel
+  sunset, frosted cards, gradient buttons, cassette progress with turning reels, music notes
+  drifting up), Calm Nature (everyone: soft greens, Atkinson body + Nunito headings, between modern
+  and classic in size, checked at 160 % text), Midnight (everyone, dark-first: Playfair Display
+  headings, gold double-rule framed cards, star burst). Fonts added: Lilita One, Playfair Display.
+- **Token schema** (additive): scenes `sea|dino|sticker|lofi|nature|midnight`; cards `aqua`,
+  `stone`, `taped`, `framed`; button `ink`; progress `submarine`, `footprints`, `cassette`,
+  `marker`; celebrations `stickers`, `notes`. Lo-fi reuses `glass`, Nature `flat`/`bar`/`calm`.
+- **Scenes** (memoized, ≤ 2 loops on transform/opacity, static with reduced motion and on play
+  questions, no real blur): sea (sun rays, coral, seaweed + fish sway, Clan octopus peeking,
+  bubbles rising as a seamless cycle), dino (sleepy smiling volcano puffing smoke, hills, ferns, a
+  long-neck dino peeking), sticker (paper posters, edge sticker-bomb, tape, doodles that blink),
+  lofi (sunset gradient, two skylines with lit windows and a rooftop cat, slow clouds, gentle rain as
+  a seamless cycle), nature (gradient sky, low sun / crescent moon, three hill layers with trees,
+  clouds + a few birds), midnight (star field, slow gold twinkles, constellation, crescent moon
+  rising over a hill line with a breathing halo).
+- **Sounds**: packs `sea` (watery bloops), `dino` (low wooden stomps), `sticker` (snappy plucks),
+  `lofi` (warm detuned e-piano), `nature` (breathy flute), `midnight` (soft celesta) in
+  `scripts/sounds` → 72 files, ~1.1 MB, each < 30 KB; the six phase-1 packs are byte-identical.
+- i18n en/fr: world names, picker descriptions, dev pack names. Tests: `worlds.test.ts` (every
+  world has a pack, picker slot, names and descriptions); `selectThemeKey.test.ts` updated for 13.
+- Verified on web (Sam, 390 px and 820 px iframe; world injected client-side, nothing changed on
+  the server): screenshots `docs/screenshots/worlds/{sea,sticker,lofi,midnight}-phone-correct.png`,
+  `dino-phone-question.png`, `nature-phone-question.png`, `nature-phone-large-text.png`,
+  `sea-ipad-play-categories.png`. Note: Metro's watcher missed edits on this drive; restart
+  `expo start` if a change doesn't show.
+- Needs a phone: scene frame rate on a mid Android (sea/lofi cycles, sticker scene has ~15 small
+  SVGs), the `taped` / `ink` hard edges and the `aqua` glow on Android, new sound packs' loudness.
+
+### 2026-10-23 world unlock UX
+
+Phase 2 of "Theme worlds" (docs/PLAN.md): unlocks come from the server (API.md "Worlds and
+unlocks", `GET /me/worlds`, admin `GET /family/members/{member}/worlds`, member `theme_unlocked`,
+403 `world_locked`). The app never hard-codes thresholds or which worlds are locked.
+
+- `src/features/worlds/`: `catalog.ts` (parse: unknown keys / malformed entries skipped; picker =
+  server order ∩ app themes, fallback = every world unlocked when the endpoint 404s; hints
+  "23 / 50 points", "2 / 3-day streak", "Family plan"; tap action select / paywall / ask a parent /
+  how to unlock), `hooks.ts` (`useMyWorlds`, `useMemberWorlds`, `invalidateWorlds`,
+  `recoverFromWorldLocked`), `unlockSeen.ts` (locked → unlocked diff + per-member AsyncStorage
+  state, celebrated once), `WorldUnlockSheet.tsx` ("New world unlocked!" with the world's mini
+  preview + its confetti, `unlock` sound, Try it / Later; mounted in the tabs layout, only while
+  the tabs are focused, so never mid-question), `WorldThumbnail.tsx` (moved out of the editor).
+- Picker (Profile + admin member editor, which uses the member's catalog): locked worlds dimmed
+  with a lock badge, hint and a small progress bar; Family-plan worlds open the paywall for adult
+  admins allowed to purchase, else "Ask a parent…"; points/streak worlds explain how to unlock.
+  The admin save no longer re-sends an unchanged (maybe re-locked) theme.
+- `selectThemeKey`: `theme_unlocked: false` → the member's `default_ui_theme`.
+- Worlds are invalidated after answers with points, finished sessions, the plan switch
+  (`waitForFamilyTier`) and the Family tab refresh; a 403 `world_locked` shows a friendly error
+  and refetches catalog + member.
+- Tests: `worlds/__tests__/catalog.test.ts`, `unlockSeen.test.ts`,
+  `ui/themes/__tests__/selectThemeKeyUnlocked.test.ts`. Not yet checked on web against the real
+  endpoint (backend in progress).
+
 ### 2026-10-23 Theme worlds phase 1
 
 Moe: "the themes are too simple and might not be attractive for kids and teens" → decision "Theme

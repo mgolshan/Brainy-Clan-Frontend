@@ -1,10 +1,11 @@
-import type { Member, Policy } from '@/api/types';
+import { THEME_KEYS, type Member, type Policy } from '@/api/types';
 import {
   DEFAULT_THEME,
   isThemeKey,
   selectAccessibility,
   selectThemeKey,
   themes,
+  WORLD_ORDER,
 } from '@/ui/themes';
 
 const policy = (overrides: Partial<Policy> = {}) =>
@@ -34,7 +35,7 @@ describe('selectThemeKey', () => {
   });
 
   it('ignores unknown theme keys from the API at every level', () => {
-    const unknown = 'dino' as never;
+    const unknown = 'volcano' as never;
     expect(selectThemeKey(policy(), member({ theme: unknown }))).toBe('playful');
     expect(selectThemeKey(policy({ ui_theme: unknown }), member({ theme: unknown }))).toBe(
       'modern',
@@ -48,15 +49,10 @@ describe('selectThemeKey', () => {
   });
 
   it('knows every world of the contract', () => {
-    expect(Object.keys(themes).sort()).toEqual([
-      'classic',
-      'jungle',
-      'modern',
-      'neon',
-      'playful',
-      'sleek',
-      'space',
-    ]);
+    expect(Object.keys(themes).sort()).toEqual([...THEME_KEYS].sort());
+    expect(Object.keys(themes)).toHaveLength(13);
+    expect([...WORLD_ORDER].sort()).toEqual([...THEME_KEYS].sort());
+    expect(selectThemeKey(policy(), member({ theme: 'midnight' }))).toBe('midnight');
     expect(selectThemeKey(policy(), member({ theme: 'neon' }))).toBe('neon');
     expect(selectThemeKey(policy({ ui_theme: 'jungle' }), member({ theme: null }))).toBe('jungle');
     expect(isThemeKey(42)).toBe(false);

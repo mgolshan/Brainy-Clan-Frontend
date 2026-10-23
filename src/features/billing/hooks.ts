@@ -8,6 +8,7 @@ import type { Envelope, Subscription } from '@/api/types';
 import { useIsAdmin, usePolicy } from '@/features/auth/hooks';
 import { store } from '@/features/billing/store';
 import { StoreError } from '@/features/billing/storeTypes';
+import { invalidateWorlds } from '@/features/worlds/hooks';
 
 /**
  * `GET /family/subscription` (admins only, never for children).
@@ -76,6 +77,8 @@ export async function waitForFamilyTier(): Promise<boolean> {
     queryClient.invalidateQueries({ queryKey: queryKeys.family, exact: true }),
     queryClient.invalidateQueries({ queryKey: queryKeys.subscription }),
     queryClient.invalidateQueries({ queryKey: queryKeys.categories }),
+    // Family-plan worlds unlock with the plan (`me/worlds` is covered by `me` above).
+    invalidateWorlds(),
   ]);
   return switched;
 }

@@ -50,6 +50,8 @@ export function errorMessage(error: unknown, t: TFunction): string {
       return t('errors.updateRequired');
     case 'goal_limit_reached':
       return t('errors.goalLimitReached');
+    case 'world_locked':
+      return t('errors.worldLocked');
     case 'family_owner_cannot_leave':
       return t('errors.familyOwnerCannotLeave');
     case 'not_found':

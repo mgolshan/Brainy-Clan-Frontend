@@ -38,6 +38,7 @@ export type ApiErrorCode =
   | 'goal_limit_reached'
   | 'rate_limited'
   | 'login_locked'
+  | 'world_locked'
   | 'not_found';
 
 /** Error body: `errors` only on 422. */
@@ -68,6 +69,13 @@ export const THEME_KEYS = [
   'jungle',
   'space',
   'neon',
+  // Phase 2 (contract 2026-10-23): unlocks come from `GET /me/worlds`.
+  'sea',
+  'dino',
+  'sticker',
+  'lofi',
+  'nature',
+  'midnight',
 ] as const;
 export type ThemeKey = (typeof THEME_KEYS)[number];
 
@@ -132,6 +140,12 @@ export interface Member {
   accessibility: Accessibility;
   /** Theme the member's age-band policy gives (what "Automatic" resolves to). */
   default_ui_theme: ThemeKey;
+  /**
+   * `false` when the stored `accessibility.theme` is no longer unlocked for this member (e.g. the
+   * family plan ended): the app then shows `default_ui_theme`; the stored choice is kept.
+   * `true` when `theme` is null. Optional until every backend serves it (absent = unlocked).
+   */
+  theme_unlocked?: boolean;
   status: MemberStatus;
   joined_at: string;
   /**
@@ -824,4 +838,33 @@ export interface UpdateNotificationPreferencesBody {
 export interface PushTokenBody {
   token: string;
   platform: string;
+}
+
+// ---------------------------------------------------------------------------
+// Worlds and unlocks (contract 2026-10-23, phase 2)
+// ---------------------------------------------------------------------------
+
+/** Points / streak unlocks carry the server's threshold and the member's current value. */
+export interface WorldProgressUnlock {
+  type: 'points' | 'streak';
+  required: number;
+  progress: number;
+}
+
+/**
+ * How a world unlocks: `free` (always), `points` (lifetime points ≥ required), `streak`
+ * (longest streak days ≥ required), `family_plan` (paid Family plan). Thresholds are server data.
+ */
+export type WorldUnlock = { type: 'free' } | WorldProgressUnlock | { type: 'family_plan' };
+
+export type WorldUnlockType = WorldUnlock['type'];
+
+/**
+ * One entry of `GET /me/worlds` / `GET /family/members/{member}/worlds` (display order). `key`
+ * stays a plain string: the server may know worlds this app version doesn't (skipped).
+ */
+export interface WorldCatalogEntry {
+  key: string;
+  unlock: WorldUnlock;
+  unlocked: boolean;
 }

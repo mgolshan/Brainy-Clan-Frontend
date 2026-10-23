@@ -20,6 +20,7 @@ import { isUnfinished } from '@/features/play/resume';
 import { rewardedAds } from '@/features/play/rewardedAd';
 import { AdError } from '@/features/play/rewardedAdTypes';
 import { markAnswered, mergeItems } from '@/features/play/sessionItems';
+import { invalidateWorlds } from '@/features/worlds/hooks';
 
 // ---------------------------------------------------------------------------
 // Raw calls (also used by the answer queue outside React)
@@ -51,6 +52,8 @@ export function syncCurrentSession(session: PlaySession, answeredItemId?: number
   );
   if (!isUnfinished(session.status)) {
     void queryClient.invalidateQueries({ queryKey: queryKeys.currentSession });
+    // A finished session can extend the streak: streak worlds may have unlocked.
+    void invalidateWorlds();
   }
 }
 
@@ -71,6 +74,7 @@ export function applyAnswerResult(sessionId: number, itemId: number, result: Ans
     void queryClient.invalidateQueries({ queryKey: queryKeys.meStats });
     void queryClient.invalidateQueries({ queryKey: ['family', 'leaderboard'] });
     void queryClient.invalidateQueries({ queryKey: queryKeys.goals });
+    void invalidateWorlds();
   }
 }
 

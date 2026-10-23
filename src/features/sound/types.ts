@@ -13,6 +13,12 @@ export const SOUND_PACKS = [
   'neon',
   'glass',
   'calm',
+  'sea',
+  'dino',
+  'sticker',
+  'lofi',
+  'nature',
+  'midnight',
 ] as const satisfies readonly SoundPack[];
 
 export const DEFAULT_SOUND_PACK: SoundPack = 'candy';
