@@ -58,7 +58,7 @@ function RaceLane({ entry, isMe }: { entry: GoalProgressEntry; isMe: boolean }) 
     target: entry.target,
   });
 
-  if (theme.key === 'playful') {
+  if (theme.vibe === 'kid') {
     // A race track: the avatar rides along its lane toward the finish flag.
     const size = 40;
     return (
@@ -106,7 +106,7 @@ function RaceLane({ entry, isMe }: { entry: GoalProgressEntry; isMe: boolean }) 
       style={[styles.row, { gap: theme.spacing.sm, minHeight: theme.touchTarget }]}>
       <View style={styles.rank}>
         {entry.rank === 1 && entry.points > 0 ? (
-          <Icon name="ribbon" color={theme.key === 'sleek' ? c.secondary : c.accent} size={24} />
+          <Icon name="ribbon" color={theme.vibe === 'teen' ? c.secondary : c.accent} size={24} />
         ) : (
           <Text weight="bold" tone="muted">
             {entry.rank}
@@ -136,7 +136,7 @@ export function RaceProgress({ progress, meId }: { progress: GoalProgress; meId?
     return <Text tone="muted">{t('goals.noPointsYet')}</Text>;
   }
   return (
-    <View style={{ gap: theme.key === 'playful' ? theme.spacing.md : theme.spacing.xs }}>
+    <View style={{ gap: theme.vibe === 'kid' ? theme.spacing.md : theme.spacing.xs }}>
       {progress.entries.map((e) => (
         <RaceLane key={e.member_id} entry={e} isMe={e.member_id === meId} />
       ))}

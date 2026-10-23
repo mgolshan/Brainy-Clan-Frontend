@@ -8,6 +8,7 @@ export { Badge, type BadgeTone } from '@/ui/components/Badge';
 export { Button, type ButtonProps, type ButtonVariant } from '@/ui/components/Button';
 export { Card, surfaceStyle, withAlpha } from '@/ui/components/Card';
 export { Celebration, Confetti } from '@/ui/components/Celebration';
+export { ClanReaction, type ClanReactionKind } from '@/ui/components/ClanReaction';
 export {
   Checkbox,
   Chip,
@@ -27,3 +28,5 @@ export { Screen, type ScreenListParts, type ScreenProps } from '@/ui/components/
 export { EmptyState, ErrorState, Loading } from '@/ui/components/States';
 export { Overline, Text, fontFor, type TextProps } from '@/ui/components/Text';
 export { TextField } from '@/ui/components/TextField';
+export { SceneBackground, SceneView } from '@/ui/scenes';
+export { UiSoundProvider, useUiSound, type UiSoundName } from '@/ui/sound';

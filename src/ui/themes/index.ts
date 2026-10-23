@@ -1,14 +1,37 @@
 import type { Accessibility, Member, Policy } from '@/api/types';
 import { classic } from '@/ui/themes/classic';
+import { jungle } from '@/ui/themes/jungle';
 import { modern } from '@/ui/themes/modern';
+import { neon } from '@/ui/themes/neon';
 import { playful } from '@/ui/themes/playful';
 import { sleek } from '@/ui/themes/sleek';
+import { space } from '@/ui/themes/space';
 import type { ThemeDefinition, ThemeKey } from '@/ui/themes/types';
 
 export * from '@/ui/themes/types';
 export * from '@/ui/themes/layout';
 
-export const themes: Record<ThemeKey, ThemeDefinition> = { playful, sleek, modern, classic };
+/** Every world (picker order: kids' worlds, teens' worlds, then the calm ones). */
+export const themes: Record<ThemeKey, ThemeDefinition> = {
+  playful,
+  jungle,
+  space,
+  sleek,
+  neon,
+  modern,
+  classic,
+};
+
+/** Picker / preview order. */
+export const WORLD_ORDER: readonly ThemeKey[] = [
+  'playful',
+  'jungle',
+  'space',
+  'sleek',
+  'neon',
+  'modern',
+  'classic',
+];
 
 export const DEFAULT_THEME: ThemeKey = 'modern';
 
@@ -33,12 +56,13 @@ export function selectThemeKey(policy?: Policy | null, member?: Member | null): 
 export function selectAccessibility(
   policy?: Policy | null,
   member?: Member | null,
-): Omit<Accessibility, 'theme'> {
+): Omit<Accessibility, 'theme' | 'sound_effects'> & { sound_effects: boolean } {
   const own = member?.accessibility;
   const defaults = policy?.accessibility_defaults;
   return {
     text_scale: own?.text_scale ?? defaults?.text_scale ?? 1,
     reduced_motion: own?.reduced_motion ?? defaults?.reduced_motion ?? false,
     calm_timers: own?.calm_timers ?? defaults?.calm_timers ?? false,
+    sound_effects: own?.sound_effects ?? defaults?.sound_effects ?? false,
   };
 }

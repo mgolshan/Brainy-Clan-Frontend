@@ -46,7 +46,7 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
           styles.field,
           {
             minHeight: large ? theme.touchTarget + 16 : theme.touchTarget,
-            borderRadius: theme.key === 'playful' ? theme.radius.md : theme.radius.md,
+            borderRadius: theme.vibe === 'kid' ? theme.radius.md : theme.radius.md,
             backgroundColor:
               theme.surface === 'glass' && theme.scheme === 'dark'
                 ? 'rgba(255,255,255,0.05)'

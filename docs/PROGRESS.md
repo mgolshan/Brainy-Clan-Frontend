@@ -347,6 +347,97 @@ themes (light/dark).
 
 ## Log
 
+### 2026-10-23 Theme worlds phase 1
+
+Moe: "the themes are too simple and might not be attractive for kids and teens" → decision "Theme
+worlds" (docs/PLAN.md). Contract: theme keys `jungle`, `space`, `neon` + `sound_effects`
+(API.md changelog 2026-10-23).
+
+- **Token schema** (`src/ui/themes/types.ts`): `displayName` (i18n key), `audience` (picker hint
+  only), `vibe` (kid / teen / calm — replaces `theme.key === 'playful' | 'sleek'` checks),
+  `scene`, `card` (flat | glass | sticker | chunky | porthole | neon), `button` (flat | press3d |
+  glow), `progress` (bar | vine | rocket | neon), `celebration` (confetti | stars | bubbles |
+  sprinkles | calm), `soundPack`; colors gain `scene` (large layers), `sceneAccent`, `glow`.
+  `WORLD_ORDER` for pickers; `selectAccessibility` also resolves `sound_effects`.
+- **Worlds**: new `jungle` (Jungle Adventure), `space` (Space Explorers, dark-first), `neon` (Neon
+  Arcade, dark-first, Pixelify Sans headings only); `playful` → Candy Land (sticker cards,
+  sprinkles), `sleek` → Glass (frosted cards over a drifting violet→cyan mesh, bubbles). `modern`
+  / `classic` unchanged in look (calm check celebration). Fonts added: Fredoka, Pixelify Sans.
+  Every world light + dark. **Contrast test** `src/ui/themes/__tests__/contrast.test.ts` (helpers
+  `contrast.ts`): text/muted/subtle, primary/danger/success/warning text, on-colors, hero gradient
+  stops and every large scene layer pass WCAG AA in all 14 combinations. To pass, a few existing
+  tokens were darkened/lightened (candy primary/secondary/success, glass dark primary now light
+  violet with dark text, modern subtle/success/warning, modern dark primary light blue with dark
+  text).
+- **Scenes** `src/ui/scenes/` behind every `Screen` (measured once, memoized, ≤ 2 Reanimated loops
+  animating only transform/opacity of static SVG layers; none with reduced motion; play questions
+  use the static scene): candy (pastel blobs, lollipop, sprinkles, gumdrops), jungle (canopies,
+  swaying vines, monkey + tiger peeking from bushes, fireflies at night), space (nebula, star
+  field, twinkling sparkles, drifting planets), neon (synthwave sun, rolling perspective grid,
+  scanlines), glass (radial-gradient mesh). Dark decorations stay inside the screen padding.
+- **Components**: Card styles (sticker, plank with leaf, porthole with rim + rivets, glass with
+  web-only backdrop blur, neon glow); Button press3d / glow (glow ring on press) / flat; ProgressBar
+  vine (grows leaves + flower), rocket (flies to a planet), neon (segmented glow); Celebration with
+  the member's character cheering + per-world overlay (`Confetti`: confetti / sprinkles / star
+  burst / bubbles); `ClanReaction` (cheer = jump + sparkles, encourage = nod + heart) in the
+  feedback panel after every answer; `Badge sticker` (die-cut sticker in kid worlds).
+- **Category tiles** use `CategoryArt` (sub-categories show their top-level family's art via
+  `findRootSlug`, tested). `CategoryArt`'s a11y props moved to a wrapping View (web DOM warning).
+- **Sounds** (`useSoundEffects`): correct / wrong in PlayScreen (replaces its direct
+  `Haptics.notificationAsync`), `celebrate` on completion, `levelUp` on a reached goal, `tap` on
+  md/lg primary buttons in kid worlds only (via `UiSoundProvider` in `AppThemeProvider`, so `src/ui`
+  doesn't import features).
+- **Appearance**: world picker with live mini previews (scene + card + progress + button, name,
+  "For kids / teens / everyone" label), Automatic = policy default; sound effects Automatic / On /
+  Off (`accessibility.sound_effects`). **/dev/themes**: "All worlds" gallery (every world × light/
+  dark side by side) + the single-world view (now with Clan reactions and sticker badges).
+- Verified on web (Sam, phone 390 px and iPad 820 px via iframe): Home, Play categories,
+  sub-categories, play session correct + wrong (Jungle, Space, Neon, Glass), live world switch in
+  Profile → Appearance. Screenshots: `docs/screenshots/worlds/`.
+- Needs a phone: 60 fps of scenes on a mid Android (Glass uses no real blur on native), sticker /
+  neon shadows on Android (colored elevation shadows need API 28+), sounds + haptics.
+
+### 2026-10-23 category art + sound effects
+
+Moe's decision "Theme worlds" (docs/PLAN.md): illustrated category cards and world sound packs.
+Contract: member `accessibility.sound_effects` (null | bool), policy
+`accessibility_defaults.sound_effects` (API.md changelog 2026-10-23).
+
+- **Category art** `scripts/illustrations/` (`npm run art:build`): one scene per seeded top-level
+  slug, built from the Clan generator's characters plus flat props — geography: fox explorer with
+  a globe and a treasure map; science: owl at a bench with a microscope and a sprout; wisdom:
+  tortoise grandpa with a glowing book; math sprint: rabbit dashing with number tiles and a
+  stopwatch; sudoku: panda dropping a tile on a grid; word puzzles: monkey juggling A-B-C over
+  W-O-R-D blocks; history: elephant with a scroll, castle and pyramid; vocabulary: cat mom with a
+  bee and B-E-E tiles; fallback: Ollie peeking over a "?" box. Digits/letters are stroke paths (no
+  fonts). Output `src/ui/illustrations/categoryArt.generated.ts` (~60 KB, prettier-ignored,
+  transparent, no ids); contact sheets `assets/illustrations/_sheets/*.png` (git-ignored; 200 px
+  detail, card colours at 160/96/64 px). `CategoryArt({ slug, size, parentSlug? })`: own scene →
+  parent's scene → fallback.
+- **Sound effects** `scripts/sounds/` (`npm run sounds:build`): original, synthesized from plain
+  oscillators (no samples, no licences): 6 packs (candy bubbly plucks, jungle marimba + wood
+  knock, space soft pings + echo, neon 8-bit pulse, glass bells, calm soft sines) × 6 sounds
+  (tap 40 ms, correct 300 ms arpeggio, wrong 300 ms soft falling "boop", celebrate 1.2 s fanfare,
+  levelUp 0.8 s run, unlock 0.7 s sparkle). 44.1 kHz mono; tap/correct/wrong 16-bit WAV (instant
+  start), the longer three MP3 (`@breezystack/lamejs` devDependency; no ffmpeg needed). 36 files,
+  ~0.5 MB total, each < 30 KB (build fails otherwise). Generated `soundAssets.generated.ts`.
+- **App** `src/features/sound/`: `useSoundEffects()` → `{ enabled, play(name) }`; enabled = member
+  `sound_effects` ?? policy default ?? false; pack = `theme.soundPack` (unknown → candy).
+  `expo-audio` (added with `npx expo install`, no config plugin: no microphone permission):
+  players created per pack and reused, previous pack released, volume 0.6, fire-and-forget,
+  failures ignored. Audio mode `playsInSilentMode: false` + `mixWithOthers` (expo-audio defaults
+  to true, which would ignore the iOS silent switch). Haptics follow the toggle (light on correct,
+  soft on wrong, success on celebrate/levelUp/unlock; none on tap, buttons already do it).
+  `src/api/types.ts`: `sound_effects` on `Accessibility` (optional) and `UpdateAccessibilityBody`.
+- **Dev** `/dev/sounds` (Profile → dev rows): audition every pack/sound (ignores the toggle) and all
+  category art at 160/96/64.
+- Tests: `src/features/sound/__tests__/sound.test.ts` (enabled resolution, no-op when off, pack
+  fallback, player reuse/release, never throws), `src/ui/illustrations/__tests__/categoryArt.test.ts`
+  (every top-level slug, parent/fallback, no ids).
+- Not wired yet: screens still call `Haptics.notificationAsync` directly in PlayScreen; answer /
+  celebration screens should call `useSoundEffects().play(...)` instead (the worlds work).
+  Phone check: silent switch on iPhone mutes effects; Android follows media volume.
+
 ### 2026-10-22 Clan characters
 
 Moe's decision "The Clan characters" (docs/PLAN.md); contract API.md "Avatars" (132 keys).

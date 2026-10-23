@@ -88,6 +88,29 @@ the OS "reduce motion" setting). Components read tokens only through `useTheme()
   member's age band first (ordering only, no rule). Characters also appear in celebrations and
   empty states in the `playful` theme, small in others.
 
+- **Theme "worlds" (2026-10-23, Moe: "the theme is too simple and might not be attractive for
+  kids and teens"):** themes become worlds that change the whole look, not only colours: a
+  background scene (layered SVG, gentle parallax/ambient animation), card style (flat, glass,
+  sticker, chunky 3D), button style (press depth), progress bar style (e.g. rocket, vine, neon
+  bar), celebration (confetti/stars/bubbles + the member's Clan character reacting), icon accents,
+  and a sound pack. Any member picks any world in Profile → Appearance (default by age band from
+  the policy, unchanged); accessibility (text scale, reduced motion, calm timers, contrast) always
+  wins over a world: reduced motion = static scenes, no parallax.
+  - Keys: `playful` ("Candy Land"), `sleek` ("Glass"), `modern`, `classic`, `jungle` ("Jungle
+    Adventure"), `space` ("Space Explorers"), `neon` ("Neon Arcade"). Phase 2 adds more worlds
+    (Under the Sea, Dino Valley, Sticker Street, Lo-fi Dusk, Calm Nature, Midnight) and unlocks.
+  - Shared upgrades in every world: illustrated category cards (each category gets an
+    illustration with Clan characters), the member's character reacts to right/wrong answers
+    (cheer / encourage), richer buttons and progress, sticker-style badges for kids.
+  - **Sound effects** (Moe: yes): short original sounds (correct, wrong, tap, celebration,
+    level-up) per world sound pack, generated in-repo (no licensed assets), `expo-audio`; on by
+    default for children, off for others (`policy.accessibility_defaults.sound_effects`), member
+    toggle `accessibility.sound_effects`; never play when the OS is silent/muted where detectable;
+    haptics follow the same toggle.
+  - **Unlocks (phase 2, Moe: both):** most worlds unlock with streaks/points (server decides);
+    2–3 special worlds are Family-plan only. Phase 1: every world available to everyone.
+  - Phase 1 is reviewed by Moe on web (`/dev/themes` and real screens) before phase 2.
+
 ## Working rules
 
 - One milestone at a time. At the end of each, stop, summarize what was built and explain how to test it on the phone.

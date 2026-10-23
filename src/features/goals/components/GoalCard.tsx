@@ -57,7 +57,7 @@ export function GoalCard({ goal, meId, onPress, featured }: GoalCardProps) {
       <View style={styles.header}>
         <Icon
           name={goal.mode === 'cooperation' ? 'people' : 'podium'}
-          color={theme.key === 'sleek' ? theme.colors.secondary : theme.colors.primary}
+          color={theme.vibe === 'teen' ? theme.colors.secondary : theme.colors.primary}
         />
         <Text variant={featured ? 'heading' : 'title'} style={styles.flex} numberOfLines={2}>
           {goal.name}

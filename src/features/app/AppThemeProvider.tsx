@@ -1,9 +1,17 @@
 import type { ReactNode } from 'react';
 
 import { useMe } from '@/features/auth/hooks';
+import { useSoundEffects } from '@/features/sound';
 import { usePreferences } from '@/store/preferences';
+import { UiSoundProvider } from '@/ui/sound';
 import { ThemeProvider } from '@/ui/ThemeProvider';
 import { selectAccessibility, selectThemeKey } from '@/ui/themes';
+
+/** Hands the world's sound effects to base UI components (kid worlds' primary buttons). */
+function SoundBridge({ children }: { children: ReactNode }) {
+  const { play } = useSoundEffects();
+  return <UiSoundProvider value={play}>{children}</UiSoundProvider>;
+}
 
 /**
  * Feeds the app-wide ThemeProvider from server state: theme = member override → policy
@@ -23,7 +31,7 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
       textScale={a11y.text_scale}
       reducedMotion={a11y.reduced_motion}
       calmTimers={a11y.calm_timers}>
-      {children}
+      <SoundBridge>{children}</SoundBridge>
     </ThemeProvider>
   );
 }

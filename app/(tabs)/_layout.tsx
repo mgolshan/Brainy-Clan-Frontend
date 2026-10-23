@@ -38,7 +38,7 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: c.tabBar,
           borderTopColor: theme.key === 'classic' ? c.borderStrong : c.border,
-          borderTopWidth: theme.key === 'playful' ? 2 : theme.borderWidth,
+          borderTopWidth: theme.vibe === 'kid' ? 2 : theme.borderWidth,
           minHeight: tall ? 68 : undefined,
         },
         tabBarLabelStyle: {

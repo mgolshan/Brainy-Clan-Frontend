@@ -1,11 +1,11 @@
-import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, StyleSheet, Text as RNText, View } from 'react-native';
+import { StyleSheet, Text as RNText, View } from 'react-native';
 
 import type { PlaySession } from '@/api/types';
 import { getChallenge } from '@/challenges/registry';
+import { useMe } from '@/features/auth/hooks';
 import type { AdStage } from '@/features/play/api';
 import { FeedbackPanel } from '@/features/play/components/FeedbackPanel';
 import { sessionProgressCaption } from '@/features/play/progress';
@@ -13,6 +13,7 @@ import { AdError } from '@/features/play/rewardedAdTypes';
 import { usePlaySession } from '@/features/play/usePlaySession';
 import { askAfterSessionIfUndecided } from '@/features/notifications/usePush';
 import { useStartAndOpen } from '@/features/play/useStartAndOpen';
+import { useSoundEffects } from '@/features/sound';
 import { errorMessage } from '@/lib/errorMessage';
 import {
   Appear,
@@ -119,16 +120,18 @@ function CompletedView({
   session,
   onPlayAgain,
   starting,
+  avatar,
 }: {
   session: PlaySession;
   onPlayAgain: () => void;
   starting: boolean;
+  avatar?: string | null;
 }) {
   const { t } = useTranslation();
   const theme = useTheme();
   return (
     <View style={[styles.center, { gap: theme.spacing.md }]}>
-      <Celebration />
+      <Celebration avatar={avatar} />
       <Text variant="display" align="center">
         {t('play.completed.title')}
       </Text>
@@ -287,16 +290,20 @@ export function PlayScreen({ sessionId }: { sessionId: number }) {
   const play = usePlaySession(sessionId);
   const again = useStartAndOpen();
   const { session, phase, currentItem, feedback } = play;
+  const me = useMe().data;
+  const avatar = me?.member?.avatar ?? me?.user.avatar;
+  const sound = useSoundEffects();
+  const playSound = sound.play;
 
-  // Haptic verdict (native only).
+  // Verdict sound + haptic (the member's sound-effects setting covers both).
   useEffect(() => {
-    if (!feedback || Platform.OS === 'web') return;
-    void Haptics.notificationAsync(
-      feedback.result.is_correct
-        ? Haptics.NotificationFeedbackType.Success
-        : Haptics.NotificationFeedbackType.Error,
-    );
-  }, [feedback]);
+    if (feedback) playSound(feedback.result.is_correct ? 'correct' : 'wrong');
+  }, [feedback, playSound]);
+
+  // The win: celebration sound once per completed session.
+  useEffect(() => {
+    if (phase === 'completed') playSound('celebrate');
+  }, [phase, playSound]);
 
   // A friendly moment to ask for push permission: right after a completed session (asks only
   // while the OS has never asked; no-op on web / Expo Go).
@@ -363,7 +370,7 @@ export function PlayScreen({ sessionId }: { sessionId: number }) {
               style={styles.worth}
               accessible
               accessibilityLabel={t('play.worth', { count: currentItem.points })}>
-              <Badge label={`+${currentItem.points}`} tone="accent" icon="star" />
+              <Badge label={`+${currentItem.points}`} tone="accent" icon="star" sticker />
             </View>
           ) : null}
           <Challenge
@@ -394,6 +401,7 @@ export function PlayScreen({ sessionId }: { sessionId: number }) {
           explanation={feedback.result.explanation}
           pointsAwarded={feedback.result.points_awarded}
           onContinue={play.next}
+          avatar={avatar}
           continueLabel={
             session.status === 'completed'
               ? t('play.seeResult')
@@ -425,6 +433,7 @@ export function PlayScreen({ sessionId }: { sessionId: number }) {
         <CompletedView
           session={session}
           starting={again.isPending}
+          avatar={avatar}
           onPlayAgain={() => again.open(session.category_id, { replace: true })}
         />
       ) : null}
@@ -485,7 +494,7 @@ export function PlayScreen({ sessionId }: { sessionId: number }) {
 
       {again.error ? <Text tone="danger">{errorMessage(again.error, t)}</Text> : null}
 
-      {phase === 'completed' && theme.celebration === 'confetti' ? <Confetti /> : null}
+      {phase === 'completed' ? <Confetti /> : null}
     </Screen>
   );
 }

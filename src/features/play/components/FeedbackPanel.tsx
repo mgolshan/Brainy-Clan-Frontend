@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text as RNText, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, SlideInDown } from 'react-native-reanimated';
 
-import { Button, Icon, Text, surfaceStyle, useTheme, withAlpha } from '@/ui';
+import { Button, ClanReaction, Icon, Text, surfaceStyle, useTheme, withAlpha } from '@/ui';
 
 interface FeedbackPanelProps {
   isCorrect: boolean;
@@ -12,12 +12,14 @@ interface FeedbackPanelProps {
   pointsAwarded: number;
   onContinue: () => void;
   continueLabel?: string;
+  /** The member's avatar: their Clan character cheers (correct) or encourages (wrong). */
+  avatar?: string | null;
 }
 
-const KID_CHEERS_RIGHT = ['🎉', '🌟', '🥳', '💪', '🚀'];
-const KID_CHEERS_WRONG = ['🤔', '🙈', '💡'];
-
-/** Shown after each answer: correct / wrong, the correct answer, explanation, continue. */
+/**
+ * Shown after each answer: the member's Clan character reacting (cheer / encourage), correct /
+ * wrong, the correct answer, explanation, continue.
+ */
 export function FeedbackPanel({
   isCorrect,
   correctText,
@@ -25,13 +27,13 @@ export function FeedbackPanel({
   pointsAwarded,
   onContinue,
   continueLabel,
+  avatar,
 }: FeedbackPanelProps) {
   const theme = useTheme();
   const { t } = useTranslation();
   const c = theme.colors;
   const tint = isCorrect ? c.success : c.danger;
-  const emojiSet = isCorrect ? KID_CHEERS_RIGHT : KID_CHEERS_WRONG;
-  const emoji = emojiSet[(pointsAwarded + (correctText?.length ?? 0)) % emojiSet.length];
+  const kid = theme.vibe === 'kid';
 
   const entering = theme.reducedMotion
     ? undefined
@@ -54,28 +56,33 @@ export function FeedbackPanel({
         },
       ]}>
       <View style={[styles.row, { gap: theme.spacing.sm }]}>
-        {theme.emojiIcons ? (
-          <RNText style={styles.emoji}>{emoji}</RNText>
-        ) : (
-          <View
-            style={[
-              styles.icon,
-              {
-                backgroundColor: tint,
-                borderRadius: theme.surface === 'outlined' ? theme.radius.sm : 20,
-              },
-            ]}>
-            <Icon
-              name={isCorrect ? 'checkmark' : 'close'}
-              size={24}
-              color={isCorrect ? c.onSuccess : c.onDanger}
-            />
-          </View>
-        )}
+        <ClanReaction
+          avatar={avatar}
+          kind={isCorrect ? 'cheer' : 'encourage'}
+          size={kid ? 60 : 46}
+        />
         <View style={styles.flex}>
-          <Text variant="title" color={tint}>
-            {isCorrect ? t('play.feedback.correct') : t('play.feedback.wrong')}
-          </Text>
+          <View style={[styles.row, { gap: theme.spacing.xs }]}>
+            {kid ? null : (
+              <View
+                style={[
+                  styles.icon,
+                  {
+                    backgroundColor: tint,
+                    borderRadius: theme.surface === 'outlined' ? theme.radius.sm : 12,
+                  },
+                ]}>
+                <Icon
+                  name={isCorrect ? 'checkmark' : 'close'}
+                  size={16}
+                  color={isCorrect ? c.onSuccess : c.onDanger}
+                />
+              </View>
+            )}
+            <Text variant="title" color={tint} style={styles.flex}>
+              {isCorrect ? t('play.feedback.correct') : t('play.feedback.wrong')}
+            </Text>
+          </View>
           {isCorrect && pointsAwarded > 0 ? (
             <Text variant="label" tone="muted">
               {t('play.feedback.points', { count: pointsAwarded })}
@@ -114,7 +121,6 @@ const styles = StyleSheet.create({
   panel: {},
   row: { flexDirection: 'row', alignItems: 'center' },
   flex: { flex: 1 },
-  emoji: { fontSize: 40 },
-  icon: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  icon: { width: 24, height: 24, alignItems: 'center', justifyContent: 'center' },
   answer: { gap: 2 },
 });

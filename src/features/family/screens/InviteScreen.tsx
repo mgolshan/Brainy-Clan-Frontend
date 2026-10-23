@@ -74,7 +74,7 @@ function InviteCode({ invite }: { invite: Invite }) {
         }}
       />
       <Button title={t('common.done')} variant="ghost" onPress={() => router.back()} />
-      {Platform.OS !== 'web' && theme.celebration === 'confetti' ? <Confetti count={30} /> : null}
+      {Platform.OS !== 'web' && theme.celebration !== 'calm' ? <Confetti count={30} /> : null}
     </View>
   );
 }

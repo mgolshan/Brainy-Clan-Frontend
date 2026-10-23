@@ -93,10 +93,13 @@
   },
   "appearance": {
     "themes": {
-      "playful": "Playful",
-      "sleek": "Sleek",
+      "playful": "Candy Land",
+      "sleek": "Glass",
       "modern": "Modern",
-      "classic": "Classic"
+      "classic": "Classic",
+      "jungle": "Jungle Adventure",
+      "space": "Space Explorers",
+      "neon": "Neon Arcade"
     },
     "light": "Light",
     "dark": "Dark",
@@ -105,10 +108,13 @@
     "theme": "Theme",
     "automatic": "Automatic",
     "themeDescriptions": {
-      "playful": "bright and bouncy",
-      "sleek": "dark and modern",
+      "playful": "sweet, bright and bouncy",
+      "sleek": "frosted glass, violet and cyan",
       "modern": "clean and calm",
-      "classic": "large and easy to read"
+      "classic": "large and easy to read",
+      "jungle": "leaves, vines and animal friends",
+      "space": "stars, planets and rockets",
+      "neon": "glowing arcade lights"
     },
     "lookOnly": "The theme only changes how the app looks — never the content or the rules.",
     "reducedMotionHint": "Fewer animations and no confetti.",
@@ -116,7 +122,21 @@
     "calmTimersHint": "More time, no ticking pressure.",
     "colorMode": "Light or dark",
     "system": "System",
-    "colorModeHint": "Saved on this device only."
+    "colorModeHint": "Saved on this device only.",
+    "worldTitle": "Pick your world",
+    "audience": {
+      "kids": "For kids",
+      "teens": "For teens",
+      "everyone": "For everyone"
+    },
+    "previewTitle": "Level 3",
+    "previewButton": "Play",
+    "soundEffects": "Sound effects",
+    "soundEffectsHint": "Short sounds and vibrations for answers and wins.",
+    "soundOn": "On",
+    "soundOff": "Off",
+    "soundAutoOn": "Automatic is on for your profile.",
+    "soundAutoOff": "Automatic is off for your profile."
   },
   "play": {
     "locked": "Family plan",
@@ -222,7 +242,33 @@
     "progress": "Progress, lives & badges",
     "play": "Play",
     "celebration": "Celebration",
-    "states": "Loading, empty & error"
+    "states": "Loading, empty & error",
+    "gallery": "All worlds",
+    "single": "One world",
+    "galleryHint": "Every world in light and dark, side by side. Scroll sideways.",
+    "reactions": "Clan reactions",
+    "soundsTitle": "Sounds & category art",
+    "soundsSubtitle": "Developer tool: audition every world sound pack and see the category illustrations.",
+    "soundsYourSetting": "Your sound effects setting: {{state}} (this page plays them anyway).",
+    "on": "on",
+    "off": "off",
+    "categoryArt": "Category illustrations",
+    "packs": {
+      "candy": "Candy",
+      "jungle": "Jungle",
+      "space": "Space",
+      "neon": "Neon",
+      "glass": "Glass",
+      "calm": "Calm"
+    },
+    "soundNames": {
+      "tap": "Tap",
+      "correct": "Correct",
+      "wrong": "Wrong",
+      "celebrate": "Celebrate",
+      "levelUp": "Level up",
+      "unlock": "Unlock"
+    }
   },
   "welcome": {
     "subtitle": "Learn, play and reach goals together — the whole family.",

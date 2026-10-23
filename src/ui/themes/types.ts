@@ -49,6 +49,16 @@ export interface ThemeColors {
   categories: readonly string[];
   /** Confetti piece colors. */
   confetti: readonly string[];
+  /**
+   * Large background-scene layers (hills, leaves, nebulae, gradient-mesh blobs), back to front.
+   * Text may sit on them, so each one (composited over `background`) keeps WCAG AA with
+   * `text` / `textMuted` (checked by the contrast test). rgba allowed.
+   */
+  scene: readonly string[];
+  /** Small scene decorations (flowers, planets, stars, grid lines): kept at the screen edges. */
+  sceneAccent: readonly string[];
+  /** Glow / rim color: neon outlines, porthole rims, glowing buttons. */
+  glow: string;
 }
 
 /** Font family names (keys loaded in `fonts.ts`). One family per weight: Android ignores fontWeight on custom fonts. */
@@ -110,12 +120,55 @@ export interface ThemeMotion {
   enter: EnterStyle;
 }
 
-/** What happens when a session is completed. */
-export type CelebrationStyle = 'confetti' | 'glow' | 'check' | 'calm';
+/** Background scene behind `Screen` (`src/ui/scenes/`). */
+export type SceneKey = 'none' | 'candy' | 'jungle' | 'space' | 'neon' | 'glass';
+
+/**
+ * Card look:
+ * - `flat`: the theme surface (soft shadow / outlined, see `SurfaceStyle`)
+ * - `glass`: frosted translucent panel with a sheen
+ * - `sticker`: candy sticker, thick outline + hard drop edge + gloss
+ * - `chunky`: wooden plank with a deep bottom edge and a leaf on the corner
+ * - `porthole`: round-cornered ship panel with a double rim and rivets
+ * - `neon`: dark panel with a glowing outline
+ */
+export type CardStyle = 'flat' | 'glass' | 'sticker' | 'chunky' | 'porthole' | 'neon';
+
+/** Button look: `flat` (solid/gradient), `press3d` (candy edge that squishes), `glow`. */
+export type ButtonStyle = 'flat' | 'press3d' | 'glow';
+
+/** Progress bar look: `bar`, `vine` (grows leaves), `rocket` (flies along), `neon`. */
+export type ProgressStyle = 'bar' | 'vine' | 'rocket' | 'neon';
+
+/** The success moment (completed session, goal reached). */
+export type CelebrationStyle = 'confetti' | 'stars' | 'bubbles' | 'sprinkles' | 'calm';
+
+/** Sound pack key read by `useSoundEffects` (`src/features/sound`). */
+export type SoundPackKey = 'candy' | 'jungle' | 'space' | 'neon' | 'glass' | 'calm';
+
+/**
+ * Overall tone shared by worlds, for the few places that differ beyond tokens: `kid` (emoji,
+ * pill shapes, big characters), `teen` (restrained, overlines, gradients), `calm` (adults,
+ * seniors).
+ */
+export type ThemeVibe = 'kid' | 'teen' | 'calm';
+
+/** Hint shown in the world picker (a label only: never a rule, any member may pick any world). */
+export type WorldAudience = 'kids' | 'teens' | 'everyone';
 
 /** Static definition of one theme (one file per theme in this folder). */
 export interface ThemeDefinition {
   key: ThemeKey;
+  /** i18n key of the world's name (e.g. `appearance.themes.jungle` → "Jungle Adventure"). */
+  displayName: `appearance.themes.${ThemeKey}`;
+  /** Picker hint only ("for kids"), never a rule. */
+  audience: WorldAudience;
+  vibe: ThemeVibe;
+  scene: SceneKey;
+  card: CardStyle;
+  button: ButtonStyle;
+  progress: ProgressStyle;
+  soundPack: SoundPackKey;
   colors: Record<ColorScheme, ThemeColors>;
   /** Used when the color-scheme preference is "system" (sleek is dark-first). */
   preferredScheme?: ColorScheme;

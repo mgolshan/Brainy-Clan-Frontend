@@ -1,94 +1,98 @@
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text as RNText, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import type { Category } from '@/api/types';
-import { categoryColor, categoryVisual } from '@/features/play/categoryVisuals';
-import { Badge, Card, Icon, IconBubble, Text, useTheme, withAlpha } from '@/ui';
+import { categoryColor } from '@/features/play/categoryVisuals';
+import { Badge, Card, Icon, Text, useTheme, withAlpha } from '@/ui';
+import { CategoryArt } from '@/ui/illustrations';
 
 interface CategoryTileProps {
   category: Pick<Category, 'slug' | 'name' | 'icon' | 'is_locked' | 'children'>;
   onPress?: () => void;
   /** Position among siblings (drives the category color). */
   index?: number;
+  /** Top-level ancestor's slug for sub-categories (their illustration). */
+  parentSlug?: string;
 }
 
 /**
- * A category card. Playful: filled with the category's candy color + emoji. Others: theme surface
- * with a tinted icon. Locked categories stay visible with an upgrade hint.
+ * A category card in the world's card style (sticker, plank, porthole, glass, neon, flat) with
+ * the category's Clan illustration in a tinted window. Locked categories stay visible, dimmed,
+ * with a lock and an upgrade hint.
  */
-export function CategoryTile({ category, onPress, index }: CategoryTileProps) {
+export function CategoryTile({ category, onPress, index, parentSlug }: CategoryTileProps) {
   const theme = useTheme();
   const { t } = useTranslation();
   const color = categoryColor(theme, category, index);
-  const visual = categoryVisual(category.icon);
-  const playful = theme.key === 'playful';
   const subCount = category.children?.length ?? 0;
-  const fg = playful ? '#FFFFFF' : theme.colors.text;
+  const kid = theme.vibe === 'kid';
+  const art = kid ? 104 : 88;
+  const dark = theme.scheme === 'dark';
 
   return (
     <Card
       onPress={onPress}
       tint={color}
-      padding="md"
+      padding="sm"
       accessibilityLabel={
         category.is_locked ? `${category.name}, ${t('play.locked')}` : category.name
       }
       accessibilityHint={category.is_locked ? t('play.lockedHint') : undefined}
-      style={[
-        styles.tile,
-        playful && {
-          backgroundColor: category.is_locked ? theme.colors.surfaceAlt : color,
-          borderColor: category.is_locked ? theme.colors.border : withAlpha('#000000', 0.18),
-        },
-        { minHeight: theme.touchTarget * 2.3, opacity: category.is_locked && !playful ? 0.7 : 1 },
-      ]}>
-      <View style={styles.top}>
-        {playful ? (
-          <View style={[styles.emojiBubble, { backgroundColor: 'rgba(255,255,255,0.28)' }]}>
-            <RNText style={styles.emoji}>{category.is_locked ? '🔒' : visual.emoji}</RNText>
+      style={[styles.tile, { minHeight: theme.touchTarget * 2.3, gap: theme.spacing.sm }]}>
+      <View
+        style={[
+          styles.well,
+          {
+            height: art + theme.spacing.sm,
+            borderRadius: Math.max(6, theme.radius.lg - theme.spacing.sm),
+            backgroundColor: withAlpha(color, dark ? 0.22 : 0.16),
+            borderWidth: theme.card === 'neon' ? 1 : 0,
+            borderColor: withAlpha(color, 0.5),
+          },
+        ]}>
+        <View style={category.is_locked ? styles.dim : undefined}>
+          <CategoryArt slug={category.slug} parentSlug={parentSlug} size={art} />
+        </View>
+        {category.is_locked ? (
+          <View
+            style={[
+              styles.lock,
+              { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+            ]}>
+            <Icon name="lock-closed" size={18} color={theme.colors.text} />
           </View>
-        ) : (
-          <IconBubble color={color} size={theme.touchTarget - 4}>
-            <Icon name={category.is_locked ? 'lock-closed-outline' : visual.icon} color={color} />
-          </IconBubble>
-        )}
-        {category.is_locked ? <Badge label={t('play.locked')} tone="warning" icon="star" /> : null}
+        ) : null}
       </View>
-      <Text
-        variant="title"
-        color={playful && !category.is_locked ? fg : undefined}
-        numberOfLines={2}>
-        {category.name}
-      </Text>
-      {category.is_locked ? (
-        <Text variant="caption" tone="muted" numberOfLines={2}>
-          {t('play.lockedHint')}
+      <View style={[styles.body, { paddingHorizontal: theme.spacing.xs }]}>
+        <Text variant="title" numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75}>
+          {category.name}
         </Text>
-      ) : subCount > 0 ? (
-        <Text variant="caption" color={playful ? 'rgba(255,255,255,0.9)' : undefined} tone="muted">
-          {t('play.subCategories', { count: subCount })}
-        </Text>
-      ) : null}
+        {category.is_locked ? (
+          <Badge label={t('play.locked')} tone="warning" icon="star" sticker tilt={-3} />
+        ) : subCount > 0 ? (
+          <Text variant="caption" tone="muted">
+            {t('play.subCategories', { count: subCount })}
+          </Text>
+        ) : null}
+      </View>
     </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  tile: { flex: 1, gap: 8, justifyContent: 'space-between' },
-  // Wraps: on a narrow tile the plan badge goes under the icon instead of past the edge.
-  top: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: 6,
-  },
-  emojiBubble: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+  tile: { flex: 1 },
+  well: { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  dim: { opacity: 0.45 },
+  lock: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  emoji: { fontSize: 30 },
+  body: { gap: 4, paddingBottom: 4 },
 });

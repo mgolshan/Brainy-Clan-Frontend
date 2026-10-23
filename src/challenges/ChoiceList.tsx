@@ -60,7 +60,7 @@ function ChoiceButton({ choice, index, state, disabled, onPress }: ChoiceButtonP
     transform: [{ translateX: shake.get() }, { scale: pop.get() }],
   }));
 
-  const playful = theme.key === 'playful';
+  const playful = theme.vibe === 'kid';
   const letterColor = playful ? c.categories[index % c.categories.length] : c.primary;
   const accent =
     state === 'correct'

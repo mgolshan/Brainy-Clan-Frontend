@@ -39,13 +39,13 @@ export function WisdomCard({
           padding="lg"
           style={[
             styles.card,
-            theme.key === 'playful' && {
+            theme.vibe === 'kid' && {
               backgroundColor: withAlpha(c.accent, 0.22),
               borderColor: withAlpha(c.accent, 0.8),
             },
             theme.key === 'classic' && { borderLeftWidth: 6, borderLeftColor: c.accent },
           ]}>
-          {theme.key === 'sleek' ? (
+          {theme.vibe === 'teen' ? (
             <LinearGradient
               colors={[
                 withAlpha(c.gradient[0], 0.22),
@@ -61,7 +61,7 @@ export function WisdomCard({
             style={[
               styles.mark,
               {
-                color: withAlpha(theme.key === 'playful' ? c.primary : c.accent, 0.55),
+                color: withAlpha(theme.vibe === 'kid' ? c.primary : c.accent, 0.55),
                 fontFamily: theme.fonts.display,
               },
             ]}>

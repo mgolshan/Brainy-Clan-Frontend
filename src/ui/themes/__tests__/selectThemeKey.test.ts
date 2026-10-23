@@ -34,7 +34,7 @@ describe('selectThemeKey', () => {
   });
 
   it('ignores unknown theme keys from the API at every level', () => {
-    const unknown = 'neon' as never;
+    const unknown = 'dino' as never;
     expect(selectThemeKey(policy(), member({ theme: unknown }))).toBe('playful');
     expect(selectThemeKey(policy({ ui_theme: unknown }), member({ theme: unknown }))).toBe(
       'modern',
@@ -47,8 +47,18 @@ describe('selectThemeKey', () => {
     expect(selectThemeKey(policy({ ui_theme: 'toString' as never }), null)).toBe('modern');
   });
 
-  it('only knows the four themes', () => {
-    expect(Object.keys(themes).sort()).toEqual(['classic', 'modern', 'playful', 'sleek']);
+  it('knows every world of the contract', () => {
+    expect(Object.keys(themes).sort()).toEqual([
+      'classic',
+      'jungle',
+      'modern',
+      'neon',
+      'playful',
+      'sleek',
+      'space',
+    ]);
+    expect(selectThemeKey(policy(), member({ theme: 'neon' }))).toBe('neon');
+    expect(selectThemeKey(policy({ ui_theme: 'jungle' }), member({ theme: null }))).toBe('jungle');
     expect(isThemeKey(42)).toBe(false);
   });
 });
@@ -61,11 +71,26 @@ describe('selectAccessibility', () => {
       text_scale: 1.5,
       reduced_motion: false,
       calm_timers: true,
+      sound_effects: false,
     });
     expect(selectAccessibility(null, null)).toEqual({
       text_scale: 1,
       reduced_motion: false,
       calm_timers: false,
+      sound_effects: false,
     });
+  });
+
+  it('resolves sound effects: member, then the policy default, then off', () => {
+    const kid = policy({
+      accessibility_defaults: {
+        text_scale: 1,
+        reduced_motion: false,
+        calm_timers: false,
+        sound_effects: true,
+      },
+    });
+    expect(selectAccessibility(kid, member({ sound_effects: null })).sound_effects).toBe(true);
+    expect(selectAccessibility(kid, member({ sound_effects: false })).sound_effects).toBe(false);
   });
 });

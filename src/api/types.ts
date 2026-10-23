@@ -56,7 +56,19 @@ export interface ApiErrorBody {
 /** The Clan avatar keys (22 species × kid/teen/mom/dad/grandma/grandpa), see `@/ui/avatars`. */
 export { AVATAR_KEYS, type AvatarKey };
 
-export const THEME_KEYS = ['playful', 'sleek', 'modern', 'classic'] as const;
+/**
+ * Theme "world" keys (contract 2026-10-23): `playful` is shown as "Candy Land", `sleek` as
+ * "Glass". Any member may pick any world.
+ */
+export const THEME_KEYS = [
+  'playful',
+  'sleek',
+  'modern',
+  'classic',
+  'jungle',
+  'space',
+  'neon',
+] as const;
 export type ThemeKey = (typeof THEME_KEYS)[number];
 
 /** Age band codes come from the backend `age_bands` table; these are the seeded ones. */
@@ -95,6 +107,11 @@ export interface Accessibility {
   calm_timers: boolean;
   /** `null` = use the policy default (`ui_theme`). */
   theme: ThemeKey | null;
+  /**
+   * Sound effects + haptics: `null` = use the policy default
+   * (`accessibility_defaults.sound_effects`). Optional until every backend serves it.
+   */
+  sound_effects?: boolean | null;
 }
 
 export type MemberRole = 'admin' | 'member';
@@ -377,6 +394,7 @@ export interface UpdateAccessibilityBody {
   reduced_motion?: boolean;
   calm_timers?: boolean;
   theme?: ThemeKey | null;
+  sound_effects?: boolean | null;
 }
 
 export interface MeStats {

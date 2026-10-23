@@ -8,6 +8,14 @@ import type { ThemeDefinition } from '@/ui/themes/types';
  */
 export const classic: ThemeDefinition = {
   key: 'classic',
+  displayName: 'appearance.themes.classic',
+  audience: 'everyone',
+  vibe: 'calm',
+  scene: 'none',
+  card: 'flat',
+  button: 'flat',
+  progress: 'bar',
+  soundPack: 'calm',
   colors: {
     light: {
       background: '#FBF6EA',
@@ -51,6 +59,9 @@ export const classic: ThemeDefinition = {
         '#3F5A1F',
       ],
       confetti: ['#1F3A5F', '#1D5A3D', '#7A1F2B', '#C9A24A'],
+      scene: [],
+      sceneAccent: [],
+      glow: '#1F3A5F',
     },
     dark: {
       background: '#12161D',
@@ -94,6 +105,9 @@ export const classic: ThemeDefinition = {
         '#B8D08F',
       ],
       confetti: ['#A9C1E6', '#8FCCA9', '#E3A0A9', '#E8C67A'],
+      scene: [],
+      sceneAccent: [],
+      glow: '#A9C1E6',
     },
   },
   fonts: {

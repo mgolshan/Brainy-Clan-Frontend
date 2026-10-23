@@ -97,10 +97,13 @@
   },
   "appearance": {
     "themes": {
-      "playful": "Ludique",
-      "sleek": "Épuré",
+      "playful": "Pays des bonbons",
+      "sleek": "Verre",
       "modern": "Moderne",
-      "classic": "Classique"
+      "classic": "Classique",
+      "jungle": "Aventure dans la jungle",
+      "space": "Explorateurs de l'espace",
+      "neon": "Arcade néon"
     },
     "light": "Clair",
     "dark": "Sombre",
@@ -109,10 +112,13 @@
     "theme": "Thème",
     "automatic": "Automatique",
     "themeDescriptions": {
-      "playful": "coloré et rebondissant",
-      "sleek": "sombre et moderne",
+      "playful": "sucré, coloré et rebondissant",
+      "sleek": "verre dépoli, violet et cyan",
       "modern": "net et calme",
-      "classic": "grand et facile à lire"
+      "classic": "grand et facile à lire",
+      "jungle": "feuilles, lianes et amis animaux",
+      "space": "étoiles, planètes et fusées",
+      "neon": "lumières d'arcade lumineuses"
     },
     "lookOnly": "Le thème change seulement l'apparence de l'application — jamais le contenu ni les règles.",
     "reducedMotionHint": "Moins d'animations et pas de confettis.",
@@ -120,7 +126,21 @@
     "calmTimersHint": "Plus de temps, sans pression.",
     "colorMode": "Clair ou sombre",
     "system": "Système",
-    "colorModeHint": "Enregistré sur cet appareil seulement."
+    "colorModeHint": "Enregistré sur cet appareil seulement.",
+    "worldTitle": "Choisis ton monde",
+    "audience": {
+      "kids": "Pour les enfants",
+      "teens": "Pour les ados",
+      "everyone": "Pour tous"
+    },
+    "previewTitle": "Niveau 3",
+    "previewButton": "Jouer",
+    "soundEffects": "Effets sonores",
+    "soundEffectsHint": "Petits sons et vibrations pour les réponses et les victoires.",
+    "soundOn": "Activés",
+    "soundOff": "Désactivés",
+    "soundAutoOn": "En automatique, ils sont activés pour ton profil.",
+    "soundAutoOff": "En automatique, ils sont désactivés pour ton profil."
   },
   "play": {
     "locked": "Formule Famille",
@@ -237,7 +257,33 @@
     "progress": "Progression, vies et badges",
     "play": "Jeu",
     "celebration": "Célébration",
-    "states": "Chargement, vide et erreur"
+    "states": "Chargement, vide et erreur",
+    "gallery": "Tous les mondes",
+    "single": "Un monde",
+    "galleryHint": "Chaque monde en clair et en sombre, côte à côte. Fais défiler sur le côté.",
+    "reactions": "Réactions du Clan",
+    "soundsTitle": "Sons et illustrations",
+    "soundsSubtitle": "Outil de développement : écouter chaque pack de sons des mondes et voir les illustrations des catégories.",
+    "soundsYourSetting": "Ton réglage des effets sonores : {{state}} (cette page les joue quand même).",
+    "on": "activé",
+    "off": "désactivé",
+    "categoryArt": "Illustrations des catégories",
+    "packs": {
+      "candy": "Bonbons",
+      "jungle": "Jungle",
+      "space": "Espace",
+      "neon": "Néon",
+      "glass": "Verre",
+      "calm": "Calme"
+    },
+    "soundNames": {
+      "tap": "Toucher",
+      "correct": "Bonne réponse",
+      "wrong": "Mauvaise réponse",
+      "celebrate": "Fête",
+      "levelUp": "Niveau supérieur",
+      "unlock": "Déblocage"
+    }
   },
   "welcome": {
     "subtitle": "Apprendre, jouer et atteindre vos objectifs ensemble — toute la famille.",

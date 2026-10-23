@@ -38,7 +38,7 @@ export function SocialButton({ provider, onPress, title, loading, disabled }: So
   const textColor = isGoogle ? google.text : brandColors.facebook.text;
   const size = theme.type.bodyLarge.size;
   const logoSize = Math.round(Math.min(Math.max(size + 2, 18), 26));
-  const radius = theme.key === 'playful' ? theme.radius.pill : theme.radius.md;
+  const radius = theme.vibe === 'kid' ? theme.radius.pill : theme.radius.md;
   const fontFamily =
     isGoogle && googleFontLoaded ? 'GoogleSans_500Medium' : fontFor(theme, 'bodyLarge', 'bold');
 

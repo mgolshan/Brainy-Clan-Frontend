@@ -39,7 +39,7 @@ src/
   challenges/        registry.ts (type key -> renderer + payload guard) + MultipleChoice, WisdomCard
   store/             zustand: session.ts (token in SecureStore), preferences.ts, appStatus.ts
   i18n/              i18next setup + locales (en, fr)
-  ui/                ThemeProvider.tsx (useTheme), themes/ (playful, sleek, modern, classic),
+  ui/                ThemeProvider.tsx (useTheme), themes/ (7 worlds), scenes/ (world backgrounds),
                      components/ (Screen, Text, Button, Card, TextField, Avatar, ProgressBar, ...)
   lib/               small pure helpers (errors, formatting, labels, version compare)
 ```
@@ -66,7 +66,7 @@ Import with the `@/` alias (`@/*` -> `src/*`); route files in `app/` import from
   names in components. Theme = member `accessibility.theme` → policy `ui_theme` → `modern`
   (`selectThemeKey`); the app never maps ages to themes. Every theme has light + dark tokens;
   respect `theme.reducedMotion` (member setting or OS) and the member text scale. Check new UI in
-  all four themes at `/dev/themes`.
+  every world (light + dark) at `/dev/themes`; the contrast test checks AA.
 - Play session logic lives in `src/features/play/usePlaySession.ts`, not in components. Answers
   that fail for network reasons go to the persisted queue (`answerQueue.ts`) and are re-sent when
   the device is back online.

@@ -16,8 +16,10 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { withAlpha } from '@/ui/components/Card';
 import { Icon, type IconName } from '@/ui/components/Icon';
 import { Text } from '@/ui/components/Text';
+import { useUiSound } from '@/ui/sound';
 import { useTheme } from '@/ui/ThemeProvider';
 import type { Theme } from '@/ui/themes';
 
@@ -39,6 +41,11 @@ export interface ButtonProps {
   accessibilityHint?: string;
   style?: StyleProp<ViewStyle>;
   testID?: string;
+  /**
+   * Tap sound (kid worlds only, when sound effects are on). Defaults to true for large/medium
+   * primary buttons — the main action of a screen — and false for everything else.
+   */
+  tapSound?: boolean;
 }
 
 interface VariantColors {
@@ -51,6 +58,7 @@ interface VariantColors {
 
 function variantColors(theme: Theme, variant: ButtonVariant): VariantColors {
   const c = theme.colors;
+  const glow = theme.button === 'glow';
   switch (variant) {
     case 'primary':
       return {
@@ -58,7 +66,7 @@ function variantColors(theme: Theme, variant: ButtonVariant): VariantColors {
         fg: c.onPrimary,
         edge: c.primaryPressed,
         border: c.primaryPressed,
-        gradient: theme.surface === 'glass' ? c.gradient : undefined,
+        gradient: glow ? c.gradient : undefined,
       };
     case 'secondary':
       return {
@@ -72,7 +80,12 @@ function variantColors(theme: Theme, variant: ButtonVariant): VariantColors {
     case 'success':
       return { bg: c.success, fg: c.onSuccess, edge: c.shadow, border: c.success };
     case 'outline':
-      return { bg: c.surface, fg: c.text, edge: c.borderStrong, border: c.borderStrong };
+      return {
+        bg: glow ? withAlpha(c.surface, 0.6) : c.surface,
+        fg: c.text,
+        edge: c.borderStrong,
+        border: glow ? withAlpha(c.secondary, 0.7) : c.borderStrong,
+      };
     case 'ghost':
       return { bg: 'transparent', fg: c.primary, edge: 'transparent', border: 'transparent' };
   }
@@ -81,11 +94,10 @@ function variantColors(theme: Theme, variant: ButtonVariant): VariantColors {
 const EDGE = 5;
 
 /**
- * Themed button.
- * - playful: chunky candy button with a 3D bottom edge that squishes on press
- * - sleek: violet→cyan gradient (primary), hairline borders, quick press
- * - modern: solid, soft shadow, gentle press
- * - classic: solid, clear border, large label, no scale animation
+ * The world's button.
+ * - `press3d` (Candy, Jungle, Space): chunky candy button with a 3D bottom edge that squishes
+ * - `glow` (Glass, Neon): gradient face with a colored glow; a glowing ring flares on press
+ * - `flat` (Modern, Classic): solid, soft shadow / clear border, gentle or no press animation
  */
 export function Button({
   title,
@@ -101,11 +113,16 @@ export function Button({
   accessibilityHint,
   style,
   testID,
+  tapSound,
 }: ButtonProps) {
   const theme = useTheme();
+  const play = useUiSound();
   const colors = variantColors(theme, variant);
   const inactive = disabled || loading;
-  const chunky = theme.surface === 'chunky' && variant !== 'ghost';
+  const press3d = theme.button === 'press3d' && variant !== 'ghost';
+  const glow = theme.button === 'glow' && variant !== 'ghost';
+  const filled = variant !== 'ghost' && variant !== 'outline';
+  const withTap = tapSound ?? (variant === 'primary' && size !== 'sm');
 
   const height =
     size === 'lg'
@@ -120,12 +137,16 @@ export function Button({
   const usesScale = theme.motion.pressScale < 1;
 
   const faceStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: chunky ? press.get() * (EDGE - 1) : 0 }, { scale: scale.get() }],
-    opacity: !usesScale && !chunky ? 1 - press.get() * 0.2 : 1,
+    transform: [{ translateY: press3d ? press.get() * (EDGE - 1) : 0 }, { scale: scale.get() }],
+    opacity: !usesScale && !press3d ? 1 - press.get() * 0.2 : 1,
+  }));
+  const ringStyle = useAnimatedStyle(() => ({
+    opacity: press.get() * 0.9,
+    transform: [{ scale: 1 + press.get() * 0.03 }],
   }));
 
   const radius =
-    theme.key === 'playful' || (size === 'sm' && theme.key !== 'classic')
+    theme.vibe === 'kid' || (size === 'sm' && theme.key !== 'classic')
       ? theme.radius.pill
       : theme.radius.md;
 
@@ -144,7 +165,7 @@ export function Button({
             color={colors.fg}
             numberOfLines={2}
             align="center"
-            style={[styles.label, theme.key === 'sleek' ? styles.sleekLabel : undefined]}>
+            style={[styles.label, theme.vibe === 'teen' ? styles.teenLabel : undefined]}>
             {title}
           </Text>
           {iconRight ? (
@@ -176,8 +197,7 @@ export function Button({
   };
 
   const shadow: ViewStyle | undefined =
-    theme.surface === 'soft' &&
-    (variant === 'primary' || variant === 'danger' || variant === 'success')
+    theme.surface === 'soft' && filled
       ? {
           shadowColor: colors.bg,
           shadowOpacity: 0.28,
@@ -185,15 +205,23 @@ export function Button({
           shadowOffset: { width: 0, height: 4 },
           elevation: 3,
         }
-      : theme.surface === 'glass' && variant === 'primary'
+      : glow && filled
         ? {
-            shadowColor: theme.colors.primary,
-            shadowOpacity: 0.45,
-            shadowRadius: 16,
-            shadowOffset: { width: 0, height: 6 },
+            shadowColor: variant === 'primary' ? theme.colors.glow : colors.bg,
+            shadowOpacity: theme.scheme === 'dark' ? 0.6 : 0.35,
+            shadowRadius: 18,
+            shadowOffset: { width: 0, height: theme.card === 'neon' ? 0 : 6 },
             elevation: 6,
           }
-        : undefined;
+        : press3d && filled
+          ? {
+              shadowColor: theme.colors.shadow,
+              shadowOpacity: theme.scheme === 'dark' ? 0.4 : 0.18,
+              shadowRadius: 6,
+              shadowOffset: { width: 0, height: 4 },
+              elevation: 2,
+            }
+          : undefined;
 
   return (
     <Pressable
@@ -204,24 +232,26 @@ export function Button({
       accessibilityState={{ disabled: !!inactive, busy: !!loading }}
       disabled={inactive}
       onPress={() => {
-        if (Platform.OS !== 'web' && theme.key !== 'classic') void Haptics.selectionAsync();
+        if (withTap && theme.vibe === 'kid') play('tap');
+        else if (Platform.OS !== 'web' && theme.key !== 'classic') void Haptics.selectionAsync();
         onPress?.();
       }}
       onPressIn={() => {
-        if (chunky) press.set(withTiming(1, { duration: 70 }));
+        if (press3d) press.set(withTiming(1, { duration: 70 }));
+        else if (glow && !theme.reducedMotion) press.set(withTiming(1, { duration: 90 }));
         else press.set(1);
-        if (usesScale && !chunky)
+        if (usesScale && !press3d)
           scale.set(withSpring(theme.motion.pressScale, theme.motion.spring));
       }}
       onPressOut={() => {
-        if (chunky) press.set(withSpring(0, theme.motion.spring));
+        if (press3d || glow) press.set(withSpring(0, theme.motion.spring));
         else press.set(0);
-        if (usesScale && !chunky) scale.set(withSpring(1, theme.motion.spring));
+        if (usesScale && !press3d) scale.set(withSpring(1, theme.motion.spring));
       }}
       style={[fullWidth ? styles.full : styles.inline, { opacity: disabled ? 0.45 : 1 }, style]}>
       <View
         style={[
-          chunky && {
+          press3d && {
             backgroundColor: colors.edge,
             borderRadius: radius,
             paddingBottom: EDGE,
@@ -229,6 +259,29 @@ export function Button({
           shadow,
           { borderRadius: radius },
         ]}>
+        {press3d && (variant === 'success' || variant === 'danger') ? (
+          // Edge = the button's own color, darkened (reads as the same candy, not a new color).
+          <View
+            pointerEvents="none"
+            style={[StyleSheet.absoluteFill, { borderRadius: radius, backgroundColor: colors.bg }]}>
+            <View
+              style={[
+                StyleSheet.absoluteFill,
+                { borderRadius: radius, backgroundColor: theme.colors.overlay },
+              ]}
+            />
+          </View>
+        ) : null}
+        {glow ? (
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.ring,
+              { borderRadius: radius, borderColor: theme.colors.glow },
+              ringStyle,
+            ]}
+          />
+        ) : null}
         <Animated.View style={[faceBase, faceStyle]}>
           {colors.gradient ? (
             <LinearGradient
@@ -238,11 +291,20 @@ export function Button({
               style={StyleSheet.absoluteFill}
             />
           ) : null}
-          {chunky && variant !== 'outline' ? (
+          {press3d && variant !== 'outline' ? (
             // Candy highlight along the top of the face.
             <View
               pointerEvents="none"
-              style={[styles.shine, { borderRadius: radius, top: 3, left: 10, right: 10 }]}
+              style={[
+                styles.shine,
+                {
+                  borderRadius: radius,
+                  backgroundColor: withAlpha(
+                    theme.scheme === 'dark' ? theme.colors.text : theme.colors.surface,
+                    0.24,
+                  ),
+                },
+              ]}
             />
           ) : null}
           {label}
@@ -265,6 +327,7 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
   },
   label: { flexShrink: 1 },
-  shine: { position: 'absolute', height: '38%', backgroundColor: 'rgba(255,255,255,0.18)' },
-  sleekLabel: { letterSpacing: 0.2 },
+  shine: { position: 'absolute', height: '38%', top: 3, left: 10, right: 10 },
+  teenLabel: { letterSpacing: 0.2 },
+  ring: { position: 'absolute', top: -4, left: -4, right: -4, bottom: -4, borderWidth: 2 },
 });

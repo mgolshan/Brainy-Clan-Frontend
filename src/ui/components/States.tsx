@@ -42,7 +42,7 @@ function BouncingDot({ index, color }: { index: number; color: string }) {
 export function Loading({ label, fill = true }: { label?: string; fill?: boolean }) {
   const theme = useTheme();
   const { t } = useTranslation();
-  const dots = theme.key === 'playful' && !theme.reducedMotion;
+  const dots = theme.vibe === 'kid' && !theme.reducedMotion;
   return (
     <View
       style={[styles.center, fill && styles.fill]}

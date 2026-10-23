@@ -53,3 +53,15 @@ export function findCategory(tree: Category[] | undefined, id: number): Category
   }
   return undefined;
 }
+
+/**
+ * Slug of the top-level ancestor of a category (its own slug when it is top-level), so
+ * sub-categories at any depth show their family's illustration. `undefined` when not found.
+ */
+export function findRootSlug(tree: Category[] | undefined, id: number): string | undefined {
+  if (!tree) return undefined;
+  for (const root of tree) {
+    if (root.id === id || findCategory(root.children, id)) return root.slug;
+  }
+  return undefined;
+}

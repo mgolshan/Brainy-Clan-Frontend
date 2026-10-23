@@ -7,3 +7,5 @@ android
 package-lock.json
 assets
 src/ui/avatars/clanSvgs.generated.ts
+src/ui/illustrations/categoryArt.generated.ts
+src/features/sound/soundAssets.generated.ts

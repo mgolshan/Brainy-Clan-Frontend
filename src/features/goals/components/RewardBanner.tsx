@@ -29,7 +29,7 @@ export function RewardBanner({ reward, reached, compact }: RewardBannerProps) {
   const wiggle = useSharedValue(0);
 
   useEffect(() => {
-    if (theme.key !== 'playful' || theme.reducedMotion) return;
+    if (theme.vibe !== 'kid' || theme.reducedMotion) return;
     wiggle.set(
       withRepeat(
         withSequence(
@@ -48,7 +48,7 @@ export function RewardBanner({ reward, reached, compact }: RewardBannerProps) {
   if (!reward) return null;
   const label = reached ? t('goals.rewardEarned') : t('goals.rewardLabel');
 
-  if (theme.key === 'playful') {
+  if (theme.vibe === 'kid') {
     return (
       <View
         accessible
@@ -88,7 +88,7 @@ export function RewardBanner({ reward, reached, compact }: RewardBannerProps) {
       ]}>
       <Icon
         name={reached ? 'trophy' : 'gift-outline'}
-        color={theme.key === 'sleek' ? c.secondary : c.accent}
+        color={theme.vibe === 'teen' ? c.secondary : c.accent}
         size={compact ? 22 : 28}
       />
       <View style={styles.flex}>
@@ -106,7 +106,7 @@ export function RewardBanner({ reward, reached, compact }: RewardBannerProps) {
     </View>
   );
 
-  if (theme.key === 'sleek') {
+  if (theme.vibe === 'teen') {
     return (
       <View
         accessible

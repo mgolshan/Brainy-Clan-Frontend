@@ -65,6 +65,8 @@ export function ProfileScreen() {
   const a11y = {
     ...selectAccessibility(policy, member),
     theme: member?.accessibility.theme ?? null,
+    // The editor shows the member's own choice (null = automatic), not the resolved value.
+    sound_effects: member?.accessibility.sound_effects ?? null,
   };
 
   const saveProfile = () =>
@@ -161,6 +163,7 @@ export function ProfileScreen() {
           <AccessibilityEditor
             value={a11y}
             autoTheme={policy.ui_theme}
+            autoSound={policy.accessibility_defaults?.sound_effects ?? false}
             onChange={(patch) => updateA11y.mutate(patch)}
           />
         ) : (
@@ -250,6 +253,12 @@ export function ProfileScreen() {
               title={t('dev.themesTitle')}
               subtitle={t('dev.themesSubtitle')}
               onPress={() => router.push('/dev/themes')}
+            />
+            <Divider />
+            <ListRow
+              title={t('dev.soundsTitle')}
+              subtitle={t('dev.soundsSubtitle')}
+              onPress={() => router.push('/dev/sounds')}
             />
           </>
         ) : null}

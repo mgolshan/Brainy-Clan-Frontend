@@ -37,7 +37,7 @@ export function AvatarPicker({ value, onChange, label, ageBand }: AvatarPickerPr
   // Until a tab is tapped, show the current avatar's group, else the suggested one.
   const group = picked ?? groupOfKey(value) ?? groups[0];
 
-  const min = theme.key === 'classic' || theme.key === 'playful' ? 64 : 56;
+  const min = theme.key === 'classic' || theme.vibe === 'kid' ? 64 : 56;
   const cols = Math.max(4, Math.floor((width + GAP) / (min + GAP)));
   const size = width > 0 ? Math.min(92, Math.floor((width - GAP * (cols - 1)) / cols)) : min;
   const selectedLabel = avatarLabel(t, value);

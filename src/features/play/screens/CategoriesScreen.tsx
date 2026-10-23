@@ -6,7 +6,7 @@ import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import type { Category } from '@/api/types';
 import { useMeasuredWidth } from '@/challenges/useMeasuredWidth';
 import { useCategories, useCurrentSession } from '@/features/play/api';
-import { findCategory } from '@/features/play/categoryVisuals';
+import { findCategory, findRootSlug } from '@/features/play/categoryVisuals';
 import { CategoryTile } from '@/features/play/components/CategoryTile';
 import { ResumeGameCard } from '@/features/play/components/ResumeGameCard';
 import { useStartAndOpen } from '@/features/play/useStartAndOpen';
@@ -32,9 +32,11 @@ const GRID_GAP = 12;
 interface CategoryGridProps {
   categories: Category[];
   onSelect: (category: Category) => void;
+  /** Top-level ancestor's slug when showing sub-categories (their illustration). */
+  parentSlug?: string;
 }
 
-function CategoryGrid({ categories, onSelect }: CategoryGridProps) {
+function CategoryGrid({ categories, onSelect, parentSlug }: CategoryGridProps) {
   const theme = useTheme();
   const window = useWindowDimensions();
   const [measured, onLayout] = useMeasuredWidth();
@@ -46,7 +48,12 @@ function CategoryGrid({ categories, onSelect }: CategoryGridProps) {
     <View style={styles.grid} onLayout={onLayout}>
       {categories.map((cat, i) => (
         <Appear key={cat.id} index={i} style={[styles.cell, { flexBasis: basis }]}>
-          <CategoryTile category={cat} index={i} onPress={() => onSelect(cat)} />
+          <CategoryTile
+            category={cat}
+            index={i}
+            parentSlug={parentSlug}
+            onPress={() => onSelect(cat)}
+          />
         </Appear>
       ))}
     </View>
@@ -167,7 +174,11 @@ export function CategoryScreen({ id }: { id: number }) {
         onPress={() => selection.open(category.id)}
       />
       <StatusLines lockedName={selection.lockedName} error={selection.error} starting={false} />
-      <CategoryGrid categories={category.children} onSelect={selection.select} />
+      <CategoryGrid
+        categories={category.children}
+        onSelect={selection.select}
+        parentSlug={findRootSlug(categories.data, category.id)}
+      />
     </Screen>
   );
 }

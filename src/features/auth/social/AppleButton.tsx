@@ -30,7 +30,7 @@ export function AppleButton({
 }: AppleButtonProps) {
   const theme = useTheme();
   const height = Math.max(theme.touchTarget, 44);
-  const themeRadius = theme.key === 'playful' ? theme.radius.pill : theme.radius.md;
+  const themeRadius = theme.vibe === 'kid' ? theme.radius.pill : theme.radius.md;
   const cornerRadius = Math.min(Math.max(themeRadius, 0), height / 2);
   const dark = theme.scheme === 'dark';
   const inactive = !!(disabled || loading);

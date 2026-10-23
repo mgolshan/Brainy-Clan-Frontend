@@ -1,11 +1,10 @@
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 
 import { ApiError } from '@/api/client';
 import {
   AVATAR_KEYS,
-  THEME_KEYS,
   type ChoiceResponse,
   type MultipleChoicePayload,
   type SessionItem,
@@ -29,6 +28,7 @@ import {
   Celebration,
   Checkbox,
   Chip,
+  ClanReaction,
   Confetti,
   Divider,
   EmptyState,
@@ -38,6 +38,7 @@ import {
   Loading,
   Overline,
   ProgressBar,
+  SceneView,
   Screen,
   SectionHeader,
   Segmented,
@@ -46,6 +47,7 @@ import {
   TextField,
   ThemeProvider,
   ToggleRow,
+  WORLD_ORDER,
   useTheme,
 } from '@/ui';
 
@@ -305,6 +307,18 @@ function PreviewBody({ controls }: { controls: ReactNode }) {
           <Chip label="Chip" />
           <Chip label="Selected" selected />
         </View>
+        <View style={styles.row}>
+          <Badge label="+3" tone="accent" icon="star" sticker />
+          <Badge label="Reached" tone="success" icon="checkmark" sticker tilt={3} />
+          <Badge label="Family plan" tone="warning" icon="star" sticker />
+          <Badge label="New" tone="primary" sticker tilt={-6} />
+        </View>
+      </Card>
+
+      <SectionHeader title={t('dev.reactions')} />
+      <Card style={styles.rowAround}>
+        <ClanReaction key={`cheer${celebrate}`} avatar="fox" kind="cheer" size={72} />
+        <ClanReaction key={`enc${celebrate}`} avatar="panda-grandma" kind="encourage" size={72} />
       </Card>
 
       <SectionHeader title={t('dev.play')} />
@@ -328,6 +342,7 @@ function PreviewBody({ controls }: { controls: ReactNode }) {
           explanation={null}
           pointsAwarded={mcResult.isCorrect ? 1 : 0}
           onContinue={() => setMcResult(null)}
+          avatar="fox"
         />
       ) : null}
       <Card padding="lg">
@@ -364,7 +379,7 @@ function PreviewBody({ controls }: { controls: ReactNode }) {
 
       <SectionHeader title={t('dev.celebration')} />
       <Card style={styles.center}>
-        <Celebration key={celebrate} />
+        <Celebration key={celebrate} avatar="fox" />
         <Text variant="heading" align="center">
           Target reached!
         </Text>
@@ -392,9 +407,132 @@ function PreviewBody({ controls }: { controls: ReactNode }) {
         <ErrorState error={new ApiError(0, 'offline', 'network_error')} onRetry={() => undefined} />
       </Card>
 
-      {celebrate > 0 && theme.celebration === 'confetti' ? (
-        <Confetti key={`c${celebrate}`} />
-      ) : null}
+      {celebrate > 0 ? <Confetti key={`c${celebrate}`} /> : null}
+    </Screen>
+  );
+}
+
+const COLUMN = 360;
+const GALLERY_CATEGORIES = [
+  {
+    slug: 'world-geography',
+    name: 'World Geography',
+    icon: 'globe',
+    is_locked: false,
+    children: [{}, {}],
+  },
+  {
+    slug: 'science-nature',
+    name: 'Science & Nature',
+    icon: 'leaf',
+    is_locked: false,
+    children: [],
+  },
+  { slug: 'math-sprint', name: 'Math Sprint', icon: 'calculator', is_locked: false, children: [] },
+  { slug: 'history', name: 'History', icon: 'landmark', is_locked: true, children: [] },
+] as const;
+
+/** One world in one scheme: its scene behind every key component (gallery column). */
+function WorldColumn() {
+  const theme = useTheme();
+  const { t } = useTranslation();
+  const [height, setHeight] = useState(0);
+  return (
+    <View
+      onLayout={(e: LayoutChangeEvent) => setHeight(Math.round(e.nativeEvent.layout.height))}
+      style={[
+        styles.column,
+        { backgroundColor: theme.colors.background, borderColor: theme.colors.border },
+      ]}>
+      <SceneView width={COLUMN} height={height} />
+      <View style={{ padding: theme.spacing.lg, gap: theme.spacing.md }}>
+        <Overline>{`${theme.key} · ${theme.scheme}`}</Overline>
+        <Text variant="display">{t(theme.displayName)}</Text>
+        <Text tone="muted">Learn and play together as a family.</Text>
+        <Card variant="hero" padding="lg" style={styles.gap}>
+          <Text variant="caption" tone="onPrimary" weight="bold">
+            THIS WEEK
+          </Text>
+          <Text variant="heading" tone="onPrimary">
+            23 pts
+          </Text>
+        </Card>
+        <Button title="Play now" icon="play" />
+        <View style={styles.row}>
+          <Button title="Secondary" variant="secondary" size="sm" fullWidth={false} />
+          <Button title="Outline" variant="outline" size="sm" fullWidth={false} />
+          <Button title="Ghost" variant="ghost" size="sm" fullWidth={false} />
+        </View>
+        <View style={styles.grid}>
+          {GALLERY_CATEGORIES.map((cat, i) => (
+            <View key={cat.slug} style={styles.half}>
+              <CategoryTile
+                category={{ ...cat, children: cat.children as never }}
+                onPress={() => undefined}
+                index={i}
+              />
+            </View>
+          ))}
+        </View>
+        <Card style={styles.gap}>
+          <Text variant="title">Pizza night</Text>
+          <ProgressBar value={0.65} label="Target" valueLabel="13 / 20" />
+          <View style={styles.rowBetween}>
+            <Hearts total={3} lost={1} />
+            <Badge label="+2" tone="accent" icon="star" sticker />
+          </View>
+          <View style={styles.row}>
+            <Badge label="Correct" tone="success" icon="checkmark" />
+            <Badge label="Locked" tone="warning" icon="star" />
+            <Badge label="Admin" tone="primary" />
+          </View>
+        </Card>
+        <FeedbackPanel
+          isCorrect
+          correctText={null}
+          explanation={null}
+          pointsAwarded={1}
+          onContinue={() => undefined}
+          avatar="fox"
+        />
+        <FeedbackPanel
+          isCorrect={false}
+          correctText="Lima"
+          explanation={null}
+          pointsAwarded={0}
+          onContinue={() => undefined}
+          avatar="fox"
+        />
+        <Card style={styles.center}>
+          <Celebration size={92} avatar="fox" />
+          <Text variant="heading" align="center">
+            Target reached!
+          </Text>
+        </Card>
+        <Card>
+          <TextField label="Email" placeholder="mom@example.com" />
+        </Card>
+      </View>
+    </View>
+  );
+}
+
+/** Every world × light/dark side by side (scroll sideways), for design review. */
+function Gallery({ controls }: { controls: ReactNode }) {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  return (
+    <Screen title={t('dev.themesTitle')} subtitle={t('dev.galleryHint')} back width="full">
+      <View style={styles.controls}>{controls}</View>
+      <ScrollView horizontal contentContainerStyle={{ gap: theme.spacing.md }}>
+        {WORLD_ORDER.flatMap((key) =>
+          (['light', 'dark'] as const).map((scheme) => (
+            <ThemeProvider key={`${key}-${scheme}`} themeKey={key} schemePreference={scheme}>
+              <WorldColumn />
+            </ThemeProvider>
+          )),
+        )}
+      </ScrollView>
     </Screen>
   );
 }
@@ -409,14 +547,31 @@ export function ThemePreview() {
   const [scheme, setScheme] = useState<'light' | 'dark'>('light');
   const [textScale, setTextScale] = useState(1);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [mode, setMode] = useState<'gallery' | 'single'>('gallery');
+
+  const modeSwitch = (
+    <Segmented
+      value={mode}
+      onChange={setMode}
+      options={[
+        { value: 'gallery', label: t('dev.gallery'), icon: 'apps-outline' },
+        { value: 'single', label: t('dev.single'), icon: 'square-outline' },
+      ]}
+    />
+  );
+
+  if (mode === 'gallery') {
+    return <Gallery controls={<Card>{modeSwitch}</Card>} />;
+  }
 
   const controls = (
     <Card style={styles.gap}>
+      {modeSwitch}
       <Overline>{t('dev.theme')}</Overline>
       <Segmented
         value={themeKey}
         onChange={setThemeKey}
-        options={THEME_KEYS.map((k) => ({ value: k, label: t(`appearance.themes.${k}`) }))}
+        options={WORLD_ORDER.map((k) => ({ value: k, label: t(`appearance.themes.${k}`) }))}
       />
       <Segmented
         value={scheme}
@@ -462,4 +617,7 @@ const styles = StyleSheet.create({
   half: { flexBasis: '46%', flexGrow: 1 },
   avatars: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center' },
   center: { alignItems: 'center', gap: 12 },
+  rowAround: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' },
+  column: { width: COLUMN, borderRadius: 24, borderWidth: 1, overflow: 'hidden' },
+  controls: { maxWidth: 640 },
 });

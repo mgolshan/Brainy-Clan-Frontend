@@ -1,5 +1,8 @@
 import { AtkinsonHyperlegible_400Regular } from '@expo-google-fonts/atkinson-hyperlegible/400Regular';
 import { AtkinsonHyperlegible_700Bold } from '@expo-google-fonts/atkinson-hyperlegible/700Bold';
+import { Fredoka_500Medium } from '@expo-google-fonts/fredoka/500Medium';
+import { Fredoka_600SemiBold } from '@expo-google-fonts/fredoka/600SemiBold';
+import { Fredoka_700Bold } from '@expo-google-fonts/fredoka/700Bold';
 import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
 import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
 import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
@@ -11,6 +14,8 @@ import { Nunito_600SemiBold } from '@expo-google-fonts/nunito/600SemiBold';
 import { Nunito_700Bold } from '@expo-google-fonts/nunito/700Bold';
 import { Nunito_800ExtraBold } from '@expo-google-fonts/nunito/800ExtraBold';
 import { Nunito_900Black } from '@expo-google-fonts/nunito/900Black';
+import { PixelifySans_600SemiBold } from '@expo-google-fonts/pixelify-sans/600SemiBold';
+import { PixelifySans_700Bold } from '@expo-google-fonts/pixelify-sans/700Bold';
 import { SpaceGrotesk_500Medium } from '@expo-google-fonts/space-grotesk/500Medium';
 import { SpaceGrotesk_600SemiBold } from '@expo-google-fonts/space-grotesk/600SemiBold';
 import { SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk/700Bold';
@@ -37,6 +42,11 @@ export const themeFonts = {
   Lora_700Bold,
   AtkinsonHyperlegible_400Regular,
   AtkinsonHyperlegible_700Bold,
+  Fredoka_500Medium,
+  Fredoka_600SemiBold,
+  Fredoka_700Bold,
+  PixelifySans_600SemiBold,
+  PixelifySans_700Bold,
 } as const;
 
 export type FontName = keyof typeof themeFonts;

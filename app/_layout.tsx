@@ -180,6 +180,7 @@ function RootNavigator() {
           <Stack.Screen name="oauth-callback" />
           <Stack.Protected guard={__DEV__}>
             <Stack.Screen name="dev/themes" />
+            <Stack.Screen name="dev/sounds" />
           </Stack.Protected>
         </Stack>
       )}

@@ -42,7 +42,7 @@ function Heart({ lost }: { lost: boolean }) {
     transform: [{ scale: scale.get() }, { translateX: shake.get() }],
   }));
 
-  const size = theme.key === 'playful' ? 30 : theme.key === 'classic' ? 30 : 24;
+  const size = theme.vibe === 'kid' ? 30 : theme.key === 'classic' ? 30 : 24;
   return (
     <Animated.View style={style}>
       {theme.emojiIcons ? (

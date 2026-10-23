@@ -16,6 +16,7 @@ import {
   useUpdateGoal,
 } from '@/features/goals/hooks';
 import { dateInTimeZone, formatPeriodRange, formatTimeLeft, useNow } from '@/features/goals/time';
+import { useSoundEffects } from '@/features/sound';
 import { errorMessage } from '@/lib/errorMessage';
 import { goBack } from '@/lib/navigation';
 import { formatDate } from '@/lib/format';
@@ -125,6 +126,15 @@ function AdminActions({ goal }: { goal: GoalPlan }) {
  * unbounded (one row per closed period), so the screen is a FlashList: everything above the
  * history is its header, admin actions its footer, and the next page loads near the end.
  */
+/** Plays the level-up sound once when a reached goal is shown. */
+function ReachedSound() {
+  const { play } = useSoundEffects();
+  useEffect(() => {
+    play('levelUp');
+  }, [play]);
+  return null;
+}
+
 export function GoalDetailScreen({ id }: { id: number }) {
   const { t, i18n } = useTranslation();
   const theme = useTheme();
@@ -313,7 +323,12 @@ export function GoalDetailScreen({ id }: { id: number }) {
         </Card>
       ) : null}
 
-      {reached && theme.celebration === 'confetti' ? <Confetti /> : null}
+      {reached ? (
+        <>
+          <Confetti />
+          <ReachedSound />
+        </>
+      ) : null}
     </Screen>
   );
 }

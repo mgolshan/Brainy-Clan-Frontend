@@ -191,7 +191,7 @@ export function Sudoku({
   const digitSize = cellFont(cell, 0.56, 0.78);
   const selectedValue = selected !== null ? values[selected] : 0;
   // Playful's primary (coral) is too close to its danger red for digits: use the blue there.
-  const entered = theme.key === 'playful' ? c.secondary : c.primary;
+  const entered = theme.vibe === 'kid' ? c.secondary : c.primary;
 
   // Pad: one row when keys stay comfortably big, otherwise two rows.
   const gap = theme.spacing.xs;
