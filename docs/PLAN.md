@@ -123,6 +123,15 @@ the OS "reduce motion" setting). Components read tokens only through `useTheme()
     "New world unlocked!" celebration once (seen state kept locally per member; UI only). If the
     member's stored world is locked again (`theme_unlocked: false`), the app shows the default.
 
+- **Family chat (2026-10-23, Moe):** a "Chat" tab (or Family → Chat; pick what fits the tab bar
+  best on phones and iPad) with the family group chat per `docs/API.md` "Family chat": bubbles with
+  Clan avatars, emoji keyboard + a quick emoji row, unread badge, optimistic send with `client_id`
+  retries (offline-tolerant), delete own message (admins: any), polling while open, retention notice
+  ("Messages disappear after 7 days on the free plan" + upsell for admins), admin per-member chat
+  switch in the member editor. Message text is **always** rendered with `<Text>` as plain text — never
+  HTML, Markdown, WebView or `dangerouslySetInnerHTML`; no link detection. Push `family_chat`
+  opens the chat. Styled by the world tokens.
+
 ## Working rules
 
 - One milestone at a time. At the end of each, stop, summarize what was built and explain how to test it on the phone.

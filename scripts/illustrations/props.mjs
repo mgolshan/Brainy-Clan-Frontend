@@ -117,6 +117,13 @@ const GLYPHS = {
   R: 'M2 13 V1 H5.6 Q8.6 1 8.6 4 Q8.6 7 5.6 7 H2 M5.4 7 L8.8 13',
   W: 'M0.6 1 L2.8 13 L5 4.6 L7.2 13 L9.4 1',
   Z: 'M1.4 1 H8.6 L1.4 13 H8.6',
+  H: 'M1.6 1 V13 M8.4 1 V13 M1.6 7 H8.4',
+  J: 'M7.4 1 V9.4 Q7.4 13 4.4 13 Q1.8 13 1.2 10.6',
+  L: 'M2 1 V13 H8.4',
+  N: 'M1.6 13 V1 L8.4 13 V1',
+  P: 'M2 13 V1 H5.6 Q8.8 1 8.8 4.2 Q8.8 7.4 5.6 7.4 H2',
+  T: 'M1 1 H9 M5 1 V13',
+  U: 'M1.6 1 V9 Q1.6 13 5 13 Q8.4 13 8.4 9 V1',
   S: 'M8.4 2.8 Q7.2 1 5 1 Q1.8 1 1.8 3.8 Q1.8 6.2 5 7 Q8.8 7.8 8.8 10.2 Q8.8 13 5 13 Q2.4 13 1.2 11',
 };
 
@@ -154,6 +161,13 @@ export function glyph(ch, cx, cy, h, color, w = h * 0.17) {
   let s = line(placeGlyph(pd, cx, cy, h), color, w);
   if (ch === '?') s += circle(cx, cy + h * 0.43, w * 0.62, color);
   return s;
+}
+
+/** A word of stroke glyphs centred at (cx, cy), letters `h` tall. */
+export function word(text, cx, cy, h, color, w = h * 0.17) {
+  const step = h * 0.78;
+  const x0 = cx - ((text.length - 1) * step) / 2;
+  return [...text].map((ch, i) => glyph(ch, x0 + i * step, cy, h, color, w)).join('');
 }
 
 /** Rounded square tile with a glyph (letter/number token), optional rotation. */

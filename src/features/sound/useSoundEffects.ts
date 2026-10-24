@@ -11,8 +11,11 @@ import type { SoundName } from './types';
 export interface SoundEffects {
   /** member `accessibility.sound_effects` ?? policy `accessibility_defaults.sound_effects` ?? false */
   enabled: boolean;
-  /** Plays the effect from the current world's pack (+ its haptic); a no-op when disabled. */
-  play(name: SoundName): void;
+  /**
+   * Plays the effect from the current world's pack (+ its haptic); a no-op when disabled.
+   * `rate` (optional, 0.5–2) shifts it up/down like a note (Pattern Sequence pad tones).
+   */
+  play(name: SoundName, rate?: number): void;
 }
 
 /** Sound effects of the signed-in member's current world. Preloads the pack while enabled. */
@@ -26,6 +29,9 @@ export function useSoundEffects(): SoundEffects {
     if (enabled) preloadPack(pack);
   }, [enabled, pack]);
 
-  const play = useCallback((name: SoundName) => playEffect(enabled, pack, name), [enabled, pack]);
+  const play = useCallback(
+    (name: SoundName, rate?: number) => playEffect(enabled, pack, name, rate),
+    [enabled, pack],
+  );
   return useMemo(() => ({ enabled, play }), [enabled, play]);
 }

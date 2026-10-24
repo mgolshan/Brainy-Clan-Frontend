@@ -1,5 +1,11 @@
 import * as Sentry from '@sentry/react-native';
 
+import {
+  scrubBreadcrumb,
+  scrubEvent,
+  type CrumbLike,
+  type EventLike,
+} from '@/features/app/sentryScrub';
 import { APP_VERSION } from '@/config/env';
 
 /**
@@ -9,43 +15,13 @@ import { APP_VERSION } from '@/config/env';
  * - request bodies, headers (the Bearer token), cookies and query strings are stripped;
  * - the only user field ever sent is the family member id (`setMonitoringMember`), never a
  *   nickname, display name or email — the same for children and adults;
- * - no screenshots / view hierarchy (they could show names), no performance tracing.
+ * - no screenshots / view hierarchy (they could show names), no performance tracing;
+ * - family chat text never leaves the app: bodies are stripped, chat breadcrumbs keep no
+ *   details (`sentryScrub.ts`).
  */
 const DSN = process.env.EXPO_PUBLIC_SENTRY_DSN?.trim() ?? '';
 
 export const monitoringEnabled = DSN.length > 0;
-
-/** Drops `?query` and `#hash` (codes, tokens or emails could ride in a URL). */
-function stripQuery(url: string | undefined): string | undefined {
-  return url?.replace(/[?#].*$/, '');
-}
-
-function scrubEvent<T extends Sentry.ErrorEvent>(event: T): T {
-  if (event.request) {
-    event.request = { method: event.request.method, url: stripQuery(event.request.url) };
-  }
-  // Whatever an integration attached: keep only the member id.
-  event.user = event.user?.id !== undefined ? { id: event.user.id } : undefined;
-  event.breadcrumbs = event.breadcrumbs?.map(scrubBreadcrumb);
-  return event;
-}
-
-function scrubBreadcrumb(crumb: Sentry.Breadcrumb): Sentry.Breadcrumb {
-  if (crumb.category === 'fetch' || crumb.category === 'xhr') {
-    const data = crumb.data ?? {};
-    return {
-      ...crumb,
-      data: {
-        method: data.method,
-        url: typeof data.url === 'string' ? stripQuery(data.url) : undefined,
-        status_code: data.status_code,
-      },
-    };
-  }
-  // Console output can contain anything (payloads, names): keep only the level.
-  if (crumb.category === 'console') return { ...crumb, message: undefined, data: undefined };
-  return crumb;
-}
 
 export function initMonitoring() {
   if (!monitoringEnabled) return;
@@ -57,8 +33,8 @@ export function initMonitoring() {
     attachScreenshot: false,
     attachViewHierarchy: false,
     tracesSampleRate: 0,
-    beforeSend: (event) => scrubEvent(event),
-    beforeBreadcrumb: (crumb) => scrubBreadcrumb(crumb),
+    beforeSend: (event) => scrubEvent(event as Sentry.ErrorEvent & EventLike),
+    beforeBreadcrumb: (crumb) => scrubBreadcrumb(crumb as Sentry.Breadcrumb & CrumbLike),
   });
 }
 

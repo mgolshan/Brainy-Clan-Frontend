@@ -1,4 +1,4 @@
-import type { Category } from '@/api/types';
+import type { Category, CategoryIcon } from '@/api/types';
 import type { IconName, Theme } from '@/ui';
 
 interface CategoryVisual {
@@ -7,7 +7,7 @@ interface CategoryVisual {
 }
 
 /** Contract icon keys → line icon (sleek/modern/classic) and emoji (playful). */
-const VISUALS: Record<string, CategoryVisual> = {
+const VISUALS: Record<CategoryIcon, CategoryVisual> = {
   grid: { icon: 'grid-outline', emoji: '🔢' },
   puzzle: { icon: 'extension-puzzle-outline', emoji: '🧩' },
   quote: { icon: 'chatbubble-ellipses-outline', emoji: '💬' },
@@ -16,12 +16,26 @@ const VISUALS: Record<string, CategoryVisual> = {
   leaf: { icon: 'leaf-outline', emoji: '🌿' },
   calculator: { icon: 'calculator-outline', emoji: '➗' },
   book: { icon: 'book-outline', emoji: '📚' },
+  bulb: { icon: 'bulb-outline', emoji: '💡' },
+  language: { icon: 'language-outline', emoji: '🗣️' },
+  rocket: { icon: 'rocket-outline', emoji: '🚀' },
+  // `globe` (geography) already uses the earth glyph; Our Planet gets sun + cloud (weather, nature)
+  earth: { icon: 'partly-sunny-outline', emoji: '🌦️' },
+  palette: { icon: 'color-palette-outline', emoji: '🎨' },
+  restaurant: { icon: 'restaurant-outline', emoji: '🍲' },
+  football: { icon: 'football-outline', emoji: '⚽' },
+  shield: { icon: 'shield-checkmark-outline', emoji: '🦺' },
+  sparkles: { icon: 'sparkles-outline', emoji: '✨' },
 };
 
-const FALLBACK: CategoryVisual = { icon: 'sparkles-outline', emoji: '⭐' };
+const hasVisual = (icon: string): icon is CategoryIcon =>
+  Object.prototype.hasOwnProperty.call(VISUALS, icon);
+
+/** Unknown keys (e.g. a newer backend): a neutral glyph that no contract key uses. */
+const FALLBACK: CategoryVisual = { icon: 'shapes-outline', emoji: '⭐' };
 
 export function categoryVisual(icon: string | null | undefined): CategoryVisual {
-  return (icon && VISUALS[icon]) || FALLBACK;
+  return icon && hasVisual(icon) ? VISUALS[icon] : FALLBACK;
 }
 
 function hash(value: string): number {

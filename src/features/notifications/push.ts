@@ -137,6 +137,17 @@ export function addTokenChangeListener(): () => void {
 export interface PushData {
   type?: unknown;
   goal_id?: unknown;
+  /** `family_chat`: the new message's id (the push never carries message text). */
+  message_id?: unknown;
+}
+
+/** Calls `onData` for pushes that arrive while the app is open (e.g. refresh the chat). */
+export function addNotificationReceivedListener(onData: (data: PushData) => void): () => void {
+  if (!isPushSupported()) return () => undefined;
+  const sub = Notifications.addNotificationReceivedListener((notification) =>
+    onData((notification.request.content.data ?? {}) as PushData),
+  );
+  return () => sub.remove();
 }
 
 /** Calls `onOpen` for notification taps: the cold-start one, then every later tap. */

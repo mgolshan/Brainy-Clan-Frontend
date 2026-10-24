@@ -33,6 +33,7 @@ const TYPES: { key: NotificationType; icon: IconName }[] = [
   { key: 'goal_reached', icon: 'flag-outline' },
   { key: 'period_closed', icon: 'trophy-outline' },
   { key: 'family_activity', icon: 'people-outline' },
+  { key: 'family_chat', icon: 'chatbubbles-outline' },
   { key: 'daily_reminder', icon: 'alarm-outline' },
 ];
 
@@ -163,7 +164,8 @@ function NotificationSettings({ memberId, ageBand, title, subtitle }: SettingsPr
                   icon={icon}
                   label={t(`notifications.types.${key}`)}
                   description={t(`notifications.typeHints.${key}`)}
-                  value={data.types[key] ?? false}
+                  // `family_chat` defaults to on (older backends don't send it yet).
+                  value={data.types[key] ?? key === 'family_chat'}
                   onValueChange={(on) => save({ types: { [key]: on } })}
                 />
               </View>

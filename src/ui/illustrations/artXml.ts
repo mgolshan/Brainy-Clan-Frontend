@@ -1,6 +1,6 @@
 import { CATEGORY_ART, FALLBACK_ART } from './categoryArt.generated';
 
-/** The 8 seeded top-level category slugs (backend `categories.php`) that have their own scene. */
+/** The seeded top-level category slugs (backend `categories.php`) that have their own scene. */
 export const CATEGORY_ART_SLUGS = Object.keys(CATEGORY_ART);
 
 export function hasCategoryArt(slug: string | null | undefined): boolean {

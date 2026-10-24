@@ -4,6 +4,8 @@ import type { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ColorValue } from 'react-native';
 
+import { useChatBadge } from '@/features/chat/hooks';
+import { badgeLabel } from '@/features/chat/messages';
 import { WorldUnlockWatcher } from '@/features/worlds/WorldUnlockSheet';
 import { useTheme } from '@/ui';
 
@@ -29,6 +31,8 @@ export default function TabsLayout() {
   const theme = useTheme();
   const c = theme.colors;
   const tall = theme.touchTarget >= 56;
+  // Family chat: unread badge (polled every 60 s) + sending queued messages while signed in.
+  const chatUnread = useChatBadge();
 
   return (
     <>
@@ -60,6 +64,19 @@ export default function TabsLayout() {
           options={{
             title: t('tabs.play'),
             tabBarIcon: tabIcon('game-controller', 'game-controller-outline'),
+          }}
+        />
+        <Tabs.Screen
+          name="chat"
+          options={{
+            title: t('tabs.chat'),
+            tabBarIcon: tabIcon('chatbubbles', 'chatbubbles-outline'),
+            tabBarBadge: badgeLabel(chatUnread),
+            tabBarBadgeStyle: {
+              backgroundColor: c.danger,
+              color: c.onDanger,
+              fontFamily: theme.fonts.bodyBold,
+            },
           }}
         />
         <Tabs.Screen

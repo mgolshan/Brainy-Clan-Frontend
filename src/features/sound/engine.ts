@@ -18,6 +18,8 @@ import { SOUND_NAMES, type SoundName, type SoundPack } from './types';
 export const SOUND_VOLUME = 0.6;
 
 const players = new Map<string, AudioPlayer>();
+/** Playback rate last set per player (only touched when a caller asks for a non-1 rate). */
+const rates = new Map<string, number>();
 let activePack: SoundPack | null = null;
 let modeSet = false;
 
@@ -52,6 +54,7 @@ function playerFor(pack: SoundPack, name: SoundName): AudioPlayer | null {
 function release(key: string) {
   const player = players.get(key);
   players.delete(key);
+  rates.delete(key);
   try {
     player?.remove();
   } catch {
@@ -69,11 +72,26 @@ export function preloadPack(pack: SoundPack) {
   for (const name of SOUND_NAMES) playerFor(pack, name);
 }
 
-/** Play one effect now (restarting it if it is still playing). Never throws. */
-export function playSound(pack: SoundPack, name: SoundName) {
+/**
+ * Play one effect now (restarting it if it is still playing). Never throws. `rate` (0.5–2) plays
+ * it faster/higher or slower/lower without pitch correction, e.g. one tone per pad in Pattern
+ * Sequence; best-effort (a platform that can't change the rate plays it at 1).
+ */
+export function playSound(pack: SoundPack, name: SoundName, rate = 1) {
   ensureAudioMode();
+  const key = keyOf(pack, name);
   const player = playerFor(pack, name);
   if (!player) return;
+  const wanted = Math.min(2, Math.max(0.5, rate));
+  if ((rates.get(key) ?? 1) !== wanted) {
+    try {
+      player.shouldCorrectPitch = false;
+      player.setPlaybackRate(wanted);
+      rates.set(key, wanted);
+    } catch {
+      // rate not supported here: plays at the normal rate
+    }
+  }
   try {
     if (player.playing || player.currentTime > 0) {
       player.seekTo(0).then(
@@ -118,6 +136,7 @@ export function playHaptic(name: SoundName) {
 /** Test hook: forget every player (does not touch the native side). */
 export function resetSoundEngineForTests() {
   players.clear();
+  rates.clear();
   activePack = null;
   modeSet = false;
 }

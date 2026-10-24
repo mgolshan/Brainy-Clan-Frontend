@@ -6,6 +6,7 @@ import { View } from 'react-native';
 import type { Accessibility, AvatarKey, Member } from '@/api/types';
 import { useIsAdmin, useMe, usePolicy } from '@/features/auth/hooks';
 import { DevicesList } from '@/features/family/components/DevicesList';
+import { MemberChatSwitch } from '@/features/family/components/MemberChatSwitch';
 import { MemberEmailLogin } from '@/features/family/components/MemberEmailLogin';
 import { useFamily, useRemoveMember, useUpdateMember } from '@/features/family/hooks';
 import { AccessibilityEditor } from '@/features/profile/AccessibilityEditor';
@@ -157,6 +158,8 @@ function Editor({ member, ownerUserId }: { member: Member; ownerUserId: number }
       </Card>
       <MemberEmailLogin member={member} />
       <DevicesList memberId={member.id} />
+
+      <MemberChatSwitch member={member} />
 
       <SectionHeader title={t('notifications.title')} />
       <Card padding="sm">

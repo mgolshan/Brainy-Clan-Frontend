@@ -23,6 +23,14 @@ export const queryKeys = {
   memberNotificationPreferences: (memberId: number) =>
     ['family', 'members', memberId, 'notification-preferences'] as const,
   leaderboard: (period: LeaderboardPeriod) => ['family', 'leaderboard', period] as const,
+  /** Family chat (own root: refreshing `family` must not refetch every chat page). */
+  chat: ['chat'] as const,
+  /** `GET /family/chat/messages?before=` pages (infinite query, newest first). */
+  chatMessages: ['chat', 'messages'] as const,
+  /** `GET /family/chat/messages?after=` polling while the chat screen is open. */
+  chatPoll: ['chat', 'poll'] as const,
+  /** `GET /family/chat/unread` (tab badge). */
+  chatUnread: ['chat', 'unread'] as const,
   categories: ['categories'] as const,
   goals: ['goals'] as const,
   goal: (id: number) => ['goals', id] as const,

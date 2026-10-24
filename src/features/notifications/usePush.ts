@@ -2,7 +2,9 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 
+import { refreshChatFromPush } from '@/features/chat/hooks';
 import {
+  addNotificationReceivedListener,
   addNotificationTapListener,
   addTokenChangeListener,
   getPushPermission,
@@ -42,14 +44,28 @@ function openFromPush(data: PushData) {
     case 'daily_reminder':
       router.navigate('/play');
       break;
+    case 'family_chat':
+      refreshChatFromPush();
+      router.navigate('/chat');
+      break;
   }
+}
+
+/** A push arrived while the app is open: refresh what it is about. */
+function onPushReceived(data: PushData) {
+  if (data.type === 'family_chat') refreshChatFromPush();
 }
 
 /** Deep-link notification taps (including the one that cold-started the app) once routes exist. */
 export function useNotificationDeepLinks(ready: boolean) {
   useEffect(() => {
     if (!ready) return;
-    return addNotificationTapListener(openFromPush);
+    const removeTap = addNotificationTapListener(openFromPush);
+    const removeReceived = addNotificationReceivedListener(onPushReceived);
+    return () => {
+      removeTap();
+      removeReceived();
+    };
   }, [ready]);
 }
 

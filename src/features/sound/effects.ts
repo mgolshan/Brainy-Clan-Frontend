@@ -4,9 +4,9 @@ import { playHaptic, playSound } from './engine';
 import { resolveSoundPack, type SoundName, type SoundPack } from './types';
 
 /** Pure core of `useSoundEffects().play()`: nothing at all happens when sound effects are off. */
-export function playEffect(enabled: boolean, pack: SoundPack, name: SoundName) {
+export function playEffect(enabled: boolean, pack: SoundPack, name: SoundName, rate?: number) {
   if (!enabled) return;
-  playSound(pack, name);
+  playSound(pack, name, rate);
   playHaptic(name);
 }
 

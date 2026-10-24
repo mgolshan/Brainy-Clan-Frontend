@@ -347,6 +347,126 @@ themes (light/dark).
 
 ## Log
 
+### 2026-10-24 family chat web QA
+
+- Verified on web (Sam via demo token + Mom side by side at 390×844): emoji both ways (polling
+  < 5 s), Chat tab badge, "Today" separator, `<script>`/`<img onerror>`/Markdown/URL shown as
+  literal text (no alert, no `<img>`, no link), own delete + admin delete → tombstones on both
+  sides, chat off for Sam → "A parent turned chat off for you" and back on, retention text "7 days"
+  - upsell on the free plan / "1 year" on the Family plan, offline send → "Waiting for a
+    connection…" then sent once (one POST, same `client_id`).
+- **Fixed:** an empty chat never showed the first incoming message until the history went stale
+  (~1 min; `after` polling had no cursor), and messages deleted by others never turned into
+  tombstones while the screen stayed open. The poll now re-reads the newest page when the cache is
+  empty and every 20 s (`applyLatestPage` in `messages.ts`, tests). `ConfirmSheet`: the backdrop
+  button no longer wraps the dialog's buttons (nested `<button>` error on web, screen readers saw
+  one "Cancel" button around the whole dialog).
+- Note: deleting on web is long-press only (mouse hold works); a member editor switch flip only
+  reaches a child's open "chat off" screen when `me` refetches (focus/next start).
+- Screenshots: `docs/screenshots/chat/family-chat-kid.png`, `family-chat-parent.png`.
+
+### 2026-10-23 family chat (app)
+
+- New **Chat tab** (5th tab, between Play and Family) with an unread badge: chat is a frequent,
+  time-sensitive feature and the badge must be visible from everywhere. 5 tabs is Apple's iPhone
+  maximum and fits: labels are short (en "Chat", fr "Messages"; the screen title is "Family chat"
+  / "Discussion familiale"), ~75 pt per tab on a 375 pt phone; iPad shows icon + label side by side.
+- `src/features/chat/`: `messages.ts` (pure: merge/dedupe by id + `client_id`, tombstone wins,
+  cursors, rows with day separators, author grouping, retention text, delete rule, access),
+  `api.ts`, `hooks.ts` (infinite history with `before`, `after` polling every 4 s only while the
+  screen is focused and the app active, unread every 60 s for the badge, mark read for visible
+  messages, optimistic delete), `outbox.ts` (persisted per-member outbox like the answer queue:
+  optimistic send with an expo-crypto UUID `client_id`, waiting/failed states, retry with the same
+  `client_id`, re-send on reconnect/foreground, cleared on sign-out), `ChatScreen.tsx` +
+  components (bubbles in world tokens — own = primary/onPrimary, others = surface/text, rounder in
+  kid worlds; Clan avatar + nickname, "Former member", "Message deleted", local-time stamps;
+  composer with 1000-char limit + counter from 900, 12 quick emoji, Enter sends on web; in-app
+  confirm sheet for delete / discard; retention notice + Family plan link for admins on free;
+  "A parent turned chat off for you" for `chat_enabled: false` / 403 `chat_disabled`).
+- **Safety:** bodies render only in `MessageText` (one plain string child of `<Text>`,
+  `dataDetectorType="none"`, web word-break); tests check `<script>`, `<img onerror>`,
+  `javascript:` render literally and grep the feature for WebView/innerHTML/Markdown/Linking/
+  console. Sentry scrubbers moved to `src/features/app/sentryScrub.ts` (+ tests): no bodies, chat
+  breadcrumbs keep no details, `extra.body` dropped.
+- Push `family_chat`: tap opens the Chat tab, arrival refreshes badge/poll; toggle in
+  notification settings. Member editor: "Family chat" switch (`chat_enabled`, saved at once).
+- Types (additive): `ChatMessage`, pages/meta, `Member.chat_enabled`, `Policy.chat`,
+  `family_chat`, `chat_disabled`. No new color tokens (bubble pairs are already in the contrast test).
+- Not verified in a browser: the backend chat endpoints weren't deployed yet (404). Check on a
+  device: keyboard avoidance on Android edge-to-edge (`KeyboardAvoidingView` padding), long-press
+  delete, push routing.
+- Checks: typecheck, lint, format:check, npm test (40 suites / 629 tests), web export.
+
+### 2026-10-23 nonogram + spot the difference
+
+- Renderers registered in `src/challenges/registry.ts` (`nonogram`, `spot_difference`, both
+  `wide`) with payload guards; types in `src/api/types.ts`; strings `challenge.nonogram.*` and
+  `challenge.spot.*` (en + fr).
+- `src/challenges/nonogram/`: `logic.ts` (guard, `lineRuns` / `isLineSatisfied` /
+  `satisfiedLines` — a pure clue check, no solution), `Nonogram.tsx`: row clues left, column clues
+  on top, min cell 28 pt (the board scrolls sideways when it doesn't fit), thick lines every 5;
+  tap fills, long-press or the Mark mode sets ✕ (local only, sent as 0), drag paints along a row
+  or column, Clear; a clue fades when its line matches; Check sends `{ grid }`; after scoring the
+  solution picture, the server `title` ("A sailing boat!") and the world `Celebration`; wrong
+  cells tinted red. Screen readers: every cell a button ("Row 2, column 3: filled"), clues as text.
+- `src/challenges/spot/`: `logic.ts` (guard, `applyChanges`, `hitTest` / `scoreTaps` mirroring
+  the contract: radius `size × 0.75`, min 0.06, each change once; `normalizeTap`,
+  `locateInPair`, `objectCenterTap`), `props/index.ts` (12 original flat props, asymmetric so
+  `flip` shows; named colors → fixed art palette in this module only), `SpotDifference.tsx`
+  (stacked below 520 pt, side by side above; world `backgroundAlt` / `surfaceAlt` background;
+  instant ring on both pictures + `correct` sound, ✕ + `wrong` sound on a miss, found/misses
+  badges; sends `{ taps }` when all are found or misses exceed `max_misses`; screen readers or
+  "Use a list" get an object list with "Is this different?" buttons that tap the object centre).
+- **Contract assumption to confirm on the backend:** tap y is normalized by the picture height,
+  objects' y by the width, so the hit test uses `tap_y / aspect`; a `size` change uses the
+  object's original size for its circle.
+- Dev page `/dev/games`: samples in `src/features/dev/puzzleSamples.ts` (nonogram 5×5 and 10×10,
+  spot 5 changes) appended to `BRAIN_GAME_SAMPLES`. Verified on web at phone width in Jungle and
+  Neon: `docs/screenshots/games/nonogram-jungle-solved.png`, `spot-difference-neon-phone.png`.
+  Drag-painting could not be exercised in the browser harness (synthetic drags arrive as taps);
+  check it on a phone.
+- Tests: `src/challenges/nonogram/__tests__/logic.test.ts`, `src/challenges/spot/__tests__/logic.test.ts`
+  (guards, clues, hit-testing, tap math, prop art), registry valid/invalid cases.
+
+### 2026-10-23 memory match + pattern sequence
+
+- Brain-game renderers registered in `src/challenges/registry.ts` (`memory_match`,
+  `pattern_sequence`) with payload guards (malformed items are skipped). Types in `src/api/types.ts`.
+- `src/challenges/memory/`: `logic.ts` (guard + `replayAttempts`, a pure mirror of the server
+  rules: two different unmatched in-range positions per attempt, correct = all pairs within
+  `max_attempts`), `MemoryMatch.tsx` (world card back with the owl mark `OwlMark.tsx`, scale-X
+  flip, instant with reduced motion; matched pairs bounce; mismatches flip back after 800 ms /
+  1200 ms with calm timers; attempts kept as a draft; the full attempts list is sent automatically
+  when all pairs are found or attempts run out; "Check" stays as a retry if sending failed).
+- `src/challenges/pattern/`: `logic.ts` (guard, `tapPad`/`inputStatus`, `playbackTiming` = `show_ms`
+  ×1.5 with calm timers, `padToneRate`), `PatternSequence.tsx` (Start → Watch plays the pattern
+  once with highlight + scale + a tone per pad, then Your turn; a wrong tap is sent at once; no
+  replay, also after leaving: `watched` is a draft; with a screen reader the pattern is announced).
+- Sounds: `playSound(pack, name, rate?)` / `useSoundEffects().play(name, rate?)` play a sound at a
+  playback rate (no pitch correction, best effort); renderers use `useUiSound()` (fed by
+  `useSoundEffects` in `AppThemeProvider`) so the registry stays free of `features/` imports.
+- Dev page `/dev/games?world=jungle&game=0` (`src/features/dev/GamesPreview.tsx`,
+  `brainGameSamples.ts`): every world, light/dark, reduced motion, calm timers, local scoring.
+  Screenshots: `docs/screenshots/games/memory-match-jungle-phone.png`,
+  `pattern-sequence-neon-phone.png`.
+- Tests: `src/challenges/memory/__tests__/logic.test.ts`, `src/challenges/pattern/__tests__/logic.test.ts`,
+  playback-rate test in `src/features/sound/__tests__/sound.test.ts`, registry key list.
+
+### 2026-10-23 new categories art + icons
+
+- Contract icon keys `bulb, language, rocket, earth, palette, restaurant, football, shield, sparkles`
+  added to `CategoryIcon` (`src/api/types.ts`) and `categoryVisuals.ts` (Ionicons + emoji; `earth`
+  = partly-sunny because `globe` already uses the earth glyph). Lookup is now own-key only
+  (`constructor`/`toString` used to hit the prototype); unknown keys fall back to `shapes-outline`
+  (was `sparkles-outline`, now taken by `sparkles`). Tests in `categoryVisuals.test.ts`.
+- 9 new category scenes (`scripts/illustrations/scenesMore.mjs`, new `word()` + glyphs H J L N P T U
+  in `props.mjs`): logic-riddles (raccoon detective, lens, ? bulb), language-swap (cat + frog,
+  HELLO/BONJOUR bubbles), inventions-technology (otter, goggles, gears, robot), our-planet (turtle
+  hugging a smiling Earth), art-music (giraffe, beret, palette, notes), food-world (bear chef, fruit
+  basket), sports-games (dog, football, chess king), brain-games (fox + frog, memory cards),
+  life-skills (penguin, helmet, STOP sign, zebra crossing). `npm run art:build`: 17 scenes; art test
+  covers all 17 slugs.
+
 ### 2026-10-23 worlds phase 2: six new worlds
 
 Moe: "Go for phase 2" (docs/PLAN.md). Contract keys `sea`, `dino`, `sticker`, `lofi`, `nature`,

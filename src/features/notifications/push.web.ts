@@ -24,3 +24,6 @@ export function addTokenChangeListener(): () => void {
 export function addNotificationTapListener(_onOpen: (data: PushData) => void): () => void {
   return () => undefined;
 }
+export function addNotificationReceivedListener(_onData: (data: PushData) => void): () => void {
+  return () => undefined;
+}

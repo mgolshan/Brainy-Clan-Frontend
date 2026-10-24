@@ -58,6 +58,8 @@ export function errorMessage(error: unknown, t: TFunction): string {
       return t('errors.notFound');
     case 'rate_limited':
       return t('errors.rateLimited');
+    case 'chat_disabled':
+      return t('chat.disabledTitle');
     case 'login_locked':
       // Screens with a sign-in form show a live countdown instead (`useLockout`).
       return t('errors.loginLocked');

@@ -59,6 +59,20 @@ const VALID: [ChallengeTypeKey, string, unknown][] = [
     'word search',
     { variant: 'word_search', grid: [['C', 'A', 'T']], words: ['CAT'] },
   ],
+  ['nonogram', '2×2', { rows: 2, cols: 2, row_clues: [[2], [0]], col_clues: [[1], [1]] }],
+  [
+    'spot_difference',
+    'contract example',
+    {
+      aspect: 1.25,
+      objects: [
+        { id: 'o1', kind: 'tree', x: 0.2, y: 0.6, size: 0.18, color: 'green', flip: false },
+        { id: 'o3', kind: 'fox', x: 0.6, y: 0.4, size: 0.12, color: 'orange', flip: false },
+      ],
+      changes: [{ id: 'd1', object_id: 'o3', change: 'missing', value: null }],
+      max_misses: 5,
+    },
+  ],
 ];
 
 /** Malformed payloads: the play session must skip them instead of crashing. */
@@ -98,12 +112,37 @@ const INVALID: [ChallengeTypeKey, string, unknown][] = [
     'word search ragged grid',
     { variant: 'word_search', grid: [['A', 'B'], ['C']], words: ['AB'] },
   ],
+  [
+    'nonogram',
+    'clue count mismatch',
+    { rows: 2, cols: 2, row_clues: [[1]], col_clues: [[1], [1]] },
+  ],
+  [
+    'spot_difference',
+    'change of an unknown object',
+    {
+      aspect: 1,
+      objects: [{ id: 'o1', kind: 'sun', x: 0.5, y: 0.5, size: 0.2, color: 'yellow', flip: false }],
+      changes: [{ id: 'd1', object_id: 'o9', change: 'missing', value: null }],
+      max_misses: 3,
+    },
+  ],
 ];
 
 describe('challenge registry', () => {
   it('registers every challenge type of the contract', () => {
     expect(Object.keys(challengeRegistry).sort()).toEqual(
-      ['math_sprint', 'multiple_choice', 'sudoku', 'wisdom_card', 'word_puzzle'].sort(),
+      [
+        'math_sprint',
+        'multiple_choice',
+        'sudoku',
+        'wisdom_card',
+        'word_puzzle',
+        'memory_match',
+        'pattern_sequence',
+        'nonogram',
+        'spot_difference',
+      ].sort(),
     );
   });
 

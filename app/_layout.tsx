@@ -18,6 +18,7 @@ import { AppThemeProvider } from '@/features/app/AppThemeProvider';
 import { useMinVersionGate } from '@/features/app/useHealth';
 import { initMonitoring, setMonitoringMember, withMonitoring } from '@/features/app/sentry';
 import { useLocaleSync } from '@/features/app/useLocaleSync';
+import { useChatOutbox } from '@/features/chat/outbox';
 import { useMe } from '@/features/auth/hooks';
 import { configureNotifications } from '@/features/notifications/push';
 import { useNotificationDeepLinks, usePushRegistration } from '@/features/notifications/usePush';
@@ -99,6 +100,7 @@ function RootNavigator() {
     clearPrivateQueries(queryClient);
     useAnswerQueue.getState().clear();
     useChallengeDrafts.getState().clear();
+    useChatOutbox.getState().clear();
   }, [token]);
 
   const navTheme = useMemo(() => {
@@ -181,6 +183,7 @@ function RootNavigator() {
           <Stack.Protected guard={__DEV__}>
             <Stack.Screen name="dev/themes" />
             <Stack.Screen name="dev/sounds" />
+            <Stack.Screen name="dev/games" />
           </Stack.Protected>
         </Stack>
       )}

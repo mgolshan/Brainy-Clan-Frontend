@@ -126,6 +126,24 @@ describe('playback', () => {
     );
   });
 
+  it('plays at a rate when asked (pad tones) and back at 1 afterwards; never throws', () => {
+    playSound('candy', 'tap');
+    const player = mockPlayers[0] as unknown as Record<string, unknown>;
+    // The mock player has no setPlaybackRate: an unsupported rate is ignored silently.
+    expect(() => playSound('candy', 'tap', 1.5)).not.toThrow();
+    const setPlaybackRate = jest.fn();
+    player.setPlaybackRate = setPlaybackRate;
+    playSound('candy', 'tap', 1.5);
+    expect(setPlaybackRate).toHaveBeenLastCalledWith(1.5);
+    expect(player.shouldCorrectPitch).toBe(false);
+    playSound('candy', 'tap', 1.5);
+    expect(setPlaybackRate).toHaveBeenCalledTimes(1);
+    playSound('candy', 'tap', 9);
+    expect(setPlaybackRate).toHaveBeenLastCalledWith(2);
+    playSound('candy', 'tap');
+    expect(setPlaybackRate).toHaveBeenLastCalledWith(1);
+  });
+
   it('never throws when audio or haptics fail', () => {
     const audio = jest.requireMock('expo-audio');
     audio.createAudioPlayer.mockImplementationOnce(() => {

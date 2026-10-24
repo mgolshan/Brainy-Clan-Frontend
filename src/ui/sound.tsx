@@ -3,7 +3,10 @@ import { createContext, useContext } from 'react';
 /** Effect names (same as `SoundName` in `src/features/sound`). */
 export type UiSoundName = 'tap' | 'correct' | 'wrong' | 'celebrate' | 'levelUp' | 'unlock';
 
-const UiSoundContext = createContext<(name: UiSoundName) => void>(() => undefined);
+/** Plays a world effect; `rate` (optional, 0.5–2) shifts it like a note (pad tones). */
+export type UiSoundPlayer = (name: UiSoundName, rate?: number) => void;
+
+const UiSoundContext = createContext<UiSoundPlayer>(() => undefined);
 
 /**
  * Lets base components (Button) play the world's sounds without importing features: the app
@@ -11,6 +14,6 @@ const UiSoundContext = createContext<(name: UiSoundName) => void>(() => undefine
  */
 export const UiSoundProvider = UiSoundContext.Provider;
 
-export function useUiSound(): (name: UiSoundName) => void {
+export function useUiSound(): UiSoundPlayer {
   return useContext(UiSoundContext);
 }

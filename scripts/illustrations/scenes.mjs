@@ -24,6 +24,7 @@ import {
   streaks,
   tile,
 } from './props.mjs';
+import { MORE_SCENES } from './scenesMore.mjs';
 
 // ---------------------------------------------------------------------------
 // world-geography: fox explorer with a globe and a treasure map
@@ -405,5 +406,6 @@ export const SCENES = {
   'word-puzzles': wordPuzzles,
   history,
   'vocabulary-spelling': vocabulary,
+  ...MORE_SCENES,
 };
 export const FALLBACK = fallback;

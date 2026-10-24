@@ -2,8 +2,16 @@ import type { ComponentType } from 'react';
 
 import type { SessionItem } from '@/api/types';
 import { MathSprint, isMathSprintPayload, readMathValue } from '@/challenges/MathSprint';
+import { isMemoryMatchPayload } from '@/challenges/memory/logic';
+import { MemoryMatch } from '@/challenges/memory/MemoryMatch';
 import { MultipleChoice, isMultipleChoicePayload } from '@/challenges/MultipleChoice';
+import { isNonogramPayload } from '@/challenges/nonogram/logic';
+import { Nonogram } from '@/challenges/nonogram/Nonogram';
+import { isPatternSequencePayload } from '@/challenges/pattern/logic';
+import { PatternSequence } from '@/challenges/pattern/PatternSequence';
 import { isSudokuPayload } from '@/challenges/sudoku/logic';
+import { isSpotDifferencePayload } from '@/challenges/spot/logic';
+import { SpotDifference } from '@/challenges/spot/SpotDifference';
 import { Sudoku } from '@/challenges/sudoku/Sudoku';
 import { WisdomCard, isWisdomCardPayload } from '@/challenges/WisdomCard';
 import { isWordPuzzlePayload } from '@/challenges/words/logic';
@@ -14,7 +22,15 @@ import { WordPuzzle, describeWordPuzzle } from '@/challenges/words/WordPuzzle';
  * (Brainy-Clan-Backend); add a key here when the backend adds a plugin.
  */
 export type ChallengeTypeKey =
-  'multiple_choice' | 'wisdom_card' | 'sudoku' | 'word_puzzle' | 'math_sprint';
+  | 'multiple_choice'
+  | 'wisdom_card'
+  | 'sudoku'
+  | 'word_puzzle'
+  | 'math_sprint'
+  | 'memory_match'
+  | 'pattern_sequence'
+  | 'nonogram'
+  | 'spot_difference';
 
 /** Server verdict for an answered item. */
 export interface ChallengeResult<TResponse = unknown> {
@@ -92,6 +108,33 @@ export const challengeRegistry: Partial<Record<ChallengeTypeKey, ChallengeDefini
     component: WordPuzzle,
     isValidPayload: isWordPuzzlePayload,
     describeCorrect: describeWordPuzzle,
+    wide: true,
+  }),
+  memory_match: define({
+    component: MemoryMatch,
+    isValidPayload: isMemoryMatchPayload,
+    // Every card is turned face up after scoring.
+    describeCorrect: () => null,
+    wide: true,
+  }),
+  pattern_sequence: define({
+    component: PatternSequence,
+    isValidPayload: isPatternSequencePayload,
+    // The renderer shows the pattern (Clan faces) after a wrong answer.
+    describeCorrect: () => null,
+  }),
+  nonogram: define({
+    component: Nonogram,
+    isValidPayload: isNonogramPayload,
+    // The renderer shows the solved picture and its name.
+    describeCorrect: () => null,
+    wide: true,
+  }),
+  spot_difference: define({
+    component: SpotDifference,
+    isValidPayload: isSpotDifferencePayload,
+    // Missed differences are circled in the pictures.
+    describeCorrect: () => null,
     wide: true,
   }),
 };

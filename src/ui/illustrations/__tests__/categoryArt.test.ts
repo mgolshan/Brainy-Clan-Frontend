@@ -1,7 +1,7 @@
 import { CATEGORY_ART, FALLBACK_ART } from '@/ui/illustrations/categoryArt.generated';
 import { CATEGORY_ART_SLUGS, categoryArtXml, hasCategoryArt } from '@/ui/illustrations';
 
-// The 8 seeded top-level slugs (Brainy-Clan-Backend database/seeders/data/categories.php).
+// The 17 seeded top-level slugs (Brainy-Clan-Backend database/seeders/data/categories.php).
 const TOP_LEVEL = [
   'world-geography',
   'science-nature',
@@ -11,10 +11,21 @@ const TOP_LEVEL = [
   'word-puzzles',
   'history',
   'vocabulary-spelling',
+  // added 2026-10-23
+  'logic-riddles',
+  'language-swap',
+  'inventions-technology',
+  'our-planet',
+  'art-music',
+  'food-world',
+  'sports-games',
+  'brain-games',
+  'life-skills',
 ];
 
 describe('category art', () => {
   it('has a distinct scene for every top-level slug', () => {
+    expect(TOP_LEVEL).toHaveLength(17);
     expect([...CATEGORY_ART_SLUGS].sort()).toEqual([...TOP_LEVEL].sort());
     const all = TOP_LEVEL.map((slug) => categoryArtXml(slug));
     expect(new Set([...all, FALLBACK_ART]).size).toBe(TOP_LEVEL.length + 1);

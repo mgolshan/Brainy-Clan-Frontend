@@ -1,5 +1,5 @@
-import type { Category } from '@/api/types';
-import { findCategory, findRootSlug } from '@/features/play/categoryVisuals';
+import type { Category, CategoryIcon } from '@/api/types';
+import { categoryVisual, findCategory, findRootSlug } from '@/features/play/categoryVisuals';
 
 const node = (id: number, slug: string, children: Category[] = []) =>
   ({ id, slug, name: slug, children }) as unknown as Category;
@@ -24,5 +24,45 @@ describe('findRootSlug', () => {
 
   it('agrees with findCategory', () => {
     expect(findCategory(tree, 111)?.slug).toBe('europe-capitals');
+  });
+});
+
+describe('categoryVisual', () => {
+  // Every contract icon key (docs/API.md, Category `icon`).
+  const KEYS: CategoryIcon[] = [
+    'grid',
+    'puzzle',
+    'quote',
+    'globe',
+    'landmark',
+    'leaf',
+    'calculator',
+    'book',
+    'bulb',
+    'language',
+    'rocket',
+    'earth',
+    'palette',
+    'restaurant',
+    'football',
+    'shield',
+    'sparkles',
+  ];
+  const fallback = categoryVisual(null);
+
+  it('maps every contract key to its own icon (not the fallback)', () => {
+    for (const key of KEYS) {
+      const visual = categoryVisual(key);
+      expect(visual.icon).not.toBe(fallback.icon);
+      expect(visual.emoji).not.toBe(fallback.emoji);
+    }
+    expect(new Set(KEYS.map((k) => categoryVisual(k).icon)).size).toBe(KEYS.length);
+  });
+
+  it('falls back to the generic icon for unknown, empty or prototype keys', () => {
+    expect(fallback.icon).toBe('shapes-outline');
+    for (const key of ['nope', '', undefined, 'constructor', 'toString', '__proto__']) {
+      expect(categoryVisual(key)).toEqual(fallback);
+    }
   });
 });

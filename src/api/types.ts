@@ -39,6 +39,7 @@ export type ApiErrorCode =
   | 'rate_limited'
   | 'login_locked'
   | 'world_locked'
+  | 'chat_disabled'
   | 'not_found';
 
 /** Error body: `errors` only on 422. */
@@ -165,6 +166,11 @@ export interface Member {
    * account); members without one are erased with the family. Same visibility as `email`.
    */
   has_own_login?: boolean;
+  /**
+   * Family chat on for this member (contract 2026-10-23, default true; an admin turns it off).
+   * Optional until every backend serves it (absent = on).
+   */
+  chat_enabled?: boolean;
 }
 
 export interface Policy {
@@ -195,6 +201,8 @@ export interface Policy {
   limits: { max_members: number; max_categories: number; max_active_goals: number | null };
   accessibility_defaults: Omit<Accessibility, 'theme'>;
   feature_flags: Record<string, unknown>;
+  /** Family chat retention in days (tier settings, server data). Optional until served. */
+  chat?: { retention_days: number };
 }
 
 /** Policy `ad_request`: AdMob `requestNonPersonalizedAdsOnly`, `tagForUnderAgeOfConsent`, `maxAdContentRating`. */
@@ -448,6 +456,8 @@ export interface UpdateMemberBody {
   accessibility?: Partial<Accessibility>;
   /** Adds, changes or removes (`null`) the member's email login. */
   email?: string | null;
+  /** Family chat on/off for the member. */
+  chat_enabled?: boolean;
 }
 
 /** `POST /family/members/{member}/sign-in-codes` (valid 15 minutes, single use). */
@@ -509,7 +519,23 @@ export interface InvitePreview {
 // ---------------------------------------------------------------------------
 
 export type CategoryIcon =
-  'grid' | 'puzzle' | 'quote' | 'globe' | 'landmark' | 'leaf' | 'calculator' | 'book';
+  | 'grid'
+  | 'puzzle'
+  | 'quote'
+  | 'globe'
+  | 'landmark'
+  | 'leaf'
+  | 'calculator'
+  | 'book'
+  | 'bulb'
+  | 'language'
+  | 'rocket'
+  | 'earth'
+  | 'palette'
+  | 'restaurant'
+  | 'football'
+  | 'shield'
+  | 'sparkles';
 
 export interface Category {
   id: number;
@@ -684,6 +710,100 @@ export interface WordSearchResponse {
   found: WordPlacement[];
 }
 
+/**
+ * `memory_match` (brain game): `cards` are the face-down positions (row-major, zero-based), each
+ * face a Clan kid avatar key appearing exactly twice; 3–10 pairs.
+ */
+export interface MemoryMatchPayload {
+  cols: number;
+  cards: string[];
+  max_attempts: number;
+}
+
+/** `memory_match` response: every pair of positions turned over, in order. */
+export interface MemoryMatchResponse {
+  attempts: [number, number][];
+}
+
+/** `memory_match` correct_response. */
+export interface MemoryMatchCorrectResponse {
+  attempts: null;
+  cards: string[];
+}
+
+/**
+ * `pattern_sequence` (brain game): 3–6 pads (Clan kid avatar keys), the sequence of pad indexes
+ * to repeat (length 3–9) and how long each step is shown.
+ */
+export interface PatternSequencePayload {
+  pads: string[];
+  sequence: number[];
+  show_ms: number;
+}
+
+/** `pattern_sequence` response and correct_response (the sequence). */
+export interface PatternSequenceResponse {
+  input: number[];
+}
+
+/** `nonogram` (brain games): clue runs per row (top→bottom) and column (left→right). */
+export interface NonogramPayload {
+  rows: number;
+  cols: number;
+  row_clues: number[][];
+  col_clues: number[][];
+}
+
+/** `nonogram` response: 1 = filled, 0 = empty (row-major). */
+export interface NonogramResponse {
+  grid: number[][];
+}
+
+/** `nonogram` correct_response: the solution and its localized picture name. */
+export interface NonogramCorrectResponse {
+  grid: number[][];
+  title: string | null;
+}
+
+/** Named palette colors of the spot-the-difference art. */
+export type SpotColor =
+  'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'purple' | 'pink' | 'brown' | 'white';
+
+/** One object of a spot-the-difference picture; `x`/`y`/`size` are fractions of the width. */
+export interface SpotObject {
+  id: string;
+  /** Clan kid avatar key or a prop key (tree, sun, cloud, …). */
+  kind: string;
+  x: number;
+  y: number;
+  size: number;
+  color: SpotColor;
+  flip: boolean;
+}
+
+export type SpotChangeKind = 'missing' | 'color' | 'size' | 'flip';
+
+/** A change applied to the right picture (`value`: color key, new size, true, or null). */
+export interface SpotChange {
+  id: string;
+  object_id: string;
+  change: SpotChangeKind;
+  value: SpotColor | number | boolean | null;
+}
+
+export interface SpotDifferencePayload {
+  /** Picture width / height. */
+  aspect: number;
+  objects: SpotObject[];
+  changes: SpotChange[];
+  max_misses: number;
+}
+
+/** `spot_difference` response: taps normalized 0–1 within the tapped picture, [x, y]. */
+export interface SpotDifferenceResponse {
+  taps: [number, number][];
+}
+
 // ---------------------------------------------------------------------------
 // Goals (B6)
 // ---------------------------------------------------------------------------
@@ -816,7 +936,7 @@ export interface Subscription {
 }
 
 export type NotificationType =
-  'goal_reached' | 'period_closed' | 'family_activity' | 'daily_reminder';
+  'goal_reached' | 'period_closed' | 'family_activity' | 'daily_reminder' | 'family_chat';
 
 /** `GET /me/notification-preferences`. Times are `HH:MM` in the family timezone. */
 export interface NotificationPreferences {
@@ -867,4 +987,60 @@ export interface WorldCatalogEntry {
   key: string;
   unlock: WorldUnlock;
   unlocked: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Family chat (contract 2026-10-23)
+// ---------------------------------------------------------------------------
+
+/**
+ * One family chat message. `body` is plain UTF-8 text (any emoji) and `null` when `deleted`
+ * ("Message deleted"). It must only ever be rendered as plain text (`<Text>`): never as HTML or
+ * Markdown, never in a WebView, never with link detection. `member_id` is `null` for an author
+ * who left the family ("Former member").
+ */
+export interface ChatMessage {
+  id: number;
+  member_id: number | null;
+  nickname: string | null;
+  avatar: string | null;
+  body: string | null;
+  deleted: boolean;
+  client_id: string | null;
+  created_at: string;
+}
+
+export interface ChatMessagesMeta {
+  has_more: boolean;
+  retention_days: number;
+  last_read_id: number | null;
+  unread: number;
+}
+
+/**
+ * `GET /family/chat/messages?before=&after=&limit=` (limit ≤ 100): newest first for `before` /
+ * no cursor, oldest first for `after` (polling).
+ */
+export interface ChatMessagesPage {
+  data: ChatMessage[];
+  meta: ChatMessagesMeta;
+}
+
+/**
+ * `POST /family/chat/messages` → 201 (200 when this `client_id` was already stored: re-sends
+ * never duplicate). `body`: 1–1000 characters after trimming.
+ */
+export interface SendChatMessageBody {
+  body: string;
+  client_id: string;
+}
+
+/** `POST /family/chat/read` (only moves forward) → 204. */
+export interface ChatReadBody {
+  last_read_id: number;
+}
+
+/** `GET /family/chat/unread`. */
+export interface ChatUnread {
+  unread: number;
 }
