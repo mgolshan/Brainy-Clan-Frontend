@@ -32,7 +32,7 @@
     "unauthenticated": "Votre session a expiré. Veuillez vous reconnecter.",
     "invalidCredentials": "Ce courriel et ce mot de passe ne correspondent pas.",
     "forbidden": "Vous n'avez pas la permission de faire cela.",
-    "memberLimitReached": "Votre famille a atteint la limite de membres de cette formule.",
+    "memberLimitReached": "Votre famille a atteint la limite de membres de ce forfait.",
     "categoryNotAllowed": "Cette catégorie n'est pas disponible pour vous.",
     "noFamily": "Vous devez d'abord rejoindre ou créer une famille.",
     "alreadyInFamily": "Vous faites déjà partie d'une famille.",
@@ -44,7 +44,7 @@
     "validation": "Veuillez vérifier les champs indiqués.",
     "rateLimited": "Trop de tentatives. Veuillez patienter une minute.",
     "server": "Le serveur a rencontré un problème. Veuillez réessayer plus tard.",
-    "goalLimitReached": "La limite d'objectifs actifs de votre formule est atteinte. Mettez un objectif en pause ou passez à la formule Famille.",
+    "goalLimitReached": "La limite d'objectifs actifs de votre forfait est atteinte. Mettez un objectif en pause ou passez au forfait Famille.",
     "signInCodeInvalid": "Ce code de connexion est inconnu, déjà utilisé ou expiré. Demande un nouveau code à ton parent.",
     "socialTokenInvalid": "Impossible de vérifier votre compte Apple, Google ou Facebook. Veuillez réessayer.",
     "socialSignupIncomplete": "Indiquez votre année et votre mois de naissance pour terminer la création du compte.",
@@ -159,8 +159,8 @@
     "soundAutoOff": "En automatique, ils sont désactivés pour ton profil."
   },
   "play": {
-    "locked": "Formule Famille",
-    "lockedHint": "Passez à la formule Famille pour débloquer cette catégorie.",
+    "locked": "Forfait Famille",
+    "lockedHint": "Cette catégorie fait partie du forfait Famille.",
     "subCategories_one": "{{count}} thème",
     "subCategories_many": "{{count}} thèmes",
     "subCategories_other": "{{count}} thèmes",
@@ -184,7 +184,7 @@
     "playAll": "Jouer à tout : {{name}}",
     "noCategories": "Aucune catégorie disponible pour le moment",
     "starting": "Préparation de tes questions…",
-    "lockedTitle": "{{name}} fait partie de la formule Famille",
+    "lockedTitle": "{{name}} fait partie du forfait Famille",
     "close": "Quitter la partie",
     "progress_one": "{{count}} point sur {{target}}",
     "progress_many": "{{count}} points sur {{target}}",
@@ -246,7 +246,7 @@
     },
     "resume": {
       "title": "Reprendre votre partie",
-      "titleKid": "Ta partie t'attend !",
+      "titleKid": "Reprends ta partie là où tu l'avais laissée",
       "game": "Votre partie",
       "continue": "Continuer",
       "continueKid": "On continue !",
@@ -257,7 +257,7 @@
       "lives_one": "{{count}} vie sur {{total}} restante",
       "lives_many": "{{count}} vies sur {{total}} restantes",
       "lives_other": "{{count}} vies sur {{total}} restantes",
-      "outOfLives": "Plus de vies, une seconde chance vous attend",
+      "outOfLives": "Plus de vies : seconde chance possible ou fin de la partie",
       "redemption": "Manche de rattrapage"
     }
   },
@@ -393,8 +393,8 @@
     "senior": "Aîné"
   },
   "tiers": {
-    "free": "Formule gratuite",
-    "family": "Formule Famille"
+    "free": "Forfait gratuit",
+    "family": "Forfait Famille"
   },
   "family": {
     "members": "Membres",
@@ -414,7 +414,7 @@
     "noInvites": "Aucune invitation en attente",
     "noInvitesBody": "Invitez votre famille pour jouer ensemble.",
     "limitTitle": "Limite de membres atteinte",
-    "limitBody": "Votre formule permet {{max}} membres, invitations en attente comprises. Passez à la formule Famille pour en ajouter.",
+    "limitBody": "Votre forfait permet {{max}} membres, invitations en attente comprises. Passez au forfait Famille pour en ajouter.",
     "inviteMember": "Inviter un membre de la famille",
     "adminOnlyHint": "Seuls les admins de la famille peuvent inviter et modifier les membres.",
     "goalsHint": "Voir pour quoi la famille joue",
@@ -513,9 +513,9 @@
     "emptyMember": "Demande à un admin de la famille de créer un objectif avec une récompense.",
     "pausedSection": "Objectifs en pause",
     "limitTitle": "Limite d'objectifs atteinte",
-    "limitBody_one": "Votre formule permet {{count}} objectif actif. Mettez-en un en pause ou passez à la formule Famille.",
-    "limitBody_many": "Votre formule permet {{count}} objectifs actifs. Mettez-en un en pause ou passez à la formule Famille.",
-    "limitBody_other": "Votre formule permet {{count}} objectifs actifs. Mettez-en un en pause ou passez à la formule Famille.",
+    "limitBody_one": "Votre forfait permet {{count}} objectif actif. Mettez-en un en pause ou passez au forfait Famille.",
+    "limitBody_many": "Votre forfait permet {{count}} objectifs actifs. Mettez-en un en pause ou passez au forfait Famille.",
+    "limitBody_other": "Votre forfait permet {{count}} objectifs actifs. Mettez-en un en pause ou passez au forfait Famille.",
     "noOpenPeriod": "Commence bientôt",
     "teamProgress_one": "Équipe : {{count}} point sur {{target}}",
     "teamProgress_many": "Équipe : {{count}} points sur {{target}}",
@@ -903,7 +903,7 @@
   },
   "billing": {
     "title": "Abonnement",
-    "unlocksTitle": "La formule Famille débloque",
+    "unlocksTitle": "Le forfait Famille débloque",
     "unlockMembers_one": "Plus de {{count}} membre",
     "unlockMembers_many": "Plus de {{count}} membres",
     "unlockMembers_other": "Plus de {{count}} membres",
@@ -1163,7 +1163,7 @@
       "streak_one": "Série de {{progress}} / {{required}} jour",
       "streak_many": "Série de {{progress}} / {{required}} jours",
       "streak_other": "Série de {{progress}} / {{required}} jours",
-      "familyPlan": "Formule Famille",
+      "familyPlan": "Forfait Famille",
       "locked": "Verrouillé"
     },
     "howTo": {
@@ -1173,9 +1173,9 @@
       "streak_one": "Joue {{count}} jour d'affilée pour débloquer {{name}}. Ta meilleure série : {{progress}}.",
       "streak_many": "Joue {{count}} jours d'affilée pour débloquer {{name}}. Ta meilleure série : {{progress}}.",
       "streak_other": "Joue {{count}} jours d'affilée pour débloquer {{name}}. Ta meilleure série : {{progress}}.",
-      "other": "{{name}} n'est pas encore débloqué. Continue à jouer !"
+      "other": "{{name}} n'est pas encore débloqué. Chaque défi terminé t'en rapproche."
     },
-    "askParent": "Demande à un parent de prendre la formule Famille",
+    "askParent": "Fait partie du forfait Famille",
     "storedLocked": "{{name}} est verrouillé pour le moment : tu vois ton monde automatique. Ton choix reviendra quand il sera de nouveau débloqué.",
     "unlockedTitle": "Nouveau monde débloqué !",
     "unlockedBody": "{{name}} t'attend.",

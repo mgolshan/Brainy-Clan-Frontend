@@ -167,7 +167,7 @@ describe('hints', () => {
     expect(formatWorldHint(pointsHint, en)).toBe('23 / 50 points');
     expect(formatWorldHint(worldHint(streak)!, en)).toBe('2 / 3-day streak');
     expect(formatWorldHint(worldHint(plan)!, en)).toBe('Family plan');
-    expect(formatWorldHint(worldHint(plan)!, fr)).toBe('Formule Famille');
+    expect(formatWorldHint(worldHint(plan)!, fr)).toBe('Forfait Famille');
     expect(formatWorldHint(pointsHint, fr)).toBe('23 / 50 points');
   });
 
@@ -202,6 +202,6 @@ describe('hints', () => {
       'Play 3 days in a row to unlock Under the Sea. Your best streak so far: 2.',
     );
     const plan = world({ unlock: { type: 'family_plan' }, unlocked: false });
-    expect(howToUnlockText(plan, 'Dino Valley', en)).toBe('Ask a parent to get the Family plan');
+    expect(howToUnlockText(plan, 'Dino Valley', en)).toBe('Comes with the Family plan');
   });
 });

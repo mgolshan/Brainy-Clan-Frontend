@@ -138,6 +138,16 @@ the OS "reduce motion" setting). Components read tokens only through `useTheme()
   the chat scrolled to the message when it is loaded. Notification toggle `family_chat_report`
   shown for admins only. EAS `development`/`preview` profiles set `EXPO_PUBLIC_API_URL` in
   `eas.json` (never fall back to localhost).
+- **Mission & content rules for copy and UX writers (2026-10-24, Moe):** binding source is the
+  backend `docs/PLAN.md` decisions "Mission" and "Content neutrality rules". The app's world is
+  clean and happy, with one mission: kids use screens to learn and grow rather than waste their
+  time and mind. Every string, screen, notification and celebration is positive, encouraging and
+  calm: no guilt or loss wording ("Don't lose your streak!"), no fear of missing out, no
+  comparison beyond the family, no nudges to play longer for its own sake (invite to learn
+  something, not to "come back"); rewards are tied to learning. Copy stays neutral: no political,
+  ideological, religious, sexual, sexuality or gender-identity topics, nothing demeaning, no
+  moralising. Current copy audit with proposed en/fr rewordings: backend
+  `docs/CONTENT_AUDIT_2026-10-24.md` (not applied yet; waiting for Moe).
 
 ## Working rules
 

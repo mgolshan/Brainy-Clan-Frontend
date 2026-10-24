@@ -372,6 +372,29 @@ themes (light/dark).
 
 ## Log
 
+### 2026-10-24 audit rewordings + push localization
+
+- Applied content-audit findings A1–A6 (`en.json` + `fr.json`): `worlds.askParent` "Comes with the
+  Family plan" (no "ask a parent to buy"), `play.lockedHint` "This category comes with the Family
+  plan.", `worlds.howTo.other` "…Every challenge you finish brings it closer.",
+  `play.resume.titleKid` "Pick up where you left off", `play.resume.continueKid` "Let's continue",
+  `play.resume.outOfLives` "Out of lives: try a second chance or end the game".
+- French plan term unified to **"forfait Famille"** (also `tiers.*`, `play.locked`,
+  `worlds.hint.familyPlan`, `billing.unlocksTitle`, limit messages "Votre forfait permet…").
+- Backend pushes are now localized en/fr (daily reminder, family activity, goal reached, results).
+- Tests: `catalog.test.ts` expectations updated. typecheck, lint, format:check, `npm test` (708),
+  `expo export --platform web` green.
+
+### 2026-10-24 content rules + audit
+
+- PLAN decision "Mission & content rules for copy and UX writers" (pointer to the backend PLAN
+  decisions "Mission" and "Content neutrality rules"): positive, calm copy; no guilt, FOMO,
+  comparison beyond the family or "keep playing" pulls; no upsell aimed at children.
+- Copy audit in backend `docs/CONTENT_AUDIT_2026-10-24.md` §A: 6 strings proposed for rewording
+  (`worlds.askParent`, `worlds.howTo.other`, `play.resume.titleKid`, `play.resume.continueKid`,
+  `play.resume.outOfLives`, `play.lockedHint`) with exact en/fr text. Not applied (waiting for Moe);
+  no code or locale changed.
+
 ### 2026-10-24 How to play help center
 
 - **Links** to the website help center (backend `/help`, PLAN "How to play"):

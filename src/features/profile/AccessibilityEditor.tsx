@@ -196,7 +196,7 @@ export function AccessibilityEditor({
   const theme = useTheme();
   const schemePreference = usePreferences((s) => s.colorScheme);
   const [gridWidth, setGridWidth] = useState(0);
-  // Explanation for the last tapped locked world ("Earn 27 more points…", "Ask a parent…").
+  // Explanation for the last tapped locked world ("Earn 27 more points…", "Comes with the Family plan").
   const [lockInfo, setLockInfo] = useState<{ key: ThemeKey; text: string } | null>(null);
   const list = pickerWorlds(worlds, WORLD_ORDER);
   const storedLocked =

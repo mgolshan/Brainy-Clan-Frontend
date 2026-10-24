@@ -156,7 +156,7 @@
   },
   "play": {
     "locked": "Family plan",
-    "lockedHint": "Upgrade to the Family plan to unlock this category.",
+    "lockedHint": "This category comes with the Family plan.",
     "subCategories_one": "{{count}} topic",
     "subCategories_other": "{{count}} topics",
     "livesLeft_one": "{{count}} of {{total}} lives left",
@@ -232,17 +232,17 @@
     },
     "resume": {
       "title": "Continue your game",
-      "titleKid": "Your game is waiting for you!",
+      "titleKid": "Pick up where you left off",
       "game": "Your game",
       "continue": "Continue",
-      "continueKid": "Keep playing!",
+      "continueKid": "Let's continue",
       "end": "End game",
       "endHint": "Tap twice to end this game",
       "endConfirm": "Tap again to end it",
       "endConfirmKid": "Tap again to stop this game",
       "lives_one": "{{count}} of {{total}} lives left",
       "lives_other": "{{count}} of {{total}} lives left",
-      "outOfLives": "Out of lives, a second chance is waiting",
+      "outOfLives": "Out of lives: try a second chance or end the game",
       "redemption": "Second-chance round"
     }
   },
@@ -1128,9 +1128,9 @@
       "points_other": "Earn {{count}} more points to unlock {{name}}. You have {{progress}} of {{required}}.",
       "streak_one": "Play {{count}} day in a row to unlock {{name}}. Your best streak so far: {{progress}}.",
       "streak_other": "Play {{count}} days in a row to unlock {{name}}. Your best streak so far: {{progress}}.",
-      "other": "{{name}} isn't unlocked yet. Keep playing!"
+      "other": "{{name}} isn't unlocked yet. Every challenge you finish brings it closer."
     },
-    "askParent": "Ask a parent to get the Family plan",
+    "askParent": "Comes with the Family plan",
     "storedLocked": "{{name}} is locked right now, so you see your automatic world. Your pick comes back when it unlocks again.",
     "unlockedTitle": "New world unlocked!",
     "unlockedBody": "{{name}} is ready for you.",

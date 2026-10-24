@@ -60,7 +60,7 @@ function CategoryGrid({ categories, onSelect, parentSlug }: CategoryGridProps) {
   );
 }
 
-/** Shared selection logic: locked → upgrade hint, has sub-scopes → drill down, else play. */
+/** Shared selection logic: locked → neutral "Family plan" note, has sub-scopes → drill down, else play. */
 function useCategorySelection() {
   const { open, isPending, error, variables } = useStartAndOpen();
   const [lockedName, setLockedName] = useState<string | null>(null);
