@@ -17,6 +17,7 @@ import type {
 } from '@/api/types';
 import { normalizeCode } from '@/lib/code';
 import { getDeviceInfo } from '@/lib/device';
+import { useReferralStore } from '@/features/billing/referral';
 import { store as purchasesStore } from '@/features/billing/store';
 import { unregisterPushToken } from '@/features/notifications/push';
 import { useSession } from '@/store/session';
@@ -133,6 +134,8 @@ export function useSignOut() {
     },
     onSettled: () => {
       useSession.getState().clear();
+      // A referral code typed on this device belongs to the account that typed it.
+      useReferralStore.getState().clear();
       clearPrivateQueries(client);
     },
   });

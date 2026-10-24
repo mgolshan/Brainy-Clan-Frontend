@@ -58,6 +58,14 @@ export function errorMessage(error: unknown, t: TFunction): string {
       return t('errors.notFound');
     case 'rate_limited':
       return t('errors.rateLimited');
+    case 'subscription_exists':
+      return t('errors.subscriptionExists');
+    case 'web_checkout_unavailable':
+      return t('errors.webCheckoutUnavailable');
+    case 'referral_code_invalid':
+      return t('billing.referral.invalid');
+    case 'referral_code_locked':
+      return t('billing.referral.locked');
     case 'chat_disabled':
       return t('chat.disabledTitle');
     case 'login_locked':

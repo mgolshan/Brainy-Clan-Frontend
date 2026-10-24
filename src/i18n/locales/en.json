@@ -53,7 +53,9 @@
     "familyOwnerCannotLeave": "The family owner can't delete their account while others are in the family. Delete the family instead.",
     "adRewardPending": "We couldn't confirm your reward yet. Please try again in a moment.",
     "loginLocked": "Too many sign-in attempts. Please wait a few minutes and try again.",
-    "worldLocked": "That world isn't unlocked yet. The list has been refreshed."
+    "worldLocked": "That world isn't unlocked yet. The list has been refreshed.",
+    "subscriptionExists": "Your family already has a Family plan, so there is nothing to buy here.",
+    "webCheckoutUnavailable": "Buying on the web isn’t available right now."
   },
   "update": {
     "title": "Time for an update",
@@ -316,7 +318,8 @@
     "passwordHint": "At least 8 characters.",
     "birthHint": "Parent accounts are for adults. We only use this to set up the right experience.",
     "submit": "Create account",
-    "haveAccount": "Already have an account? Sign in"
+    "haveAccount": "Already have an account? Sign in",
+    "codeToggle": "Have a code?"
   },
   "join": {
     "title": "Join your family",
@@ -891,7 +894,8 @@
     "stores": {
       "app_store": "App Store",
       "play_store": "Google Play",
-      "stripe": "Web"
+      "stripe": "Web",
+      "paddle": "Web (brainyclan.com)"
     },
     "seePlan": "See the Family plan",
     "errors": {
@@ -929,7 +933,53 @@
       "delayedBody": "Your purchase went through. It can take a few minutes until the Family plan shows in the app — no need to buy again.",
       "legal": "Payment is charged to your App Store or Google Play account. The subscription renews automatically unless cancelled at least 24 hours before the end of the period; manage or cancel it in your store account settings.",
       "terms": "Terms of use",
-      "privacy": "Privacy policy"
+      "privacy": "Privacy policy",
+      "sixMonths": "6 months",
+      "perSixMonths": "{{price}} / 6 months",
+      "save": "Save {{percent}}%",
+      "trial": "{{duration}} free trial",
+      "foundingTitle": "Founding families offer",
+      "introOnce": "{{price}} for {{duration}}",
+      "introRecurring": "{{price}} per {{unit}} for {{duration}}",
+      "alreadyFamilyStore": "Your family already has the Family plan. Change or cancel it in your store account."
+    },
+    "manage": "Manage subscription",
+    "managedOnWebTitle": "Your Family plan is managed on the web",
+    "managedOnWebBody": "You subscribed on brainyclan.com. Change or cancel the plan there — nothing to buy in the app.",
+    "period": {
+      "day_one": "{{count}} day",
+      "day_other": "{{count}} days",
+      "week_one": "{{count}} week",
+      "week_other": "{{count}} weeks",
+      "month_one": "{{count}} month",
+      "month_other": "{{count}} months",
+      "year_one": "{{count}} year",
+      "year_other": "{{count}} years"
+    },
+    "unit": {
+      "day": "day",
+      "week": "week",
+      "month": "month",
+      "year": "year"
+    },
+    "referral": {
+      "title": "Have a code?",
+      "label": "Referral code",
+      "placeholder": "e.g. MAYA",
+      "hint": "Optional: a code from a friend or a creator you follow.",
+      "apply": "Apply code",
+      "applied": "Code {{code}} is linked to your family.",
+      "invalid": "We don’t know that code. Check the spelling and try again.",
+      "locked": "Your family already has a code, or has already paid for a plan, so the code can’t be changed.",
+      "failedPending": "The code {{code}} you entered at sign-up couldn’t be added. {{reason}}"
+    },
+    "offerCode": {
+      "redeem": "Redeem a store offer code",
+      "hintSheet": "Got an App Store offer code? Enter it here.",
+      "hintLink": "Got a Google Play promo code? Enter it in Google Play."
+    },
+    "web": {
+      "button": "Also available on the web"
     }
   },
   "notifications": {

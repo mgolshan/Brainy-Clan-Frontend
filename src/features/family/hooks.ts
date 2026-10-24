@@ -20,6 +20,7 @@ import type {
   UpdateMemberBody,
 } from '@/api/types';
 import { useIsAdmin } from '@/features/auth/hooks';
+import { applyPendingReferral } from '@/features/billing/referral';
 import { recoverFromWorldLocked } from '@/features/worlds/hooks';
 
 /** `GET /family`: family + members. */
@@ -61,6 +62,8 @@ export function useCreateFamily() {
     onSuccess: async (family) => {
       // Membership + policy (tier) changed: reload them from the source of truth.
       client.setQueryData<MePayload>(queryKeys.me, (prev) => (prev ? { ...prev, family } : prev));
+      // The family exists now: send the referral code typed at sign-up (once; never throws).
+      await applyPendingReferral();
       await client.invalidateQueries({ queryKey: queryKeys.me });
     },
   });

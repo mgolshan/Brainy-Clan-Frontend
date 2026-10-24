@@ -1,11 +1,16 @@
 import { router } from 'expo-router';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import type { Policy, Subscription } from '@/api/types';
 import { useIsAdmin, usePolicy } from '@/features/auth/hooks';
-import { useSubscription } from '@/features/billing/hooks';
+import { PendingReferralNotice } from '@/features/billing/CodeSections';
+import { useManageSubscription, useSubscription } from '@/features/billing/hooks';
+import { applyPendingReferral, useReferralStore } from '@/features/billing/referral';
+import { planSource } from '@/features/billing/source';
 import { store as billingStore } from '@/features/billing/store';
+import { errorMessage } from '@/lib/errorMessage';
 import { formatDate } from '@/lib/format';
 import { tierLabel } from '@/lib/labels';
 import {
@@ -23,7 +28,7 @@ import {
 } from '@/ui';
 
 const STATUSES = ['active', 'grace', 'expired', 'none'] as const;
-const STORES = ['app_store', 'play_store', 'stripe'] as const;
+const STORES = ['app_store', 'play_store', 'stripe', 'paddle'] as const;
 
 const STATUS_TONE: Record<(typeof STATUSES)[number], BadgeTone> = {
   active: 'success',
@@ -75,6 +80,8 @@ function SubscriptionDetails({ sub, policy }: { sub: Subscription; policy: Polic
   const status = STATUSES.find((s) => s === sub.status);
   const store = STORES.find((s) => s === sub.store);
   const isFree = sub.tier === 'free';
+  const source = planSource(sub);
+  const manage = useManageSubscription();
   const date = sub.expires_at ? formatDate(sub.expires_at, i18n.language) : null;
 
   return (
@@ -111,7 +118,25 @@ function SubscriptionDetails({ sub, policy }: { sub: Subscription; policy: Polic
         </View>
       ) : null}
 
-      {isFree ? (
+      {source === 'web' ? (
+        <Text variant="caption" tone="muted">
+          {t('billing.managedOnWebTitle')}
+        </Text>
+      ) : null}
+      {source !== 'none' && sub.store ? (
+        <>
+          <Button
+            title={t('billing.manage')}
+            icon="settings-outline"
+            variant="outline"
+            onPress={() => manage.mutate(sub)}
+            loading={manage.isPending}
+          />
+          {manage.isError ? <Text tone="danger">{errorMessage(manage.error, t)}</Text> : null}
+        </>
+      ) : null}
+
+      {isFree && source === 'none' ? (
         <>
           <Divider />
           <Unlocks policy={policy} />
@@ -142,6 +167,14 @@ export function SubscriptionCard() {
   const policy = usePolicy();
   const isAdmin = useIsAdmin();
   const subscription = useSubscription();
+  const pendingCode = useReferralStore((s) => s.pendingCode);
+  const canSetCode = !!policy && !policy.is_child && isAdmin;
+
+  // A code typed at sign-up that couldn't be sent right after the family was created
+  // (offline): try again once the admin is on the Family tab.
+  useEffect(() => {
+    if (canSetCode && pendingCode) void applyPendingReferral();
+  }, [canSetCode, pendingCode]);
 
   if (!policy || policy.is_child || !isAdmin) return null;
   if (subscription.isSuccess && subscription.data === null) return null;
@@ -156,6 +189,7 @@ export function SubscriptionCard() {
       ) : subscription.data ? (
         <SubscriptionDetails sub={subscription.data} policy={policy} />
       ) : null}
+      <PendingReferralNotice />
     </>
   );
 }

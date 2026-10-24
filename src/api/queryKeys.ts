@@ -17,6 +17,8 @@ export const queryKeys = {
   invitePreview: (birthYear: number, birthMonth: number) =>
     ['invite-preview', birthYear, birthMonth] as const,
   subscription: ['family', 'subscription'] as const,
+  /** Storefront + `GET /family/web-checkout/availability` (admin): the in-app web link, if any. */
+  webCheckout: ['family', 'web-checkout'] as const,
   /** `GET /family/members/{member}/worlds` (admin): that member's world catalog. */
   memberWorlds: (memberId: number) => ['family', 'members', memberId, 'worlds'] as const,
   memberDevices: (memberId: number) => ['family', 'members', memberId, 'devices'] as const,

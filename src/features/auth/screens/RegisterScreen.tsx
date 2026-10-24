@@ -4,6 +4,12 @@ import { useTranslation } from 'react-i18next';
 
 import { BirthDateFields } from '@/features/auth/components/BirthDateFields';
 import { useRegister } from '@/features/auth/hooks';
+import {
+  REFERRAL_CODE_MAX_LENGTH,
+  cleanReferralInput,
+  normalizeReferralCode,
+  useReferralStore,
+} from '@/features/billing/referral';
 import { AcceptTerms } from '@/features/legal/components';
 import { SocialSignIn } from '@/features/auth/social/SocialSignIn';
 import i18n from '@/i18n';
@@ -32,6 +38,17 @@ export function RegisterScreen() {
   const [year, setYear] = useState('');
   const [month, setMonth] = useState<number | null>(null);
   const [accepted, setAccepted] = useState(false);
+  // "Have a code?" (optional): kept on the device and sent once the family exists
+  // (`POST /family/referral-code` after `POST /families`), also for social sign-ups from here.
+  const pendingCode = useReferralStore((s) => s.pendingCode);
+  const setPendingCode = useReferralStore((s) => s.setPending);
+  const [codeOpen, setCodeOpen] = useState(!!pendingCode);
+  const [code, setCode] = useState(pendingCode ?? '');
+  const changeCode = (value: string) => {
+    const cleaned = cleanReferralInput(value);
+    setCode(cleaned);
+    setPendingCode(normalizeReferralCode(cleaned));
+  };
   const errors = formErrors(register.error, t, FIELDS);
 
   const ready =
@@ -93,6 +110,27 @@ export function RegisterScreen() {
           hint={t('register.birthHint')}
           yearPlaceholder="1988"
         />
+        {codeOpen ? (
+          <TextField
+            label={t('billing.referral.label')}
+            value={code}
+            onChangeText={changeCode}
+            placeholder={t('billing.referral.placeholder')}
+            hint={t('billing.referral.hint')}
+            autoCapitalize="characters"
+            autoCorrect={false}
+            autoComplete="off"
+            maxLength={REFERRAL_CODE_MAX_LENGTH}
+          />
+        ) : (
+          <Button
+            title={t('register.codeToggle')}
+            icon="pricetag-outline"
+            variant="ghost"
+            size="sm"
+            onPress={() => setCodeOpen(true)}
+          />
+        )}
         <AcceptTerms
           checked={accepted}
           onChange={setAccepted}
@@ -114,7 +152,11 @@ export function RegisterScreen() {
       <Button
         title={t('register.haveAccount')}
         variant="ghost"
-        onPress={() => router.replace('/login')}
+        onPress={() => {
+          // Signing in to an existing account: the code typed here isn't for that family.
+          setPendingCode(null);
+          router.replace('/login');
+        }}
       />
     </Screen>
   );

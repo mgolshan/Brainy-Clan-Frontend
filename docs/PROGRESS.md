@@ -19,6 +19,7 @@ Milestones are defined in `docs/PLAN.md`.
 | F4c Sign in with Apple            | Built (checks green; only verifiable on an iPhone dev build)                                                                                                        | Apple's native button on welcome/login/register + Profile sign-in methods, nonce, `authorization_code`, birth step, README setup                                                               |
 | F6 Monetization and notifications | Built (paywall + rewarded ads code done; web checks green; purchases/ads need a dev build + store/AdMob accounts)                                                   | Family plan card, Notifications, push, account/family deletion (verified on web); RevenueCat paywall and AdMob rewarded ads built 2026-10-16, UMP ad consent 2026-10-17, unverified on a phone |
 | F7 Release                        | In progress: release prep done 2026-10-16; 2026-10-22 lockout UX, forgot password, iPad (all orientations, responsive column), production URLs, store audience docs | Store accounts, screenshots (iPhone 6.9" + iPad 13") and submission still to do                                                                                                                |
+| F8 Pricing, codes, web checkout   | Built 2026-10-24 (checks green; typed against the B10 contract, backend built in parallel; purchases/codes need a dev build + store accounts)                       | Three-plan paywall (saving %, trials, founding offer), web-managed plans + Manage, referral codes, offer codes, gated web link                                                                 |
 
 ## Next up
 
@@ -312,6 +313,30 @@ AdMob setup", `npx eas-cli@latest build --profile development`, `npm run start:d
 10. Consent dismissed or unavailable (e.g. airplane mode on the very first ad) → "No video is
     available right now", other second-chance options still work; next tap asks again.
 
+### F8 - pricing, codes and the web link (phone, EAS dev build + backend B10)
+
+1. Offering with `MONTHLY`, `SIX_MONTH`, `ANNUAL` packages (README RevenueCat step 2): the paywall
+   lists Yearly (highlighted, "Best value", "Save N%", "Just $x a month"), 6 months ("Save N%",
+   per-month price), Monthly; N matches the store prices (e.g. 49.99 vs 12 × 6.99 → 40%). Yearly
+   is preselected. Check in several worlds (playful, modern, a dark world) and on an iPad.
+2. Trial badge "7 days free trial" on 6 months / Yearly with a store free trial; a sandbox account
+   that already used the trial no longer sees it (iOS eligibility check). A paid intro offer shows
+   "Founding families offer: … for 1 year".
+3. Sign-up with "Have a code?" → `MAYA` → create the family → `GET /family` (admin) has
+   `referral_code: "MAYA"`; the paywall shows "Code MAYA is linked to your family". An unknown
+   code at sign-up → the Family tab / paywall says it couldn't be added (dismiss with Done).
+   Offline right after creating the family → the code is retried when the Family tab opens.
+4. Paywall "Have a code?" → unknown code → "We don't know that code…"; after a paid purchase →
+   "already has a code, or has already paid…" (`referral_code_locked`).
+5. iOS: "Redeem a store offer code" opens Apple's code sheet; Android: it opens Google Play's
+   redeem page. Not shown on web or in Expo Go.
+6. Backend family with a `paddle` plan (`store: "paddle"`): paywall shows "Your Family plan is
+   managed on the web" and no plans; **Manage subscription** opens the Paddle portal (server
+   link). Store plan: "Manage subscription" opens the App Store / Play subscriptions page.
+7. Web link: with the server's `link_storefronts` empty (default) there is no web button or web
+   price anywhere. Add `USA` on the backend, use a US store account → "Also available on the
+   web" opens the server URL; a Canadian store account still sees nothing.
+
 ### F7 - legal, consent, privacy (B9) and Sentry
 
 Without B9 (current backend): register / join-with-email / social birth step show a required
@@ -346,6 +371,44 @@ themes (light/dark).
   splash (blue `#1D6FD8`, dark `#10233F`). `npx expo-doctor` 21/21; `npx expo config --type public`.
 
 ## Log
+
+### 2026-10-24 F8 paywall, codes, web link
+
+- **Paywall (F8):** three plans from the RevenueCat current offering, mapped by package type
+  (`MONTHLY` / `SIX_MONTH` / `ANNUAL`, custom packages by product ID
+  `brainyclan_family_monthly|6months|annual`) in pure `src/features/billing/packages.ts`. Annual
+  first and highlighted; per-month price from the store; saving % against the monthly plan computed
+  from the offering's store prices (same currency, rounded down; never hard-coded); free-trial
+  badge from the product's intro price (price 0) and a "Founding families offer" line for a paid
+  intro price; iOS intro eligibility hides trials an account already used. Purchase / restore /
+  sync / poll flow unchanged; a 409 `subscription_exists` while polling stops and reloads the plan.
+- **Plan source:** `planSource()` (`source.ts`): a running `store: "paddle"` plan → "Your Family
+  plan is managed on the web" (no purchase options); running store plans → "already has the
+  Family plan". **Manage subscription** (paywall + Family tab Plan card) calls
+  `POST /family/subscription/manage-link` (Paddle portal in the in-app browser, store pages via
+  `Linking`; falls back to the store subscription pages while the endpoint 404s).
+- **Referral codes:** "Have a code?" at parent sign-up (persisted device-locally in
+  `useReferralStore`, cleared on sign-out / "already have an account") → sent with
+  `POST /family/referral-code` right after `POST /families`; network failures retry from the
+  Family tab; `referral_code_invalid` / `referral_code_locked` → friendly en/fr notice. Paywall
+  "Have a code?" for admins; shows the applied code (`GET /family` admin `referral_code`).
+- **Store offer codes** (native, admins, paywall): iOS `Purchases.presentCodeRedemptionSheet()`
+  (react-native-purchases 10.14), Android opens `https://play.google.com/redeem`.
+- **Web checkout link:** `Purchases.getStorefront()` (alpha-3 on iOS, alpha-2 on Play → mapped by
+  `src/lib/countryCodes.ts`) → `GET /family/web-checkout/availability?storefront=`; "Also
+  available on the web" only when `link_allowed` with an https URL; unknown storefront / web / Expo
+  Go → no call, no link, no web prices anywhere.
+- Types: `SubscriptionStore` + `paddle`, `Family.referral_code`, `ManageLink`,
+  `WebCheckoutAvailability`, `ReferralCode*`, new error codes (`subscription_exists`,
+  `web_checkout_unavailable`, `referral_code_invalid`, `referral_code_locked`) in `errorMessage`.
+- Tests: `billing/__tests__/packages.test.ts` (mapping, saving %, trials/intro, eligibility,
+  order), `source.test.ts` (plan source, link gating, storefront codes), `referral.test.ts` (code
+  normalizing, error mapping, pending-code flow), `webCheckout.test.ts` (availability gating);
+  errorMessage test extended. README RevenueCat setup (three products, package types, intro
+  offers, offer/promo codes, step 9) and OPERATIONS_HANDBOOK checklists updated.
+- Checks: typecheck, lint, format:check, `npm test`, `npx expo export --platform web` green.
+- Not verifiable without a dev build + store accounts: store prices / trials / eligibility, the
+  iOS code sheet, Play redeem, `getStorefront()` values, manage links (How to test → F8).
 
 ### 2026-10-24 operations handbook
 

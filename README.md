@@ -427,10 +427,20 @@ button (store billing needs the native app; web billing is a later milestone).
      "Family plan" with three auto-renewable products (the B10 plans; same IDs on both stores):
      `brainyclan_family_monthly`, `brainyclan_family_6months` and `brainyclan_family_annual`.
      Fill in prices, display names and the review screenshot. Also sign the Paid Apps agreement
-     (Business section), or products never load.
+     (Business section), or products never load. **Introductory offers**: a 7-day free trial on
+     the 6-month and annual products (Subscription → Subscription Prices → Introductory Offers →
+     Free); the app shows a "7 days free trial" badge from the product, only when the account is
+     still eligible. A _paid_ introductory offer (e.g. "founding families": 50% off the first
+     year) is shown as the founding-families offer on that plan. **Offer codes** (Subscription →
+     Offer Codes) can be redeemed in the app (paywall → "Redeem a store offer code" opens Apple's
+     code sheet); map each code to an affiliate in the backend admin.
    - Google Play Console → your app (`app.brainyclan`) → Monetize → Subscriptions → products with
      the same IDs, each with a monthly / 6-month / yearly base plan. Play only lists products after an app
-     build has been uploaded to a testing track (internal testing is enough).
+     build has been uploaded to a testing track (internal testing is enough). Free trials are
+     **offers** on the base plan (eligibility "New customer acquisition", phase "Free trial",
+     7 days); Play only returns offers the account can still get. **Promo codes** (Monetize →
+     Promo codes) are redeemed in Google Play; the paywall's "Redeem a store offer code" opens
+     `https://play.google.com/redeem`.
 2. **RevenueCat project** (app.revenuecat.com, free to start):
    - Create a project "Brainy Clan", then add an **App Store app** (bundle ID `app.brainyclan`,
      plus an In-App Purchase Key from App Store Connect → Users and Access → Integrations) and a
@@ -441,9 +451,12 @@ button (store billing needs the native app; web billing is a later milestone).
      and attach all Family-plan products to it.
    - **Offering** (e.g. `default`), mark it **Current**, and add the packages **Monthly**
      (`$rc_monthly`), **Six month** (`$rc_six_month`) and **Annual** (`$rc_annual`) with the
-     matching iOS and Android products. The app shows the current offering's packages with the
-     store's localized prices, yearly first; until F8 adds its own layout, the 6-month package is
-     listed last with its store title.
+     matching iOS and Android products (`brainyclan_family_monthly`, `brainyclan_family_6months`,
+     `brainyclan_family_annual`). Use these package types: the app maps `MONTHLY`, `SIX_MONTH`
+     and `ANNUAL` to its three plans (custom packages fall back to the product ID). The paywall
+     shows annual first and highlighted, with the store's per-month price and the saving against
+     the monthly plan computed from the store prices of the same offering (rounded down; nothing
+     is hard-coded), then 6 months, then monthly.
 3. **Webhook to the backend** (project → Integrations → Webhooks): URL
    `https://<public backend host>/api/v1/webhooks/revenuecat`, Authorization header value
    `Bearer <REVENUECAT_WEBHOOK_SECRET>` (same secret in the backend `.env`). For the faster
@@ -473,10 +486,24 @@ button (store billing needs the native app; web billing is a later milestone).
      the build from the internal testing track (or the dev build signed with the same key) and use
      that account in the Play Store. Test cards never charge.
 8. **Check on the phone**: sign in as an adult admin of a free family → Family → Plan → **See the
-   Family plan** → prices show → pick Yearly → **Subscribe** → store sheet → after paying,
+   Family plan** → three plans with store prices, Yearly highlighted with "Save N%" and the
+   per-month price, trial badges → pick Yearly → **Subscribe** → store sheet → after paying,
    "Activating the Family plan…" then the celebration; the Plan card shows **Family** and the
    limits are gone. Also try: cancel the store sheet ("Purchase cancelled — nothing was charged"),
    **Restore purchases** on a second device, and a teen/child (no paywall entry).
+9. **Plans bought on the web, codes and the web link (F8 / backend B10)**:
+   - A family whose plan was bought on the website (`GET /family/subscription` → `store: "paddle"`)
+     sees "Your Family plan is managed on the web" instead of the plans; **Manage subscription**
+     (paywall and Plan card) opens the link from `POST /family/subscription/manage-link` (Paddle
+     portal in the in-app browser, store subscription pages in the store app).
+   - **Referral codes**: "Have a code?" at parent sign-up (kept on the device until the family is
+     created, then sent with `POST /family/referral-code`) and on the paywall. Refused codes show
+     a friendly message (`referral_code_invalid` / `referral_code_locked`).
+   - **Web checkout link**: the app reads the store country (RevenueCat `getStorefront()`) and
+     asks `GET /family/web-checkout/availability?storefront=…`; only when the server answers
+     `link_allowed: true` does the paywall show "Also available on the web". The server list is
+     empty by default, so the app shows no web prices or links anywhere until Moe enables a
+     storefront (e.g. `USA`) after re-checking the store rules.
 
 ## Rewarded ads — AdMob setup
 

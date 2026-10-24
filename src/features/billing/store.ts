@@ -1,13 +1,10 @@
+import { Platform } from 'react-native';
 import type { CustomerInfo, PurchasesPackage } from 'react-native-purchases';
 
 import { FAMILY_ENTITLEMENT, REVENUECAT_API_KEY, purchasesSupported } from '@/config/monetization';
-import {
-  type PackageKind,
-  type PaywallPackage,
-  type StoreApi,
-  StoreError,
-  type StoreErrorKind,
-} from '@/features/billing/storeTypes';
+import { toPaywallPackages } from '@/features/billing/packages';
+import { type StoreApi, StoreError, type StoreErrorKind } from '@/features/billing/storeTypes';
+import { toAlpha3 } from '@/lib/countryCodes';
 
 /**
  * RevenueCat on iOS/Android (`store.web.ts` is the web stub). The SDK is loaded lazily and only
@@ -108,13 +105,23 @@ async function identify(appUserId: string): Promise<void> {
   }
 }
 
-function kindOf(Purchases: Purchases, pkg: PurchasesPackage): PackageKind {
-  if (pkg.packageType === Purchases.PACKAGE_TYPE.ANNUAL) return 'annual';
-  if (pkg.packageType === Purchases.PACKAGE_TYPE.MONTHLY) return 'monthly';
-  return 'other';
+/**
+ * Products whose intro offer / trial this store account can no longer get (iOS check; Google
+ * only returns offers the account is eligible for, so Android reports nothing here).
+ */
+async function ineligibleProducts(
+  Purchases: Purchases,
+  productIds: string[],
+): Promise<Set<string>> {
+  if (Platform.OS !== 'ios' || productIds.length === 0) return new Set();
+  try {
+    const result = await Purchases.checkTrialOrIntroductoryPriceEligibility(productIds);
+    const ineligible = Purchases.INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_INELIGIBLE;
+    return new Set(productIds.filter((id) => result[id]?.status === ineligible));
+  } catch {
+    return new Set();
+  }
 }
-
-const ORDER: Record<PackageKind, number> = { annual: 0, monthly: 1, other: 2 };
 
 export const store: StoreApi = {
   available: purchasesSupported,
@@ -128,18 +135,19 @@ export const store: StoreApi = {
       const offerings = await Purchases.getOfferings();
       const available = offerings.current?.availablePackages ?? [];
       packages.clear();
-      const result: PaywallPackage[] = available.map((pkg) => {
-        packages.set(pkg.identifier, pkg);
-        const kind = kindOf(Purchases, pkg);
-        return {
-          id: pkg.identifier,
-          kind,
-          priceString: pkg.product.priceString,
-          pricePerMonthString: kind === 'annual' ? pkg.product.pricePerMonthString : null,
-          title: pkg.product.title,
-        };
-      });
-      return result.sort((a, b) => ORDER[a.kind] - ORDER[b.kind]);
+      for (const pkg of available) packages.set(pkg.identifier, pkg);
+      const ineligible = await ineligibleProducts(
+        Purchases,
+        available.filter((pkg) => pkg.product.introPrice).map((pkg) => pkg.product.identifier),
+      );
+      return toPaywallPackages(
+        available.map((pkg) => ({
+          identifier: pkg.identifier,
+          packageType: String(pkg.packageType),
+          product: pkg.product,
+        })),
+        (productId) => !ineligible.has(productId),
+      );
     } catch (error) {
       throw toStoreError(error);
     }
@@ -176,6 +184,27 @@ export const store: StoreApi = {
       if (!(await Purchases.isAnonymous())) await Purchases.logOut();
     } catch {
       // Best effort: the next admin's `identify` switches the user anyway.
+    }
+  },
+
+  async getStorefront() {
+    try {
+      const Purchases = await loadSdk();
+      return toAlpha3((await Purchases.getStorefront())?.countryCode);
+    } catch {
+      // Unknown storefront: the app treats the web link as not allowed.
+      return null;
+    }
+  },
+
+  offerCodeRedemption: !purchasesSupported ? null : Platform.OS === 'ios' ? 'sheet' : 'link',
+
+  async presentCodeRedemptionSheet() {
+    const Purchases = await loadSdk();
+    try {
+      await Purchases.presentCodeRedemptionSheet();
+    } catch (error) {
+      throw toStoreError(error);
     }
   },
 };

@@ -53,7 +53,9 @@
     "familyOwnerCannotLeave": "Le propriétaire ne peut pas supprimer son compte tant que d'autres membres sont dans la famille. Supprimez plutôt la famille.",
     "adRewardPending": "Nous n’avons pas encore pu confirmer votre récompense. Réessayez dans un instant.",
     "loginLocked": "Trop de tentatives de connexion. Patientez quelques minutes, puis réessayez.",
-    "worldLocked": "Ce monde n'est pas encore débloqué. La liste a été actualisée."
+    "worldLocked": "Ce monde n'est pas encore débloqué. La liste a été actualisée.",
+    "subscriptionExists": "Votre famille a déjà un forfait Famille : rien à acheter ici.",
+    "webCheckoutUnavailable": "L’achat sur le Web n’est pas disponible pour le moment."
   },
   "update": {
     "title": "C'est l'heure de la mise à jour",
@@ -331,7 +333,8 @@
     "passwordHint": "Au moins 8 caractères.",
     "birthHint": "Les comptes parents sont réservés aux adultes. Nous l'utilisons seulement pour adapter l'expérience.",
     "submit": "Créer le compte",
-    "haveAccount": "Déjà un compte ? Se connecter"
+    "haveAccount": "Déjà un compte ? Se connecter",
+    "codeToggle": "Vous avez un code ?"
   },
   "join": {
     "title": "Rejoins ta famille",
@@ -924,7 +927,8 @@
     "stores": {
       "app_store": "App Store",
       "play_store": "Google Play",
-      "stripe": "Web"
+      "stripe": "Web",
+      "paddle": "Web (brainyclan.com)"
     },
     "seePlan": "Voir le forfait Famille",
     "errors": {
@@ -962,7 +966,57 @@
       "delayedBody": "Votre achat est validé. Le forfait Famille peut mettre quelques minutes à apparaître dans l’application — inutile d’acheter à nouveau.",
       "legal": "Le paiement est débité de votre compte App Store ou Google Play. L’abonnement se renouvelle automatiquement sauf résiliation au moins 24 heures avant la fin de la période ; gérez-le ou résiliez-le dans les réglages de votre compte de boutique.",
       "terms": "Conditions d’utilisation",
-      "privacy": "Politique de confidentialité"
+      "privacy": "Politique de confidentialité",
+      "sixMonths": "6 mois",
+      "perSixMonths": "{{price}} / 6 mois",
+      "save": "Économisez {{percent}} %",
+      "trial": "Essai gratuit de {{duration}}",
+      "foundingTitle": "Offre familles fondatrices",
+      "introOnce": "{{price}} pendant {{duration}}",
+      "introRecurring": "{{price}} par {{unit}} pendant {{duration}}",
+      "alreadyFamilyStore": "Votre famille a déjà le forfait Famille. Modifiez-le ou résiliez-le dans votre compte de boutique."
+    },
+    "manage": "Gérer l’abonnement",
+    "managedOnWebTitle": "Votre forfait Famille est géré sur le Web",
+    "managedOnWebBody": "Vous vous êtes abonné sur brainyclan.com. Modifiez ou résiliez le forfait là-bas — rien à acheter dans l’application.",
+    "period": {
+      "day_one": "{{count}} jour",
+      "day_many": "{{count}} jours",
+      "day_other": "{{count}} jours",
+      "week_one": "{{count}} semaine",
+      "week_many": "{{count}} semaines",
+      "week_other": "{{count}} semaines",
+      "month_one": "{{count}} mois",
+      "month_many": "{{count}} mois",
+      "month_other": "{{count}} mois",
+      "year_one": "{{count}} an",
+      "year_many": "{{count}} ans",
+      "year_other": "{{count}} ans"
+    },
+    "unit": {
+      "day": "jour",
+      "week": "semaine",
+      "month": "mois",
+      "year": "an"
+    },
+    "referral": {
+      "title": "Vous avez un code ?",
+      "label": "Code de parrainage",
+      "placeholder": "ex. MAYA",
+      "hint": "Facultatif : un code d’un ami ou d’un créateur que vous suivez.",
+      "apply": "Appliquer le code",
+      "applied": "Le code {{code}} est associé à votre famille.",
+      "invalid": "Ce code est inconnu. Vérifiez l’orthographe et réessayez.",
+      "locked": "Votre famille a déjà un code ou a déjà payé un forfait : le code ne peut plus être modifié.",
+      "failedPending": "Le code {{code}} saisi à l’inscription n’a pas pu être ajouté. {{reason}}"
+    },
+    "offerCode": {
+      "redeem": "Utiliser un code promo de la boutique",
+      "hintSheet": "Vous avez un code de l’App Store ? Saisissez-le ici.",
+      "hintLink": "Vous avez un code promo Google Play ? Saisissez-le dans Google Play."
+    },
+    "web": {
+      "button": "Aussi disponible sur le Web"
     }
   },
   "notifications": {

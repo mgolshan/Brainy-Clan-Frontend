@@ -1,13 +1,17 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
+import { Linking } from 'react-native';
 
 import { ApiError, api } from '@/api/client';
 import { queryClient } from '@/api/queryClient';
 import { queryKeys } from '@/api/queryKeys';
-import type { Envelope, Subscription } from '@/api/types';
+import type { Envelope, ManageLink, Subscription, WebCheckoutAvailability } from '@/api/types';
 import { useIsAdmin, usePolicy } from '@/features/auth/hooks';
+import { submitReferralCode } from '@/features/billing/referral';
+import { STORE_MANAGE_URLS, webCheckoutUrl } from '@/features/billing/source';
 import { store } from '@/features/billing/store';
 import { StoreError } from '@/features/billing/storeTypes';
+import { openInAppBrowser } from '@/features/legal/hooks';
 import { invalidateWorlds } from '@/features/worlds/hooks';
 
 /**
@@ -66,7 +70,9 @@ export async function waitForFamilyTier(): Promise<boolean> {
         switched = true;
         break;
       }
-    } catch {
+    } catch (error) {
+      // The family already has a plan from another source (e.g. bought on the web): stop and say so.
+      if (error instanceof ApiError && error.code === 'subscription_exists') throw error;
       // Transient errors (502 while the backend restarts, offline): keep polling.
     }
     if (Date.now() + POLL_INTERVAL_MS >= deadline) break;
@@ -129,7 +135,83 @@ export function usePaywallActions(appUserId: string | undefined) {
         setStep('idle');
       }
     },
+    onError: (error) => {
+      // 409 `subscription_exists`: the plan is managed elsewhere; reload so the paywall says so.
+      if (isSubscriptionExists(error)) {
+        void queryClient.invalidateQueries({ queryKey: queryKeys.subscription });
+      }
+    },
   });
 
   return { run, step };
+}
+
+/** True for the 409 `subscription_exists` answer (the family already has a plan elsewhere). */
+export function isSubscriptionExists(error: unknown): boolean {
+  return error instanceof ApiError && error.code === 'subscription_exists';
+}
+
+/**
+ * "Manage subscription": `POST /family/subscription/manage-link` gives the right place (Paddle
+ * customer portal for web plans, the store's subscription page for store plans). Store pages
+ * open in the store app (`Linking`), the Paddle portal in the in-app browser. While the
+ * endpoint isn't deployed (404), store plans fall back to the store's own subscription page.
+ */
+export function useManageSubscription() {
+  return useMutation({
+    mutationFn: async (sub: Pick<Subscription, 'store'>) => {
+      let url: string | undefined;
+      try {
+        url = (await api.post<Envelope<ManageLink>>('/family/subscription/manage-link')).data.url;
+      } catch (error) {
+        const fallback = sub.store ? STORE_MANAGE_URLS[sub.store] : undefined;
+        if (!(error instanceof ApiError && error.status === 404 && fallback)) throw error;
+        url = fallback;
+      }
+      if (sub.store === 'paddle') {
+        openInAppBrowser(url);
+      } else {
+        await Linking.openURL(url).catch(() => openInAppBrowser(url));
+      }
+    },
+  });
+}
+
+/**
+ * The in-app web checkout link (Paddle), only where the server allows it for the store country
+ * (`GET /family/web-checkout/availability?storefront=`). Without a known storefront (web build,
+ * Expo Go, older stores) the link is treated as not allowed and the API isn't called.
+ * Resolves to the URL to show, or null (then the app mentions no web prices at all).
+ */
+export async function fetchWebCheckoutLink(signal?: AbortSignal): Promise<string | null> {
+  const storefront = await store.getStorefront();
+  if (!storefront) return null;
+  try {
+    const availability = (
+      await api.get<Envelope<WebCheckoutAvailability>>(
+        `/family/web-checkout/availability?storefront=${encodeURIComponent(storefront)}`,
+        { signal },
+      )
+    ).data;
+    return webCheckoutUrl(availability);
+  } catch (error) {
+    // Not deployed yet / not allowed (4xx): no link. Server errors surface (query error → no link).
+    if (error instanceof ApiError && error.status > 0 && error.status < 500) return null;
+    throw error;
+  }
+}
+
+export function useWebCheckoutLink(enabled: boolean) {
+  return useQuery({
+    queryKey: queryKeys.webCheckout,
+    queryFn: ({ signal }) => fetchWebCheckoutLink(signal),
+    enabled: enabled && store.available,
+    staleTime: 10 * 60_000,
+    retry: false,
+  });
+}
+
+/** `POST /family/referral-code` from the paywall's "Have a code?" field (admin). */
+export function useSubmitReferralCode() {
+  return useMutation({ mutationFn: (code: string) => submitReferralCode(code) });
 }

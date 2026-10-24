@@ -1,20 +1,31 @@
 import { router } from 'expo-router';
+import type { TFunction } from 'i18next';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
+import type { Subscription } from '@/api/types';
 import { useIsAdmin, usePolicy } from '@/features/auth/hooks';
 import {
+  OfferCodeButton,
+  PendingReferralNotice,
+  ReferralCodeSection,
+} from '@/features/billing/CodeSections';
+import {
   type PaywallResult,
+  useManageSubscription,
   usePaywallActions,
   usePaywallPackages,
   useSubscription,
+  useWebCheckoutLink,
 } from '@/features/billing/hooks';
+import { defaultPackage } from '@/features/billing/packages';
+import { planSource } from '@/features/billing/source';
 import { store } from '@/features/billing/store';
-import { type PaywallPackage, StoreError } from '@/features/billing/storeTypes';
+import { type OfferPeriod, type PaywallPackage, StoreError } from '@/features/billing/storeTypes';
 import { Unlocks } from '@/features/billing/SubscriptionCard';
 import { PRIVACY_URL, TERMS_URL } from '@/config/monetization';
-import { openLegalPage, useLegal } from '@/features/legal/hooks';
+import { openInAppBrowser, openLegalPage, useLegal } from '@/features/legal/hooks';
 import { errorMessage } from '@/lib/errorMessage';
 import {
   Badge,
@@ -42,6 +53,62 @@ function useStoreErrorText() {
     error instanceof StoreError ? t(`billing.errors.${error.kind}`) : errorMessage(error, t);
 }
 
+type TFn = TFunction;
+
+/** "7 days", "1 year", ... in the app language. */
+function useDuration() {
+  const { t } = useTranslation();
+  return (period: OfferPeriod) => t(`billing.period.${period.unit}`, { count: period.count });
+}
+
+function planName(t: TFn, pkg: PaywallPackage): string {
+  switch (pkg.kind) {
+    case 'annual':
+      return t('billing.paywall.annual');
+    case 'sixMonth':
+      return t('billing.paywall.sixMonths');
+    case 'monthly':
+      return t('billing.paywall.monthly');
+    default:
+      return pkg.title;
+  }
+}
+
+function planPrice(t: TFn, pkg: PaywallPackage): string {
+  switch (pkg.kind) {
+    case 'annual':
+      return t('billing.paywall.perYear', { price: pkg.priceString });
+    case 'sixMonth':
+      return t('billing.paywall.perSixMonths', { price: pkg.priceString });
+    case 'monthly':
+      return t('billing.paywall.perMonth', { price: pkg.priceString });
+    default:
+      return pkg.priceString;
+  }
+}
+
+/** The intro ("founding families") offer line, e.g. "$24.99 for 1 year". */
+function useIntroText() {
+  const { t } = useTranslation();
+  const duration = useDuration();
+  return (pkg: PaywallPackage): string | null => {
+    const offer = pkg.introOffer;
+    if (!offer) return null;
+    if (offer.cycles <= 1) {
+      return t('billing.paywall.introOnce', {
+        price: offer.priceString,
+        duration: duration(offer.period),
+      });
+    }
+    return t('billing.paywall.introRecurring', {
+      price: offer.priceString,
+      unit:
+        offer.period.count === 1 ? t(`billing.unit.${offer.period.unit}`) : duration(offer.period),
+      duration: duration({ unit: offer.period.unit, count: offer.period.count * offer.cycles }),
+    });
+  };
+}
+
 function PackageOption({
   pkg,
   selected,
@@ -53,25 +120,29 @@ function PackageOption({
 }) {
   const { t } = useTranslation();
   const theme = useTheme();
+  const duration = useDuration();
+  const introText = useIntroText();
   const c = theme.colors;
-  const name =
-    pkg.kind === 'annual'
-      ? t('billing.paywall.annual')
-      : pkg.kind === 'monthly'
-        ? t('billing.paywall.monthly')
-        : pkg.title;
-  const price =
-    pkg.kind === 'annual'
-      ? t('billing.paywall.perYear', { price: pkg.priceString })
-      : pkg.kind === 'monthly'
-        ? t('billing.paywall.perMonth', { price: pkg.priceString })
-        : pkg.priceString;
+  const name = planName(t, pkg);
+  const price = planPrice(t, pkg);
+  const trial = pkg.freeTrial
+    ? t('billing.paywall.trial', { duration: duration(pkg.freeTrial) })
+    : null;
+  const intro = introText(pkg);
+  const introLine = intro ? `${t('billing.paywall.foundingTitle')}: ${intro}` : null;
+  const save =
+    pkg.savingPercent !== null ? t('billing.paywall.save', { percent: pkg.savingPercent }) : null;
+  const perMonth = pkg.pricePerMonthString
+    ? t('billing.paywall.perMonthEquivalent', { price: pkg.pricePerMonthString })
+    : null;
+  const label = [name, price, perMonth, save, trial, introLine].filter(Boolean).join(', ');
+
   return (
     <PressableScale
       onPress={onSelect}
       haptic
       accessibilityRole="radio"
-      accessibilityLabel={`${name}, ${price}`}
+      accessibilityLabel={label}
       accessibilityState={{ checked: selected }}
       style={{
         flexDirection: 'row',
@@ -80,29 +151,75 @@ function PackageOption({
         minHeight: theme.touchTarget,
         padding: theme.spacing.md,
         borderRadius: theme.radius.md,
-        borderWidth: selected ? 2 : theme.borderWidth,
-        borderColor: selected ? c.primary : c.border,
+        borderWidth: selected || pkg.highlighted ? 2 : theme.borderWidth,
+        borderColor: selected ? c.primary : pkg.highlighted ? c.success : c.border,
         backgroundColor: selected ? c.primarySoft : c.surface,
       }}>
       <Icon
         name={selected ? 'radio-button-on' : 'radio-button-off'}
         color={selected ? c.primary : c.textMuted}
       />
-      <View style={{ flex: 1, gap: 2 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm }}>
+      <View style={{ flex: 1, gap: theme.spacing.xs }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: theme.spacing.sm,
+          }}>
           <Text weight="bold">{name}</Text>
-          {pkg.kind === 'annual' ? (
-            <Badge label={t('billing.paywall.bestValue')} tone="success" />
-          ) : null}
+          {pkg.highlighted ? <Badge label={t('billing.paywall.bestValue')} tone="success" /> : null}
+          {save ? <Badge label={save} tone="primary" /> : null}
         </View>
-        {pkg.pricePerMonthString ? (
+        {perMonth ? (
           <Text variant="caption" tone="muted">
-            {t('billing.paywall.perMonthEquivalent', { price: pkg.pricePerMonthString })}
+            {perMonth}
+          </Text>
+        ) : null}
+        {trial ? (
+          <View style={{ flexDirection: 'row' }}>
+            <Badge label={trial} tone="accent" icon="gift-outline" />
+          </View>
+        ) : null}
+        {introLine ? (
+          <Text variant="caption" weight="bold" tone="success">
+            {introLine}
           </Text>
         ) : null}
       </View>
-      <Text weight="bold">{price}</Text>
+      <Text weight="bold" align="right" style={{ flexShrink: 1, maxWidth: '45%' }}>
+        {price}
+      </Text>
     </PressableScale>
+  );
+}
+
+/** A running plan: managed on the web (Paddle) or in the store; "Manage subscription" for both. */
+function ManagedPlan({ sub }: { sub: Subscription }) {
+  const { t } = useTranslation();
+  const manage = useManageSubscription();
+  const storeErrorText = useStoreErrorText();
+  const web = planSource(sub) === 'web';
+  return (
+    <>
+      <Card>
+        <EmptyState
+          title={web ? t('billing.managedOnWebTitle') : t('billing.paywall.alreadyFamily')}
+          body={web ? t('billing.managedOnWebBody') : t('billing.paywall.alreadyFamilyStore')}
+          icon={web ? 'globe-outline' : 'star'}
+        />
+      </Card>
+      {sub.store ? (
+        <Button
+          title={t('billing.manage')}
+          icon="settings-outline"
+          onPress={() => manage.mutate(sub)}
+          loading={manage.isPending}
+        />
+      ) : null}
+      {manage.isError ? <Text tone="danger">{storeErrorText(manage.error)}</Text> : null}
+      <Button title={t('common.done')} variant="outline" onPress={done} />
+    </>
   );
 }
 
@@ -142,12 +259,15 @@ export function PaywallScreen() {
   const appUserId = subscription.data?.revenuecat_app_user_id;
   const packages = usePaywallPackages(appUserId);
   const { run, step } = usePaywallActions(appUserId);
+  const source = subscription.data ? planSource(subscription.data) : 'none';
+  const allowed = !!policy && policy.purchases_allowed && !policy.is_child && isAdmin;
+  // Only asks the server when this family could buy (no running plan); `link_allowed` decides.
+  const webLink = useWebCheckoutLink(allowed && !!subscription.data && source === 'none');
   const storeErrorText = useStoreErrorText();
   const [chosen, setChosen] = useState<string | null>(null);
   const legal = useLegal().data;
 
   const title = t('billing.paywall.title');
-  const allowed = !!policy && policy.purchases_allowed && !policy.is_child && isAdmin;
 
   if (!store.available || !policy || !allowed) {
     return (
@@ -179,13 +299,12 @@ export function PaywallScreen() {
     );
   }
 
-  if (subscription.data.tier === 'family') {
+  // One plan per family from one source: a running web (Paddle) or store plan hides the
+  // purchase options; "Manage subscription" opens the right place (server-given link).
+  if (source !== 'none') {
     return (
       <Screen title={title} back>
-        <Card>
-          <EmptyState title={t('billing.paywall.alreadyFamily')} icon="star" />
-        </Card>
-        <Button title={t('common.done')} variant="outline" onPress={done} />
+        <ManagedPlan sub={subscription.data} />
       </Screen>
     );
   }
@@ -195,7 +314,7 @@ export function PaywallScreen() {
   const openTerms = () => openLegalPage(legal?.terms ? legal.terms.url : TERMS_URL);
   const openPrivacy = () => openLegalPage(legal?.privacy ? legal.privacy.url : PRIVACY_URL);
   const list = packages.data ?? [];
-  const selected = list.find((p) => p.id === chosen) ?? list[0];
+  const selected = list.find((p) => p.id === chosen) ?? defaultPackage(list);
   const busy = run.isPending;
   const notice =
     result?.kind === 'cancelled'
@@ -250,6 +369,7 @@ export function PaywallScreen() {
         </Text>
       ) : null}
       {run.isError ? <Text tone="danger">{storeErrorText(run.error)}</Text> : null}
+      <PendingReferralNotice />
       {notice ? <Text tone="muted">{notice}</Text> : null}
 
       <Button
@@ -267,6 +387,17 @@ export function PaywallScreen() {
         loading={step === 'restoring'}
         disabled={busy}
       />
+      {webLink.data ? (
+        <Button
+          title={t('billing.web.button')}
+          icon="open-outline"
+          variant="outline"
+          onPress={() => webLink.data && openInAppBrowser(webLink.data)}
+        />
+      ) : null}
+
+      <ReferralCodeSection />
+      <OfferCodeButton />
 
       <Text variant="caption" tone="muted" align="center">
         {t('billing.paywall.legal')}

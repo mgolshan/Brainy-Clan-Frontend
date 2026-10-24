@@ -42,6 +42,10 @@ const MAPPED: [string, number, string][] = [
   ['not_found', 404, 'errors.notFound'],
   ['rate_limited', 429, 'errors.rateLimited'],
   ['login_locked', 429, 'errors.loginLocked'],
+  ['subscription_exists', 409, 'errors.subscriptionExists'],
+  ['web_checkout_unavailable', 503, 'errors.webCheckoutUnavailable'],
+  ['referral_code_invalid', 422, 'billing.referral.invalid'],
+  ['referral_code_locked', 409, 'billing.referral.locked'],
   // Client-side codes (no HTTP answer).
   ['network_error', 0, 'errors.network'],
   ['timeout', 0, 'errors.timeout'],

@@ -173,7 +173,8 @@ build. Raise it only after the new version is approved and live in **both** stor
    `npx expo export --platform web`; occasionally `npx expo-doctor`.
 3. Native change → bump `expo.version`, update "What's new" (en + fr).
 4. `production` build → TestFlight / internal testing → smoke test with the review family (sign-in
-   methods, child sign-in code, every challenge type, goal, chat, paywall in sandbox, rewarded ad as
+   methods, child sign-in code, every challenge type, goal, chat, paywall in sandbox (three plans,
+   no web price or link unless the server enabled that storefront), rewarded ad as
    a free adult, push, deletion flow up to the confirmation, French, iPad portrait + landscape).
 5. Data collection or SDKs changed → update STORE.md §7 and the store privacy forms [Moe].
 6. Submit and release [Moe]; watch Sentry for 48 h.
@@ -185,6 +186,9 @@ rotation while playing, Split View / Slide Over, Sudoku 9×9 and word search on 
 modals, hardware keyboard, Stage Manager); iPhone stays portrait; lockout countdown with
 VoiceOver/TalkBack; forgot password with a real mailbox; Profile → Help & support once the website
 is live; push registration and deep links (needs `eas init`, APNs + FCM); RevenueCat purchase,
-cancel, restore, slow webhook (How to test → F6 items 1–5); AdMob rewarded ad + SSV + UMP consent
+cancel, restore, slow webhook (How to test → F6 items 1–5); F8 paywall (three plans, saving %,
+trial badge, referral code at sign-up and on the paywall, iOS offer-code sheet / Play redeem link,
+a `paddle` plan showing "managed on the web" + Manage, the web link only for an allowed
+storefront); AdMob rewarded ad + SSV + UMP consent
 (items 6–10); Google/Facebook/Apple sign-in with real IDs (F4b/F4c); chat keyboard avoidance on
 Android and long-press delete; F2–F5 on a phone incl. screen readers and maximum font size.

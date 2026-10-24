@@ -14,4 +14,7 @@ export const store: StoreApi = {
   purchase: unavailable,
   restore: unavailable,
   reset: () => Promise.resolve(),
+  getStorefront: () => Promise.resolve(null),
+  offerCodeRedemption: null,
+  presentCodeRedemptionSheet: unavailable,
 };

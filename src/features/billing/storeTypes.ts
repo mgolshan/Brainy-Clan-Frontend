@@ -3,17 +3,43 @@
  * Screens only see these, never RevenueCat's own types.
  */
 
-export type PackageKind = 'annual' | 'monthly' | 'other';
+export type PackageKind = 'monthly' | 'sixMonth' | 'annual' | 'other';
 
-/** One purchasable option of the current offering, priced by the store. */
+export type PeriodUnit = 'day' | 'week' | 'month' | 'year';
+
+/** A store period, e.g. 7 days or 1 year. */
+export interface OfferPeriod {
+  unit: PeriodUnit;
+  count: number;
+}
+
+/** A paid introductory price (e.g. the "founding families" launch offer). */
+export interface IntroOffer {
+  /** Localized intro price from the store. */
+  priceString: string;
+  /** Billing period of the intro price. */
+  period: OfferPeriod;
+  /** How many periods the intro price applies (1 = paid once up front). */
+  cycles: number;
+}
+
+/** One purchasable option of the current offering, priced by the store (see `packages.ts`). */
 export interface PaywallPackage {
   /** RevenueCat package identifier (`$rc_annual`, `$rc_monthly`, ...). */
   id: string;
   kind: PackageKind;
   /** Localized price from the store, e.g. "$39.99". */
   priceString: string;
-  /** Localized monthly equivalent for longer periods (annual), else null. */
+  /** Localized monthly equivalent for plans longer than a month (store-computed), else null. */
   pricePerMonthString: string | null;
+  /** Saving against paying monthly for the same time (whole %), from store prices; else null. */
+  savingPercent: number | null;
+  /** Free trial of the product (introductory offer with price 0), when eligible. */
+  freeTrial: OfferPeriod | null;
+  /** Paid introductory offer of the product, when eligible. */
+  introOffer: IntroOffer | null;
+  /** The plan the paywall highlights (annual). */
+  highlighted: boolean;
   /** The store's product title (shown for `other` packages). */
   title: string;
 }
@@ -47,4 +73,16 @@ export interface StoreApi {
   restore(appUserId: string): Promise<boolean>;
   /** Back to an anonymous RevenueCat user (sign-out). Never throws. */
   reset(): Promise<void>;
+  /**
+   * Store country of the signed-in store account (ISO 3166-1 alpha-3, e.g. `USA`), or null when
+   * unknown / not available. Never throws.
+   */
+  getStorefront(): Promise<string | null>;
+  /**
+   * How store offer codes are redeemed on this platform: the iOS code redemption sheet, a link
+   * to Google Play's redeem page, or not at all (web, Expo Go).
+   */
+  readonly offerCodeRedemption: 'sheet' | 'link' | null;
+  /** Shows the iOS offer code redemption sheet (only when `offerCodeRedemption` is `sheet`). */
+  presentCodeRedemptionSheet(): Promise<void>;
 }

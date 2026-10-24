@@ -40,6 +40,10 @@ export type ApiErrorCode =
   | 'login_locked'
   | 'world_locked'
   | 'chat_disabled'
+  | 'subscription_exists'
+  | 'web_checkout_unavailable'
+  | 'referral_code_invalid'
+  | 'referral_code_locked'
   | 'not_found';
 
 /** Error body: `errors` only on 422. */
@@ -108,6 +112,8 @@ export interface Family {
   tier: FamilyTier;
   owner_user_id: number;
   member_count: number;
+  /** Admin view of `GET /family` only (B10): the family's referral code, once set. */
+  referral_code?: string | null;
 }
 
 export interface Accessibility {
@@ -921,7 +927,8 @@ export interface Leaderboard {
 // ---------------------------------------------------------------------------
 
 export type SubscriptionStatus = 'active' | 'grace' | 'expired' | 'none' | (string & {});
-export type SubscriptionStore = 'app_store' | 'play_store' | 'stripe' | (string & {});
+/** `paddle`: bought on the website (Paddle web checkout, B10). */
+export type SubscriptionStore = 'app_store' | 'play_store' | 'stripe' | 'paddle' | (string & {});
 
 /** `GET /family/subscription` (admin). The tier comes only from RevenueCat webhooks. */
 export interface Subscription {
@@ -933,6 +940,34 @@ export interface Subscription {
   will_renew: boolean;
   /** Passed to `Purchases.logIn()` (RevenueCat app user id, `family-{id}`). */
   revenuecat_app_user_id: string;
+}
+
+/**
+ * `POST /family/subscription/manage-link` (admin, B10): the Paddle customer portal for `paddle`
+ * plans, the store's subscription page for store plans.
+ */
+export interface ManageLink {
+  url: string;
+}
+
+/**
+ * `GET /family/web-checkout/availability?storefront=USA` (admin, B10). `url` is set only when
+ * `link_allowed`; the app shows no web prices or links otherwise.
+ */
+export interface WebCheckoutAvailability {
+  link_allowed: boolean;
+  url: string | null;
+}
+
+/** `POST /family/referral-code` body (admin, B10): letters/digits/dash, ≤ 20, any case. */
+export interface ReferralCodeBody {
+  code: string;
+}
+
+/** `POST /family/referral-code` → the attribution now stored for the family. */
+export interface ReferralCodeResult {
+  code: string;
+  source: 'code' | 'link' | 'offer_code' | 'web_checkout' | (string & {});
 }
 
 export type NotificationType =
