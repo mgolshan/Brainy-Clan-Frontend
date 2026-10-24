@@ -4,13 +4,17 @@ import { useTranslation } from 'react-i18next';
 import { Linking, View } from 'react-native';
 
 import { ApiError } from '@/api/client';
-import type { AgeBand, NotificationType, UpdateNotificationPreferencesBody } from '@/api/types';
+import type { AgeBand, UpdateNotificationPreferencesBody } from '@/api/types';
 import { useIsAdmin, useMe } from '@/features/auth/hooks';
 import { useFamily } from '@/features/family/hooks';
 import {
   useNotificationPreferences,
   useUpdateNotificationPreferences,
 } from '@/features/notifications/hooks';
+import {
+  notificationTypeDefault,
+  visibleNotificationTypes,
+} from '@/features/notifications/notificationTypes';
 import { defaultQuietHours, formatTime, pad2, parseTime } from '@/features/notifications/time';
 import { usePushPermission } from '@/features/notifications/usePush';
 import { errorMessage } from '@/lib/errorMessage';
@@ -19,7 +23,6 @@ import {
   Divider,
   EmptyState,
   ErrorState,
-  type IconName,
   Loading,
   Screen,
   SectionHeader,
@@ -28,14 +31,6 @@ import {
   ToggleRow,
   useTheme,
 } from '@/ui';
-
-const TYPES: { key: NotificationType; icon: IconName }[] = [
-  { key: 'goal_reached', icon: 'flag-outline' },
-  { key: 'period_closed', icon: 'trophy-outline' },
-  { key: 'family_activity', icon: 'people-outline' },
-  { key: 'family_chat', icon: 'chatbubbles-outline' },
-  { key: 'daily_reminder', icon: 'alarm-outline' },
-];
 
 const MINUTE_STEP = 15;
 
@@ -114,12 +109,20 @@ interface SettingsProps {
   /** Omit for the signed-in member; set for the admin variant. */
   memberId?: number;
   ageBand?: AgeBand;
+  /** Whether the member whose settings these are is a family admin (admin-only types). */
+  memberIsAdmin: boolean;
   title: string;
   subtitle: string;
 }
 
 /** Per-type toggles, quiet hours and reminder time (saved at once, optimistic). */
-function NotificationSettings({ memberId, ageBand, title, subtitle }: SettingsProps) {
+function NotificationSettings({
+  memberId,
+  ageBand,
+  memberIsAdmin,
+  title,
+  subtitle,
+}: SettingsProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const prefs = useNotificationPreferences(memberId);
@@ -157,15 +160,15 @@ function NotificationSettings({ memberId, ageBand, title, subtitle }: SettingsPr
         <>
           <SectionHeader title={t('notifications.typesTitle')} />
           <Card padding="sm">
-            {TYPES.map(({ key, icon }, i) => (
+            {visibleNotificationTypes(memberIsAdmin).map(({ key, icon }, i) => (
               <View key={key}>
                 {i > 0 ? <Divider /> : null}
                 <ToggleRow
                   icon={icon}
                   label={t(`notifications.types.${key}`)}
                   description={t(`notifications.typeHints.${key}`)}
-                  // `family_chat` defaults to on (older backends don't send it yet).
-                  value={data.types[key] ?? key === 'family_chat'}
+                  // Newer types default to on (older backends don't send them yet).
+                  value={data.types[key] ?? notificationTypeDefault(key)}
                   onValueChange={(on) => save({ types: { [key]: on } })}
                 />
               </View>
@@ -240,9 +243,11 @@ function NotificationSettings({ memberId, ageBand, title, subtitle }: SettingsPr
 export function NotificationsScreen() {
   const { t } = useTranslation();
   const ageBand = useMe().data?.member?.age_band;
+  const isAdmin = useIsAdmin();
   return (
     <NotificationSettings
       ageBand={ageBand}
+      memberIsAdmin={isAdmin}
       title={t('notifications.title')}
       subtitle={t('notifications.subtitle')}
     />
@@ -270,6 +275,7 @@ export function MemberNotificationsScreen() {
       key={memberId}
       memberId={memberId}
       ageBand={member?.age_band}
+      memberIsAdmin={member?.role === 'admin'}
       title={member ? member.nickname : t('notifications.title')}
       subtitle={t('notifications.memberSubtitle')}
     />

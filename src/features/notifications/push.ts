@@ -137,7 +137,10 @@ export function addTokenChangeListener(): () => void {
 export interface PushData {
   type?: unknown;
   goal_id?: unknown;
-  /** `family_chat`: the new message's id (the push never carries message text). */
+  /**
+   * `family_chat`: the new message's id; `family_chat_report`: the reported message's id (pushes
+   * never carry message text).
+   */
   message_id?: unknown;
 }
 

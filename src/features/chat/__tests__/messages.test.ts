@@ -7,17 +7,21 @@ import {
   badgeLabel,
   buildChatRows,
   canDeleteMessage,
+  canReportMessage,
   chatAccess,
   flattenHistory,
   insertAt,
   insertMessages,
   markDeleted,
   mergeMessages,
+  messageAction,
   newestId,
   nextBeforeCursor,
   pendingForMember,
   prepareBody,
   retentionText,
+  rowIndexOfMessage,
+  showReportedTag,
   type ChatHistory,
   type OutboxItem,
 } from '@/features/chat/messages';
@@ -100,6 +104,14 @@ describe('history pages and cursors', () => {
     const next = insertMessages(h, [msg(8, { deleted: true, body: null })]);
     expect(next!.pages[1].data[0].deleted).toBe(true);
     expect(next!.pages[0]).toBe(h.pages[0]);
+  });
+
+  it('picks up the `reported` flag on a known message (admins)', () => {
+    const h = history(page([msg(10)]), page([msg(8)]));
+    const next = insertMessages(h, [msg(8, { reported: true })]);
+    expect(next!.pages[1].data[0].reported).toBe(true);
+    // Absent and `false` are the same: no change.
+    expect(insertMessages(h, [msg(10, { reported: false })])).toBe(h);
   });
 
   it('returns the same object when nothing changed, and nothing without a cache', () => {
@@ -271,5 +283,53 @@ describe('chat access (chat_disabled)', () => {
     expect(chatAccess(me({ chat_enabled: false }))).toEqual({ memberId: 4, enabled: false });
     expect(chatAccess(me({}, false)).enabled).toBe(false);
     expect(chatAccess(undefined)).toEqual({ memberId: null, enabled: false });
+  });
+});
+
+describe('chat report gating', () => {
+  const OWN = 5;
+
+  it('offers "Delete" on own messages, never "Report"', () => {
+    const own = msg(1, { member_id: OWN });
+    expect(messageAction(own, OWN, false)).toBe('delete');
+    expect(messageAction(own, OWN, true)).toBe('delete');
+    expect(canReportMessage(own, OWN, false)).toBe(false);
+  });
+
+  it('offers "Report" on another member’s message to non-admins', () => {
+    const other = msg(1, { member_id: 6 });
+    expect(messageAction(other, OWN, false)).toBe('report');
+    expect(canReportMessage(other, OWN, false)).toBe(true);
+    // A former member's message can still be reported (an admin can delete it).
+    expect(messageAction(msg(1, { member_id: null }), OWN, false)).toBe('report');
+  });
+
+  it('gives admins "Delete" (not "Report") on other members’ messages', () => {
+    const other = msg(1, { member_id: 6 });
+    expect(messageAction(other, OWN, true)).toBe('delete');
+    expect(canReportMessage(other, OWN, true)).toBe(false);
+  });
+
+  it('offers nothing on tombstones or before the member is known', () => {
+    expect(messageAction(msg(1, { member_id: 6, deleted: true, body: null }), OWN, false)).toBe(
+      null,
+    );
+    expect(messageAction(msg(1, { member_id: 6 }), null, false)).toBe(null);
+  });
+
+  it('shows the "Reported" tag only to admins, for messages not deleted', () => {
+    expect(showReportedTag(msg(1, { reported: true }), true)).toBe(true);
+    expect(showReportedTag(msg(1, { reported: true }), false)).toBe(false);
+    expect(showReportedTag(msg(1, { reported: false }), true)).toBe(false);
+    expect(showReportedTag(msg(1), true)).toBe(false);
+    expect(showReportedTag(msg(1, { reported: true, deleted: true, body: null }), true)).toBe(
+      false,
+    );
+  });
+
+  it('finds the row of a reported message (scroll from the push)', () => {
+    const rows = buildChatRows([msg(3), msg(2)], [], OWN);
+    expect(rowIndexOfMessage(rows, 2)).toBe(1);
+    expect(rowIndexOfMessage(rows, 99)).toBe(-1);
   });
 });

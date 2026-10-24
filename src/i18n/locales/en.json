@@ -992,14 +992,16 @@
       "period_closed": "Results are in",
       "family_activity": "Family activity",
       "daily_reminder": "Daily reminder",
-      "family_chat": "Family chat"
+      "family_chat": "Family chat",
+      "family_chat_report": "Chat reports"
     },
     "typeHints": {
       "goal_reached": "When the family reaches a goal or someone wins a race",
       "period_closed": "When a goal period ends",
       "family_activity": "When someone in the family finishes a session",
       "daily_reminder": "If you haven't played yet today",
-      "family_chat": "When someone writes in the family chat (never the message itself)"
+      "family_chat": "When someone writes in the family chat (never the message itself)",
+      "family_chat_report": "When someone reports a message in the family chat (parents only)"
     },
     "reminderTime": "Reminder time",
     "quietTitle": "Quiet hours",
@@ -1172,6 +1174,23 @@
     "emptyTitle": "Say hi to your family!",
     "emptyBody": "Messages here are only seen by your family.",
     "jumpToLatest": "Latest messages",
-    "listLabel": "Messages"
+    "listLabel": "Messages",
+    "longPressReportHint": "Long press to report it to a parent",
+    "report": "Report to a parent",
+    "reportTitle": "Report this message to a parent?",
+    "reportBody": "Your parents will be told. They can remove the message.",
+    "reportConfirm": "Report",
+    "reportSent": "Thanks for telling us. Your parents have been told.",
+    "reportOwn": "You can't report your own message.",
+    "reportGone": "This message is no longer in the chat.",
+    "reportRateLimited": "You've sent a lot of reports. Talk to a parent or try again later.",
+    "reportFailed": "The report couldn't be sent. Try again.",
+    "reportedTag": "Reported",
+    "reportedTagLabel": "{{name}}'s message was reported. Review it",
+    "reviewTitle": "Reported message",
+    "reviewBody": "A family member reported this message from {{name}}. You can delete it or turn off chat for {{name}}.",
+    "reviewBodyDeleteOnly": "A family member reported this message from {{name}}. You can delete it.",
+    "turnOffChatFor": "Turn off chat for {{name}}",
+    "chatTurnedOff": "Chat is now off for {{name}}."
   }
 }

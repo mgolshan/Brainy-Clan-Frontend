@@ -971,11 +971,18 @@ export interface ReferralCodeResult {
 }
 
 export type NotificationType =
-  'goal_reached' | 'period_closed' | 'family_activity' | 'daily_reminder' | 'family_chat';
+  | 'goal_reached'
+  | 'period_closed'
+  | 'family_activity'
+  | 'daily_reminder'
+  | 'family_chat'
+  /** Admins only (2026-10-24): a member reported a chat message. Default on. */
+  | 'family_chat_report';
 
 /** `GET /me/notification-preferences`. Times are `HH:MM` in the family timezone. */
 export interface NotificationPreferences {
-  types: Record<NotificationType, boolean>;
+  /** Keys newer than the backend may be missing (the app then shows the default). */
+  types: Partial<Record<NotificationType, boolean>>;
   quiet_from: string | null;
   quiet_to: string | null;
   reminder_time: string | null;
@@ -1043,6 +1050,11 @@ export interface ChatMessage {
   deleted: boolean;
   client_id: string | null;
   created_at: string;
+  /**
+   * `true` when a member reported this message (2026-10-24). Only admins ever see `true`; other
+   * members always get `false`. Optional until every backend serves it (absent = not reported).
+   */
+  reported?: boolean;
 }
 
 export interface ChatMessagesMeta {

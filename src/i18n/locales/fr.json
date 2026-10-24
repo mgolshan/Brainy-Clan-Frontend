@@ -1029,14 +1029,16 @@
       "period_closed": "Résultats disponibles",
       "family_activity": "Activité de la famille",
       "daily_reminder": "Rappel quotidien",
-      "family_chat": "Messages de la famille"
+      "family_chat": "Messages de la famille",
+      "family_chat_report": "Signalements de la discussion"
     },
     "typeHints": {
       "goal_reached": "Quand la famille atteint un objectif ou qu’un membre gagne une course",
       "period_closed": "Quand une période d’objectif se termine",
       "family_activity": "Quand un membre de la famille termine une session",
       "daily_reminder": "Si vous n’avez pas encore joué aujourd’hui",
-      "family_chat": "Quand quelqu’un écrit dans la discussion familiale (jamais le message lui-même)"
+      "family_chat": "Quand quelqu’un écrit dans la discussion familiale (jamais le message lui-même)",
+      "family_chat_report": "Quand quelqu’un signale un message dans la discussion familiale (parents uniquement)"
     },
     "reminderTime": "Heure du rappel",
     "quietTitle": "Heures calmes",
@@ -1220,6 +1222,23 @@
     "emptyTitle": "Dites bonjour à votre famille !",
     "emptyBody": "Les messages ici ne sont vus que par votre famille.",
     "jumpToLatest": "Derniers messages",
-    "listLabel": "Messages"
+    "listLabel": "Messages",
+    "longPressReportHint": "Appui long pour le signaler à un parent",
+    "report": "Signaler à un parent",
+    "reportTitle": "Signaler ce message à un parent ?",
+    "reportBody": "Vos parents seront prévenus. Ils peuvent supprimer le message.",
+    "reportConfirm": "Signaler",
+    "reportSent": "Merci de nous l’avoir dit. Vos parents ont été prévenus.",
+    "reportOwn": "Vous ne pouvez pas signaler votre propre message.",
+    "reportGone": "Ce message n’est plus dans la discussion.",
+    "reportRateLimited": "Vous avez envoyé beaucoup de signalements. Parlez-en à un parent ou réessayez plus tard.",
+    "reportFailed": "Le signalement n’a pas pu être envoyé. Réessayez.",
+    "reportedTag": "Signalé",
+    "reportedTagLabel": "Le message de {{name}} a été signalé. Le examiner",
+    "reviewTitle": "Message signalé",
+    "reviewBody": "Un membre de la famille a signalé ce message de {{name}}. Vous pouvez le supprimer ou désactiver la discussion pour {{name}}.",
+    "reviewBodyDeleteOnly": "Un membre de la famille a signalé ce message de {{name}}. Vous pouvez le supprimer.",
+    "turnOffChatFor": "Désactiver la discussion pour {{name}}",
+    "chatTurnedOff": "La discussion est désactivée pour {{name}}."
   }
 }

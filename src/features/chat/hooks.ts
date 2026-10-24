@@ -12,6 +12,7 @@ import {
   fetchChatUnread,
   isChatDisabledError,
   postChatRead,
+  reportChatMessage,
 } from '@/features/chat/api';
 import {
   PAGE_SIZE,
@@ -231,6 +232,26 @@ export function useDeleteChatMessage() {
       onChatError(error);
     },
   });
+}
+
+/**
+ * `POST /family/chat/messages/{id}/report` (non-admins, another member's message): tells the
+ * family's admins. Nothing changes in the reporter's view (only admins see `reported`).
+ */
+export function useReportChatMessage() {
+  return useMutation({
+    mutationFn: (id: number) => reportChatMessage(id),
+    onError: onChatError,
+  });
+}
+
+/**
+ * A `family_chat_report` push (admins) arrived or was tapped: re-read the loaded history so the
+ * "Reported" tag shows on the message, even on an older page.
+ */
+export function refreshChatFromReportPush() {
+  void queryClient.invalidateQueries({ queryKey: queryKeys.chatMessages });
+  void queryClient.invalidateQueries({ queryKey: queryKeys.chatUnread });
 }
 
 /** A `family_chat` push arrived or was tapped: fetch new messages and the badge now. */

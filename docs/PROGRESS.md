@@ -372,6 +372,37 @@ themes (light/dark).
 
 ## Log
 
+### 2026-10-24 chat report + EAS env
+
+- **Chat report** (contract `POST /family/chat/messages/{id}/report`, Message `reported`, push and
+  preference `family_chat_report`): a non-admin long-presses another member's message → "Report
+  to a parent" → in-app `ConfirmSheet` ("Your parents will be told. They can remove the message.")
+  → a notice "Your parents have been told". Own messages keep "Delete"; admins keep "Delete" and
+  never see "Report". Errors: 422 own, 403 (forbidden / `chat_disabled`), 404 gone, 429 rate
+  limited, network — each with its own text (`reportErrorKey` in `chat/api.ts`).
+- **Admins:** a "Reported" tag under reported messages (only when `reported` is true; tombstones
+  hide it) opens a review sheet: Delete, or "Turn off chat for <name>" (member `PATCH
+chat_enabled`, hidden for former members or when chat is already off). Long-pressing a reported
+  message opens the same sheet. The poll now also picks up `reported` changes (`insertMessages`).
+- **Push `family_chat_report`:** refreshes the loaded history; a tap opens `/chat?message=<id>`,
+  scrolls to and briefly outlines the message when it is loaded, else just opens the chat.
+- **Notifications:** `family_chat_report` toggle (default on) shown only when the edited member is
+  an admin (own screen: `useIsAdmin`; admin editing a member: `role === 'admin'`). Types moved to
+  `notifications/notificationTypes.ts`; `NotificationPreferences.types` is now partial (newer keys
+  may be missing on older backends).
+- Message text stays plain `<Text>` via `MessageText` (safety test unchanged: it scans the whole
+  chat folder, so the new code is covered).
+- **EAS:** `eas.json` `development` sets `EXPO_PUBLIC_API_URL=http://192.168.1.50:8080`
+  (placeholder: replace with your PC's LAN IP before building) and `preview` the five production
+  values (`https://api.brainyclan.com`, website, support, terms, privacy) — no build falls back to
+  `localhost`. README "Backend URL in EAS builds", OPERATIONS_HANDBOOK §3/§4; backend handbook
+  §14.1 item 2 marked fixed.
+- Tests: report gating (own / admin / non-admin / tombstone), `reported` merge, "Reported" tag and
+  long-press labels (`report.test.tsx`), report error mapping (422/403/404/429/network),
+  admin-only notification toggle + locale keys (`notificationTypes.test.ts`); i18n parity.
+- Phone check still open: report flow end to end (child reports → parent gets the push → tap
+  opens the chat at the message → Delete / Turn off chat), VoiceOver/TalkBack "Report" action.
+
 ### 2026-10-24 F8 paywall, codes, web link
 
 - **Paywall (F8):** three plans from the RevenueCat current offering, mapped by package type

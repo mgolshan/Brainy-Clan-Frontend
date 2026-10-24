@@ -1,4 +1,4 @@
-import { router, useIsFocused } from 'expo-router';
+import { router, useIsFocused, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { ChatMessage } from '@/api/types';
 import { useIsAdmin, usePolicy } from '@/features/auth/hooks';
-import { isChatDisabledError } from '@/features/chat/api';
+import { isChatDisabledError, reportErrorKey } from '@/features/chat/api';
 import { Composer } from '@/features/chat/components/Composer';
 import { ConfirmSheet } from '@/features/chat/components/ConfirmSheet';
 import {
@@ -30,14 +30,18 @@ import {
   useChatPolling,
   useDeleteChatMessage,
   useMarkChatRead,
+  useReportChatMessage,
 } from '@/features/chat/hooks';
 import {
+  authorName,
   buildChatRows,
-  canDeleteMessage,
   dayLabel,
   flattenHistory,
+  messageAction,
   pendingForMember,
   retentionText,
+  rowIndexOfMessage,
+  showReportedTag,
   type ChatRow,
   type OutboxItem,
 } from '@/features/chat/messages';
@@ -47,7 +51,9 @@ import {
   sendChatMessage,
   useChatOutbox,
 } from '@/features/chat/outbox';
+import { useFamily, useUpdateMember } from '@/features/family/hooks';
 import { canPurchaseFamilyPlan } from '@/features/worlds/catalog';
+import { errorMessage } from '@/lib/errorMessage';
 import {
   EmptyState,
   ErrorState,
@@ -60,8 +66,17 @@ import {
 } from '@/ui';
 import { maxContentWidth } from '@/ui/themes/layout';
 
-type DeleteTarget =
-  { kind: 'message'; message: ChatMessage } | { kind: 'pending'; item: OutboxItem };
+/** The open sheet: delete a message, discard an unsent one, report one, or review a report (admins). */
+type SheetTarget =
+  | { kind: 'message'; message: ChatMessage }
+  | { kind: 'pending'; item: OutboxItem }
+  | { kind: 'report'; message: ChatMessage }
+  | { kind: 'review'; message: ChatMessage };
+
+type Notice = { tone: 'success' | 'danger'; text: string };
+
+/** How long a notice ("Your parents have been told") stays. */
+const NOTICE_MS = 4_000;
 
 /** Safe area + world scene + centered reading column; the composer sits above the keyboard. */
 function ChatFrame({ children, footer }: { children: React.ReactNode; footer?: React.ReactNode }) {
@@ -163,8 +178,10 @@ function ChatRoom({ memberId }: { memberId: number }) {
   useChatPolling(live && history.isSuccess);
   const outbox = useChatOutbox((s) => s.items);
   const remove = useDeleteChatMessage();
+  const report = useReportChatMessage();
   const markRead = useMarkChatRead(history.meta?.last_read_id);
-  const [target, setTarget] = useState<DeleteTarget | null>(null);
+  const [target, setTarget] = useState<SheetTarget | null>(null);
+  const [notice, setNotice] = useState<Notice | null>(null);
   const [awayFromLatest, setAwayFromLatest] = useState(false);
   const list = useRef<FlatList<ChatRow>>(null);
 
@@ -196,12 +213,53 @@ function ChatRoom({ memberId }: { memberId: number }) {
     if (live && !awayFromLatest && latestId !== null) markRead(latestId);
   }, [live, awayFromLatest, latestId, markRead]);
 
+  // Notices fade out on their own.
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(null), NOTICE_MS);
+    return () => clearTimeout(timer);
+  }, [notice]);
+
   const onLongPress = useCallback(
     (message: ChatMessage) => {
-      if (canDeleteMessage(message, memberId, isAdmin)) setTarget({ kind: 'message', message });
+      const action = messageAction(message, memberId, isAdmin);
+      if (action === 'delete') {
+        // Admins reviewing a reported message get the review actions instead.
+        const review = showReportedTag(message, isAdmin) && message.member_id !== memberId;
+        setTarget({ kind: review ? 'review' : 'message', message });
+      } else if (action === 'report') {
+        setTarget({ kind: 'report', message });
+      }
     },
     [memberId, isAdmin],
   );
+  const onReviewReport = useCallback(
+    (message: ChatMessage) => setTarget({ kind: 'review', message }),
+    [],
+  );
+
+  // Opened from a `family_chat_report` push: scroll to that message once it is loaded.
+  const params = useLocalSearchParams<{ message?: string }>();
+  const focusId = Number(params.message);
+  const [highlightId, setHighlightId] = useState<number | null>(null);
+  useEffect(() => {
+    if (!Number.isInteger(focusId) || focusId <= 0 || !history.isSuccess) return;
+    const index = rowIndexOfMessage(rows, focusId);
+    if (index >= 0) {
+      // Let the list lay out first.
+      setTimeout(() => {
+        setHighlightId(focusId);
+        list.current?.scrollToIndex({ index, viewPosition: 0.5, animated: !theme.reducedMotion });
+      }, 300);
+    }
+    // Handled (or not loaded: the chat just opens).
+    router.setParams({ message: undefined });
+  }, [focusId, history.isSuccess, rows, theme.reducedMotion]);
+  useEffect(() => {
+    if (highlightId === null) return;
+    const timer = setTimeout(() => setHighlightId(null), 3_000);
+    return () => clearTimeout(timer);
+  }, [highlightId]);
   const onPendingLongPress = useCallback(
     (item: OutboxItem) => setTarget({ kind: 'pending', item }),
     [],
@@ -226,22 +284,49 @@ function ChatRoom({ memberId }: { memberId: number }) {
           return (
             <PendingBubble item={item.item} onRetry={onRetry} onLongPress={onPendingLongPress} />
           );
-        case 'message':
+        case 'message': {
+          const reported = showReportedTag(item.message, isAdmin);
           return (
             <MessageBubble
               message={item.message}
               own={item.own}
               showAuthor={item.showAuthor}
               locale={locale}
-              onLongPress={
-                canDeleteMessage(item.message, memberId, isAdmin) ? onLongPress : undefined
-              }
+              action={messageAction(item.message, memberId, isAdmin)}
+              onLongPress={onLongPress}
+              reported={reported}
+              onReviewReport={reported ? onReviewReport : undefined}
+              highlighted={item.message.id === highlightId}
             />
           );
+        }
       }
     },
-    [locale, t, onRetry, onPendingLongPress, onLongPress, memberId, isAdmin],
+    [
+      locale,
+      t,
+      onRetry,
+      onPendingLongPress,
+      onLongPress,
+      onReviewReport,
+      memberId,
+      isAdmin,
+      highlightId,
+    ],
   );
+
+  const sendReport = (message: ChatMessage) => {
+    report.mutate(message.id, {
+      onSuccess: () => {
+        setTarget(null);
+        setNotice({ tone: 'success', text: t('chat.reportSent') });
+      },
+      onError: (error) => {
+        setTarget(null);
+        setNotice({ tone: 'danger', text: t(reportErrorKey(error)) });
+      },
+    });
+  };
 
   if (history.isError && isChatDisabledError(history.error)) return <ChatDisabled />;
 
@@ -281,6 +366,11 @@ function ChatRoom({ memberId }: { memberId: number }) {
               if (history.hasNextPage && !history.isFetchingNextPage) void history.fetchNextPage();
             }}
             onEndReachedThreshold={0.5}
+            onScrollToIndexFailed={({ index, averageItemLength }) => {
+              // Rows are measured lazily: jump near it, then try once more.
+              list.current?.scrollToOffset({ offset: index * averageItemLength, animated: false });
+              setTimeout(() => list.current?.scrollToIndex({ index, viewPosition: 0.5 }), 250);
+            }}
             ListFooterComponent={history.isFetchingNextPage ? <Loading fill={false} /> : null}
             onViewableItemsChanged={onViewableItemsChanged}
             viewabilityConfig={viewability}
@@ -317,7 +407,7 @@ function ChatRoom({ memberId }: { memberId: number }) {
           ) : null}
         </View>
       )}
-      {target ? (
+      {target?.kind === 'message' || target?.kind === 'pending' ? (
         <ConfirmSheet
           title={target.kind === 'message' ? t('chat.deleteTitle') : t('chat.discardTitle')}
           body={target.kind === 'message' ? t('chat.deleteBody') : t('chat.discardBody')}
@@ -344,12 +434,116 @@ function ChatRoom({ memberId }: { memberId: number }) {
           onCancel={() => setTarget(null)}
         />
       ) : null}
+      {target?.kind === 'report' ? (
+        <ConfirmSheet
+          title={t('chat.reportTitle')}
+          body={t('chat.reportBody')}
+          confirmLabel={t('chat.reportConfirm')}
+          confirmVariant="primary"
+          confirmIcon="flag"
+          cancelLabel={t('common.cancel')}
+          busy={report.isPending}
+          onConfirm={() => sendReport(target.message)}
+          onCancel={() => setTarget(null)}
+        />
+      ) : null}
+      {target?.kind === 'review' ? (
+        <ReviewSheet
+          message={target.message}
+          onDelete={() => {
+            remove.mutate(target.message.id);
+            setTarget(null);
+          }}
+          onChatTurnedOff={(name) => {
+            setTarget(null);
+            setNotice({ tone: 'success', text: t('chat.chatTurnedOff', { name }) });
+          }}
+          onCancel={() => setTarget(null)}
+        />
+      ) : null}
       {remove.isError ? (
         <Text variant="caption" tone="danger" align="center">
           {t('chat.deleteFailed')}
         </Text>
       ) : null}
+      {notice ? (
+        <View
+          accessibilityLiveRegion="polite"
+          accessibilityRole="alert"
+          style={[
+            styles.notice,
+            {
+              backgroundColor: theme.colors.surface,
+              borderColor: notice.tone === 'danger' ? theme.colors.danger : theme.colors.success,
+              borderRadius: theme.radius.md,
+              marginHorizontal: theme.spacing.lg,
+              padding: theme.spacing.sm,
+            },
+          ]}>
+          <Icon
+            name={notice.tone === 'danger' ? 'alert-circle' : 'checkmark-circle'}
+            size={18}
+            color={notice.tone === 'danger' ? theme.colors.danger : theme.colors.success}
+          />
+          <Text variant="label" style={styles.flexShrink}>
+            {notice.text}
+          </Text>
+        </View>
+      ) : null}
     </ChatFrame>
+  );
+}
+
+/**
+ * Admins, for a reported message: delete it, or turn chat off for its author (the member editor's
+ * `chat_enabled` switch, `PATCH /family/members/{member}`).
+ */
+function ReviewSheet({
+  message,
+  onDelete,
+  onChatTurnedOff,
+  onCancel,
+}: {
+  message: ChatMessage;
+  onDelete: () => void;
+  onChatTurnedOff: (name: string) => void;
+  onCancel: () => void;
+}) {
+  const { t } = useTranslation();
+  const family = useFamily();
+  const author = family.data?.members.find((m) => m.id === message.member_id) ?? null;
+  const update = useUpdateMember(author?.id ?? 0);
+  const name = authorName(message, t);
+  // Only for a current member whose chat is still on.
+  const canTurnOff = !!author && author.chat_enabled !== false;
+  return (
+    <ConfirmSheet
+      title={t('chat.reviewTitle')}
+      body={
+        update.isError
+          ? errorMessage(update.error, t)
+          : canTurnOff
+            ? t('chat.reviewBody', { name })
+            : t('chat.reviewBodyDeleteOnly', { name })
+      }
+      confirmLabel={t('chat.delete')}
+      cancelLabel={t('common.cancel')}
+      secondaryLabel={canTurnOff ? t('chat.turnOffChatFor', { name }) : undefined}
+      secondaryIcon="chatbubbles-outline"
+      secondaryVariant="outline"
+      busy={update.isPending}
+      onSecondary={
+        author
+          ? () =>
+              update.mutate(
+                { chat_enabled: false },
+                { onSuccess: () => onChatTurnedOff(author.nickname) },
+              )
+          : undefined
+      }
+      onConfirm={onDelete}
+      onCancel={onCancel}
+    />
   );
 }
 
@@ -371,6 +565,13 @@ const styles = StyleSheet.create({
   flexShrink: { flexShrink: 1 },
   center: { alignItems: 'center', justifyContent: 'center', padding: 24 },
   footer: { borderTopWidth: StyleSheet.hairlineWidth },
+  notice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    marginBottom: 8,
+  },
   retention: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' },
   jump: {
     position: 'absolute',

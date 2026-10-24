@@ -8,7 +8,10 @@
       "developmentClient": true,
       "distribution": "internal",
       "environment": "development",
-      "channel": "development"
+      "channel": "development",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://192.168.1.50:8080"
+      }
     },
     "development-simulator": {
       "extends": "development",
@@ -20,6 +23,13 @@
       "distribution": "internal",
       "environment": "preview",
       "channel": "preview",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.brainyclan.com",
+        "EXPO_PUBLIC_WEBSITE_URL": "https://brainyclan.com",
+        "EXPO_PUBLIC_SUPPORT_EMAIL": "support@brainyclan.com",
+        "EXPO_PUBLIC_TERMS_URL": "https://brainyclan.com/terms",
+        "EXPO_PUBLIC_PRIVACY_URL": "https://brainyclan.com/privacy"
+      },
       "android": {
         "buildType": "apk"
       }

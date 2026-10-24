@@ -32,6 +32,14 @@ export function deleteChatMessage(id: number): Promise<void> {
   return api.delete(`/family/chat/messages/${id}`);
 }
 
+/**
+ * `POST /family/chat/messages/{id}/report` → 204 (idempotent). Tells the family's admins only;
+ * own message → 422, another family's id → 404, 10 reports/hour → 429.
+ */
+export function reportChatMessage(id: number): Promise<void> {
+  return api.post<void>(`/family/chat/messages/${id}/report`);
+}
+
 export function postChatRead(body: ChatReadBody): Promise<void> {
   return api.post<void>('/family/chat/read', body);
 }
@@ -43,4 +51,32 @@ export async function fetchChatUnread(signal?: AbortSignal): Promise<ChatUnread>
 /** 403 `chat_disabled`: a parent turned chat off for this member. */
 export function isChatDisabledError(error: unknown): boolean {
   return error instanceof ApiError && error.code === 'chat_disabled';
+}
+
+/** Translation key for a failed report (`POST /family/chat/messages/{id}/report`). */
+export type ReportErrorKey =
+  | 'chat.reportOwn'
+  | 'chat.reportGone'
+  | 'chat.reportRateLimited'
+  | 'chat.disabledTitle'
+  | 'errors.forbidden'
+  | 'errors.network'
+  | 'chat.reportFailed';
+
+export function reportErrorKey(error: unknown): ReportErrorKey {
+  if (!(error instanceof ApiError)) return 'chat.reportFailed';
+  if (error.code === 'network_error' || error.code === 'timeout') return 'errors.network';
+  if (error.code === 'chat_disabled') return 'chat.disabledTitle';
+  switch (error.status) {
+    case 422:
+      return 'chat.reportOwn';
+    case 403:
+      return 'errors.forbidden';
+    case 404:
+      return 'chat.reportGone';
+    case 429:
+      return 'chat.reportRateLimited';
+    default:
+      return 'chat.reportFailed';
+  }
 }

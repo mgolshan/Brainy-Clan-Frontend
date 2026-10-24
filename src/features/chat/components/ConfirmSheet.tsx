@@ -1,6 +1,6 @@
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 
-import { Button, Card, Text, useTheme } from '@/ui';
+import { Button, Card, Text, useTheme, type ButtonVariant, type IconName } from '@/ui';
 
 interface ConfirmSheetProps {
   title: string;
@@ -9,9 +9,16 @@ interface ConfirmSheetProps {
   cancelLabel: string;
   onConfirm: () => void;
   onCancel: () => void;
+  /** Confirm button look (default: danger + trash, for deleting). */
+  confirmVariant?: ButtonVariant;
+  confirmIcon?: IconName;
   /** Optional extra action (e.g. "Try again" for an unsent message). */
   secondaryLabel?: string;
   onSecondary?: () => void;
+  secondaryIcon?: IconName;
+  secondaryVariant?: ButtonVariant;
+  /** Disables the actions while a request runs. */
+  busy?: boolean;
 }
 
 /**
@@ -24,8 +31,13 @@ export function ConfirmSheet({
   cancelLabel,
   onConfirm,
   onCancel,
+  confirmVariant = 'danger',
+  confirmIcon = 'trash-outline',
   secondaryLabel,
   onSecondary,
+  secondaryIcon = 'refresh',
+  secondaryVariant = 'primary',
+  busy = false,
 }: ConfirmSheetProps) {
   const theme = useTheme();
   return (
@@ -50,12 +62,20 @@ export function ConfirmSheet({
             {body ? <Text tone="muted">{body}</Text> : null}
             <View style={{ gap: theme.spacing.sm, marginTop: theme.spacing.sm }}>
               {secondaryLabel && onSecondary ? (
-                <Button title={secondaryLabel} icon="refresh" onPress={onSecondary} />
+                <Button
+                  title={secondaryLabel}
+                  icon={secondaryIcon}
+                  variant={secondaryVariant}
+                  disabled={busy}
+                  onPress={onSecondary}
+                />
               ) : null}
               <Button
                 title={confirmLabel}
-                variant="danger"
-                icon="trash-outline"
+                variant={confirmVariant}
+                icon={confirmIcon}
+                disabled={busy}
+                loading={busy}
                 onPress={onConfirm}
               />
               <Button title={cancelLabel} variant="ghost" onPress={onCancel} />

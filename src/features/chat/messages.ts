@@ -120,7 +120,12 @@ export function insertMessages(
       if (!fresh) return m;
       incoming.delete(m.id);
       const next = preferred(m, fresh);
-      if (next !== m && (next.deleted !== m.deleted || next.body !== m.body)) {
+      if (
+        next !== m &&
+        (next.deleted !== m.deleted ||
+          next.body !== m.body ||
+          (next.reported ?? false) !== (m.reported ?? false))
+      ) {
         pageChanged = true;
         return next;
       }
@@ -309,6 +314,49 @@ export function canDeleteMessage(
 ): boolean {
   if (message.deleted) return false;
   return isAdmin || (ownMemberId !== null && message.member_id === ownMemberId);
+}
+
+/**
+ * Who may report a message to the family's admins: any member who isn't an admin, for another
+ * member's message (own messages → 422 on the server). Admins don't report: they delete or turn
+ * chat off. Tombstones can't be reported.
+ */
+export function canReportMessage(
+  message: ChatMessage,
+  ownMemberId: number | null,
+  isAdmin: boolean,
+): boolean {
+  if (message.deleted || isAdmin || ownMemberId === null) return false;
+  return message.member_id !== ownMemberId;
+}
+
+/**
+ * What a long press on a message offers: `delete` (own message, or any message for an admin),
+ * `report` (another member's message, non-admins), or nothing.
+ */
+export type MessageAction = 'delete' | 'report';
+
+export function messageAction(
+  message: ChatMessage,
+  ownMemberId: number | null,
+  isAdmin: boolean,
+): MessageAction | null {
+  if (canDeleteMessage(message, ownMemberId, isAdmin)) return 'delete';
+  if (canReportMessage(message, ownMemberId, isAdmin)) return 'report';
+  return null;
+}
+
+/**
+ * Whether to show the "Reported" tag: the server only sends `reported: true` to admins; the
+ * check on `isAdmin` keeps a stale cache from showing it to anyone else. Tombstones need no review.
+ */
+export function showReportedTag(message: ChatMessage, isAdmin: boolean): boolean {
+  return isAdmin && message.reported === true && !message.deleted;
+}
+
+/** Index of a message's row in the list rows (for "scroll to the reported message"), or -1. */
+export function rowIndexOfMessage(rows: readonly ChatRow[], messageId: number): number {
+  return rows.findIndex((row) => row.type === 'message' && row.message.id === messageId);
 }
 
 /** Inserts `insert` at the selection, never past the length limit. */

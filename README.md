@@ -43,6 +43,21 @@ see [Google and Facebook sign-in setup](#google-and-facebook-sign-in-setup).
 `EXPO_PUBLIC_*` values are baked into the bundle when Metro starts: after changing `.env`,
 restart Metro with `--clear` (e.g. `npx expo start --clear`).
 
+### Backend URL in EAS builds
+
+EAS cloud builds don't see `.env`, and without `EXPO_PUBLIC_API_URL` the app would fall back to
+`http://localhost:8080` (unreachable from a phone). So every build profile in `eas.json` sets it
+in its `env` block (values there win over EAS environment variables):
+
+| Profile                                   | `EXPO_PUBLIC_API_URL` in `eas.json` | Notes                                                                                                                                                                             |
+| ----------------------------------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `development` (+ `development-simulator`) | `http://192.168.1.50:8080`          | **Placeholder — replace with your PC's LAN IP** (same value as in `.env`). Only used by JS bundled into the build; a dev client normally loads JS from Metro, which reads `.env`. |
+| `preview`                                 | `https://api.brainyclan.com`        | plus the production website, support email, terms and privacy URLs                                                                                                                |
+| `production`                              | `https://api.brainyclan.com`        | same as `preview`                                                                                                                                                                 |
+
+Change the development value locally before running `eas build --profile development` if your
+LAN IP differs; don't commit a personal IP unless the team shares that dev server.
+
 ## Run it
 
 ### Expo Go or development build

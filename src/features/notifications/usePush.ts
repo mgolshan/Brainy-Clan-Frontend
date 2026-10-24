@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 
-import { refreshChatFromPush } from '@/features/chat/hooks';
+import { refreshChatFromPush, refreshChatFromReportPush } from '@/features/chat/hooks';
 import {
   addNotificationReceivedListener,
   addNotificationTapListener,
@@ -48,12 +48,24 @@ function openFromPush(data: PushData) {
       refreshChatFromPush();
       router.navigate('/chat');
       break;
+    case 'family_chat_report': {
+      // Admins: open the chat at the reported message (if it is loaded; else just the chat).
+      refreshChatFromReportPush();
+      const messageId = Number(data.message_id);
+      if (Number.isInteger(messageId) && messageId > 0) {
+        router.navigate({ pathname: '/chat', params: { message: String(messageId) } });
+      } else {
+        router.navigate('/chat');
+      }
+      break;
+    }
   }
 }
 
 /** A push arrived while the app is open: refresh what it is about. */
 function onPushReceived(data: PushData) {
   if (data.type === 'family_chat') refreshChatFromPush();
+  if (data.type === 'family_chat_report') refreshChatFromReportPush();
 }
 
 /** Deep-link notification taps (including the one that cold-started the app) once routes exist. */

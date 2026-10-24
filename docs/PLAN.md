@@ -131,6 +131,13 @@ the OS "reduce motion" setting). Components read tokens only through `useTheme()
   switch in the member editor. Message text is **always** rendered with `<Text>` as plain text — never
   HTML, Markdown, WebView or `dangerouslySetInnerHTML`; no link detection. Push `family_chat`
   opens the chat. Styled by the world tokens.
+- **Chat report (2026-10-24, Apple guideline 1.2):** non-admins long-press another member's
+  message → "Report to a parent" (in-app confirm sheet, `POST /family/chat/messages/{id}/report`);
+  admins don't report (they delete) and see a "Reported" tag (Message `reported`) that opens
+  Delete / Turn off chat for <name> (member `PATCH chat_enabled`). Push `family_chat_report` opens
+  the chat scrolled to the message when it is loaded. Notification toggle `family_chat_report`
+  shown for admins only. EAS `development`/`preview` profiles set `EXPO_PUBLIC_API_URL` in
+  `eas.json` (never fall back to localhost).
 
 ## Working rules
 
