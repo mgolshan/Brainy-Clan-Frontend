@@ -8,6 +8,7 @@ import type { Member, SignInCode } from '@/api/types';
 import { useIsAdmin } from '@/features/auth/hooks';
 import { useFamily, useIssueSignInCode } from '@/features/family/hooks';
 import { useNow } from '@/features/goals/time';
+import { HelpLink } from '@/features/help/HelpLink';
 import { groupCode } from '@/lib/code';
 import { errorMessage } from '@/lib/errorMessage';
 import { formatClock } from '@/lib/format';
@@ -216,6 +217,7 @@ export function SignInCodeScreen() {
           {errorMessage(issue.error, t)}
         </Text>
       ) : null}
+      <HelpLink anchor="sign-in-code" title={t('help.signInCode')} />
     </Screen>
   );
 }

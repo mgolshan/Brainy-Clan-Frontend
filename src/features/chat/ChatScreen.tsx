@@ -52,6 +52,7 @@ import {
   useChatOutbox,
 } from '@/features/chat/outbox';
 import { useFamily, useUpdateMember } from '@/features/family/hooks';
+import { openHelp } from '@/features/help/HelpLink';
 import { canPurchaseFamilyPlan } from '@/features/worlds/catalog';
 import { errorMessage } from '@/lib/errorMessage';
 import {
@@ -352,6 +353,8 @@ function ChatRoom({ memberId }: { memberId: number }) {
             body={t('chat.emptyBody')}
             emoji="👋"
             icon="chatbubbles-outline"
+            actionLabel={t('help.chat')}
+            onAction={() => openHelp(i18n.language, 'family-chat')}
           />
         </View>
       ) : (

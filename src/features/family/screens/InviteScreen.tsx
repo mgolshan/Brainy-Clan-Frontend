@@ -7,6 +7,7 @@ import { Platform, Share, StyleSheet, View } from 'react-native';
 import type { AvatarKey, Invite } from '@/api/types';
 import { BirthDateFields } from '@/features/auth/components/BirthDateFields';
 import { useCreateInvite, useInvitePreview } from '@/features/family/hooks';
+import { HelpLink } from '@/features/help/HelpLink';
 import { LegalLinks } from '@/features/legal/components';
 import { useLegal } from '@/features/legal/hooks';
 import { AvatarPicker } from '@/features/profile/AvatarPicker';
@@ -202,6 +203,7 @@ export function InviteScreen() {
           }
         />
       </Card>
+      <HelpLink anchor="invite-kids" title={t('help.invite')} />
     </Screen>
   );
 }

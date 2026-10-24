@@ -372,6 +372,19 @@ themes (light/dark).
 
 ## Log
 
+### 2026-10-24 How to play help center
+
+- **Links** to the website help center (backend `/help`, PLAN "How to play"):
+  `src/config/links.ts` `WEBSITE_LINKS.help`, `HELP_ANCHORS` (`invite-kids`, `sign-in-code`,
+  `family-chat`) and `helpUrl(language, anchor?)` (`?lang=fr` for French, `#anchor` last); tests in
+  `src/config/__tests__/links.test.ts`.
+- `src/features/help/HelpLink.tsx` (`openHelp`, small ghost "How does … work?" button, in-app
+  browser). Profile → About → **How to play** (first row, all members); help links on the invite
+  form (#invite-kids), the sign-in code screen (#sign-in-code) and the chat empty state action
+  (#family-chat). i18n `help.*` en/fr.
+- Verified on web (390 px): rows render, taps open `https://brainyclan.com/help`,
+  `…/help#invite-kids`, `…/help#sign-in-code`. Checks: typecheck, lint, format, 708 tests, web export.
+
 ### 2026-10-24 chat report + EAS env
 
 - **Chat report** (contract `POST /family/chat/messages/{id}/report`, Message `reported`, push and

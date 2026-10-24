@@ -10,6 +10,7 @@ import { useHealth } from '@/features/app/useHealth';
 import { useMe, useSignOut } from '@/features/auth/hooks';
 import { SignInMethods } from '@/features/auth/social/SignInMethods';
 import { DevicesList } from '@/features/family/components/DevicesList';
+import { openHelp } from '@/features/help/HelpLink';
 import { openLegalPage } from '@/features/legal/hooks';
 import { PrivacySection } from '@/features/legal/PrivacySection';
 import { useNotificationPreferences } from '@/features/notifications/hooks';
@@ -222,6 +223,14 @@ export function ProfileScreen() {
 
       <SectionHeader title={t('profile.about')} />
       <Card padding="sm">
+        <ListRow
+          title={t('help.howToPlay')}
+          subtitle={t('help.howToPlaySubtitle')}
+          leading={<Icon name="book-outline" color={theme.colors.primary} />}
+          accessibilityHint={t('legal.opensBrowser')}
+          onPress={() => openHelp(i18n.language)}
+        />
+        <Divider />
         <ListRow
           title={t('profile.helpSupport')}
           subtitle={t('profile.helpSupportSubtitle')}

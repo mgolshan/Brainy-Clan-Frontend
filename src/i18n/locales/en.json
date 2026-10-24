@@ -1192,5 +1192,12 @@
     "reviewBodyDeleteOnly": "A family member reported this message from {{name}}. You can delete it.",
     "turnOffChatFor": "Turn off chat for {{name}}",
     "chatTurnedOff": "Chat is now off for {{name}}."
+  },
+  "help": {
+    "howToPlay": "How to play",
+    "howToPlaySubtitle": "The parents’ guide, step by step",
+    "invite": "How do invite codes work?",
+    "signInCode": "How do sign-in codes work?",
+    "chat": "How does the family chat work?"
   }
 }

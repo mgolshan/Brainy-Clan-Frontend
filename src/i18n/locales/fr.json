@@ -1240,5 +1240,12 @@
     "reviewBodyDeleteOnly": "Un membre de la famille a signalé ce message de {{name}}. Vous pouvez le supprimer.",
     "turnOffChatFor": "Désactiver la discussion pour {{name}}",
     "chatTurnedOff": "La discussion est désactivée pour {{name}}."
+  },
+  "help": {
+    "howToPlay": "Comment jouer",
+    "howToPlaySubtitle": "Le guide des parents, étape par étape",
+    "invite": "Comment fonctionnent les codes d’invitation ?",
+    "signInCode": "Comment fonctionnent les codes de connexion ?",
+    "chat": "Comment fonctionne la discussion familiale ?"
   }
 }
