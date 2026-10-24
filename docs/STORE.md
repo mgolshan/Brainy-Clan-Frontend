@@ -7,8 +7,9 @@ rating and privacy answers, screenshot plan, review notes and a step-by-step che
 **Before submitting:** the privacy policy and terms (served by the backend on the website,
 `https://brainyclan.com/privacy` and `/terms`) must be reviewed by a lawyer and published with
 `LEGAL_DRAFT=false`. The answers below describe what the app does today (F7, 2026-10-16; audience,
-iPad and URLs updated 2026-10-22); re-check them whenever a feature or SDK changes what is
-collected.
+iPad and URLs updated 2026-10-22; family chat, brain games, worlds and 17 categories added
+2026-10-24); re-check them whenever a feature or SDK changes what is collected. The privacy policy
+must mention the family chat and its retention (lawyer review).
 
 ## 1. App identity
 
@@ -103,11 +104,11 @@ throw-away copy) against this list.
 
 **App name (30):** Brainy Clan
 **Subtitle (iOS, 30):** Family Brain Challenges
-**Short description (Play, 80):** Quizzes, puzzles and family goals for every age — from kids to grandparents.
+**Short description (Play, 80):** Quizzes, brain games and family goals for every age, kids to grandparents.
 
 **Promotional text (iOS, 170):**
-Play together, learn together. Daily quizzes, sudoku, math sprints and word puzzles for every
-age in your family — with shared goals and a friendly family leaderboard.
+Play together, learn together. Quizzes in 17 categories, brain games, sudoku and word puzzles for
+every age — with family goals, a leaderboard and a private family chat.
 
 **Description:**
 
@@ -115,7 +116,9 @@ age in your family — with shared goals and a friendly family leaderboard.
 > kids, teens, parents and grandparents — and the whole clan cheers each other on.
 >
 > **Play your way**
-> • Quizzes in many categories, with wisdom cards that teach something new
+> • Quizzes in 17 categories, with wisdom cards that teach something new (the free plan includes
+> 3 categories; the Family plan unlocks all of them)
+> • Brain games: memory match, pattern sequences, nonograms and spot the difference
 > • Sudoku (4×4 up to 9×9), Math Sprint and word puzzles (anagrams, missing letters, word search)
 > • Questions adapt to each player's age group and difficulty
 > • Second chances and a "redemption" round when you slip up
@@ -123,6 +126,10 @@ age in your family — with shared goals and a friendly family leaderboard.
 > **Made for families**
 > • One family, many players: invite kids with just a nickname — no email, no real name
 > • Kids sign in with a one-time code from a parent's phone
+> • A private family chat: only members of your family, text and emoji only — no strangers.
+> Parents can turn chat off for a child and delete any message
+> • 13 worlds to play in, from Jungle and Space to Under the Sea — unlock new ones with points and
+> streaks (some come with the Family plan)
 > • A look for every age: playful for kids, sleek for teens, calm and clear for adults, extra
 > readable for seniors — with adjustable text size and reduced motion
 >
@@ -135,6 +142,8 @@ age in your family — with shared goals and a friendly family leaderboard.
 > • Children's profiles keep only what the game needs; a parent consents for them
 > • No ads for children; adults on the free plan may see optional rewarded videos (never
 > personalized)
+> • Chat messages are encrypted on our servers and deleted automatically after 7 days (1 year on
+> the Family plan)
 > • Download your data or delete your account at any time in the app
 >
 > Brainy Clan Family plan: unlock more members, categories and goals for the whole family with
@@ -147,17 +156,17 @@ age in your family — with shared goals and a friendly family leaderboard.
 
 **Keywords (iOS, 100):** `family,quiz,trivia,brain games,kids,learning,puzzle,sudoku,math,word,goals,leaderboard`
 
-**What's new (1.0.0):** First release — quizzes, sudoku, math sprint and word puzzles for the whole family.
+**What's new (1.0.0):** First release — quizzes in 17 categories, brain games, sudoku, math sprint, word puzzles and a private family chat.
 
 ## 5. Store listing — French (Canada / France)
 
 **Nom de l'app (30) :** Brainy Clan
 **Sous-titre (iOS, 30) :** Défis cérébraux en famille
-**Description courte (Play, 80) :** Quiz, énigmes et objectifs à jouer en famille — des enfants aux grands-parents.
+**Description courte (Play, 80) :** Quiz, jeux cérébraux et objectifs en famille, des enfants aux grands-parents.
 
 **Texte promotionnel (iOS, 170) :**
-Jouer ensemble, apprendre ensemble. Quiz du jour, sudoku, sprints de calcul et jeux de mots pour
-tous les âges de la famille — avec des objectifs communs et un classement familial.
+Jouer ensemble, apprendre ensemble. Quiz en 17 catégories, jeux cérébraux, sudoku et jeux de mots
+pour tous les âges — avec objectifs, classement et chat familial privé.
 
 **Description :**
 
@@ -165,7 +174,9 @@ tous les âges de la famille — avec des objectifs communs et un classement fam
 > niveau — enfants, ados, parents et grands-parents — et tout le clan s'encourage.
 >
 > **Jouez à votre façon**
-> • Des quiz dans de nombreuses catégories, avec des cartes « sagesse » pour apprendre
+> • Des quiz en 17 catégories, avec des cartes « sagesse » pour apprendre (3 catégories avec le
+> forfait gratuit, toutes avec le forfait Famille)
+> • Jeux cérébraux : paires de mémoire, suites logiques, nonogrammes et jeu des différences
 > • Sudoku (du 4×4 au 9×9), Sprint de calcul et jeux de mots (anagrammes, lettre manquante, mots
 > cachés)
 > • Des questions adaptées à la tranche d'âge et au niveau de chaque joueur
@@ -175,6 +186,10 @@ tous les âges de la famille — avec des objectifs communs et un classement fam
 > • Une famille, plusieurs joueurs : invitez les enfants avec un simple surnom — sans courriel ni
 > vrai nom
 > • Les enfants se connectent avec un code à usage unique créé sur le téléphone d'un parent
+> • Un chat familial privé : seulement les membres de votre famille, texte et émojis uniquement —
+> aucun inconnu. Les parents peuvent désactiver le chat d'un enfant et supprimer tout message
+> • 13 mondes à explorer, de la Jungle à l'Espace en passant par les fonds marins — débloquez-en
+> de nouveaux avec vos points et vos séries (certains avec le forfait Famille)
 > • Un style pour chaque âge : ludique pour les enfants, épuré pour les ados, clair pour les
 > adultes, très lisible pour les aînés — taille du texte et animations réglables
 >
@@ -187,6 +202,8 @@ tous les âges de la famille — avec des objectifs communs et un classement fam
 > • Les profils des enfants ne gardent que le nécessaire ; un parent donne son consentement
 > • Aucune publicité pour les enfants ; les adultes du forfait gratuit peuvent voir des vidéos
 > récompensées facultatives (jamais personnalisées)
+> • Les messages du chat sont chiffrés sur nos serveurs et supprimés automatiquement après 7 jours
+> (1 an avec le forfait Famille)
 > • Téléchargez vos données ou supprimez votre compte à tout moment dans l'app
 >
 > Forfait Famille Brainy Clan : plus de membres, de catégories et d'objectifs pour toute la
@@ -199,7 +216,7 @@ tous les âges de la famille — avec des objectifs communs et un classement fam
 
 **Mots-clés (iOS, 100) :** `famille,quiz,jeu,cerveau,enfants,apprendre,énigme,sudoku,maths,mots,objectifs,classement`
 
-**Nouveautés (1.0.0) :** Première version — quiz, sudoku, sprint de calcul et jeux de mots pour toute la famille.
+**Nouveautés (1.0.0) :** Première version — quiz en 17 catégories, jeux cérébraux, sudoku, sprint de calcul, jeux de mots et un chat familial privé.
 
 ## 6. Category, audience and age rating
 
@@ -230,7 +247,8 @@ rewarded ads; children never see ads.
   - **Families ads declaration** ("Ads" → contains ads: **yes**; in the Families section confirm
     the ad SDK is Families certified and that ads comply — none are shown to children).
   - **Data safety** (§7) must match what the SDKs do; children's data is minimised (nickname,
-    avatar, birth year/month, gameplay; no email, no social sign-in, no purchases, no ads).
+    avatar, birth year/month, gameplay, and their family chat messages unless a parent turned chat
+    off; no email, no social sign-in, no purchases, no ads).
   - **Content rating** through IARC → expected **Everyone** (below).
   - **Parental consent** for children: the parent creates the child profile and consents in the
     app.
@@ -239,8 +257,13 @@ rewarded ads; children never see ads.
 - **IARC questionnaire** (expected **Everyone / PEGI 3 / ESRB E / USK 0**): category "Game or
   reference/education"; violence none; fear none; sexuality none; gambling none (no real or
   simulated gambling, no loot boxes); language none; controlled substances none; crude humour none.
-  Interactive elements: **In-app purchases**, **Users interact** (family leaderboard inside a
-  private family, no open chat), **Shares location: no**, **Digital purchases: yes**.
+  Interactive elements: **In-app purchases**, **Users interact: yes** — a private family group
+  chat plus the family leaderboard: only members of the same family (a parent creates or invites
+  every member) can read or write; no strangers, no public or open chat, no matchmaking; text and
+  emoji only (no images, voice, video, links or attachments); parents can turn chat off per child
+  and delete any message. **Shares location: no**, **Digital purchases: yes**. "Users interact"
+  is an interactive-element notice, not a content descriptor, so the expected rating stays
+  Everyone — confirm against the live questionnaire wording when filling it in.
 
 ### Apple: category, Kids Category and age rating
 
@@ -250,24 +273,36 @@ rewarded ads; children never see ads.
   shows opt-in, non-personalized AdMob rewarded ads to **teens and adults** on the free plan and
   uses RevenueCat and Sentry, so it does not qualify. It is a general family app that children use
   inside a parent-managed family; children never see ads, purchases or the paywall.
-- **Age rating: 4+.** Questionnaire answers:
+- **Age rating:** answer honestly and accept what App Store Connect computes. Expected **4+**,
+  but the family chat may raise it — **verify in App Store Connect** (the questionnaire computes
+  the rating; the result depends on how Apple's current form weighs messaging limited to the
+  family plus parental controls). Do not soften answers to keep 4+. Questionnaire answers:
   - Violence (cartoon, fantasy, realistic), horror/fear, profanity or crude humour, sexual content
     or nudity, alcohol/tobacco/drugs, simulated gambling, mature or suggestive themes, medical or
     treatment information: **None**.
   - Contests: **No**. Gambling (real money): **No**. Loot boxes: **No**.
   - Unrestricted web access: **No** (the in-app browser only opens our own legal and help pages and
     the sign-in providers).
-  - User-generated content / messaging: **No** open UGC; nicknames and avatars are visible only
-    inside the family; no chat.
+  - Messaging and chat: **Yes** — a private family group chat, limited to members of the same
+    family (no strangers, no contact with people outside the family); text and emoji only.
+    User-generated content: **Yes, limited** to that chat text plus nicknames and avatars, all
+    visible only inside the family; nothing is published publicly.
+  - Parental controls: **Yes** — a parent creates every child profile, can turn chat off per
+    child and delete any message; children never see ads or purchases.
+  - App Review Guideline 1.2 (user-generated content) may come up: the controls are parent-side
+    (turn chat off, delete messages, remove a member) plus support@brainyclan.com; there is no
+    in-app "report/block" button because only family members can write. If the reviewer asks
+    for one, it has to be built (not built yet).
   - Advertising: **Yes** (rewarded videos, teens/adults on the free plan, non-personalized, rated
     G). In-app purchases: **Yes** (Family plan subscription).
-  - Parental controls / age assurance: parents create child profiles; birth year/month is asked
-    at sign-up; age rules come from the backend policy.
+  - Age assurance: parents create child profiles; birth year/month is asked at sign-up; age
+    rules come from the backend policy.
 
 ## 7. Privacy answers
 
-What the app and its SDKs actually process (2026-10-16). Children: only nickname, avatar, birth
-year/month, gameplay, settings and device/sign-in records; no email, no social sign-in, no ads, no
+What the app and its SDKs actually process (2026-10-16; family chat added 2026-10-24). Children:
+only nickname, avatar, birth year/month, gameplay, settings, device/sign-in records and their family
+chat messages (unless a parent turned chat off); no email, no social sign-in, no ads, no
 purchases (the backend policy decides; an email login is only possible for bands whose policy allows
 it); a push token only when notifications are turned on for that device.
 
@@ -275,23 +310,31 @@ it); a push token only when notifications are turned on for that device.
 
 Tracking: **No** (no ATT prompt; ads are non-personalized; no data shared with data brokers).
 
-| Data type                        | Collected by            | Purpose(s)                              | Linked to user  | Tracking |
-| -------------------------------- | ----------------------- | --------------------------------------- | --------------- | -------- |
-| Contact info → Email address     | Backend (adults, teens) | App functionality (account, sign-in)    | Yes             | No       |
-| Contact info → Name              | Backend (display name)  | App functionality                       | Yes             | No       |
-| User content → Other             | Backend (avatar choice) | App functionality                       | Yes             | No       |
-| Identifiers → User ID            | Backend, Sentry, RC     | App functionality, analytics (crashes)  | Yes             | No       |
-| Identifiers → Device ID          | AdMob (adults/teens)    | Third-party advertising (non-personal.) | No              | No       |
-| Purchases → Purchase history     | RevenueCat, App Store   | App functionality                       | Yes             | No       |
-| Usage data → Product interaction | Backend (gameplay)      | App functionality                       | Yes             | No       |
-| Usage data → Advertising data    | AdMob                   | Third-party advertising                 | No              | No       |
-| Diagnostics → Crash data         | Sentry                  | App functionality                       | Yes (member id) | No       |
-| Diagnostics → Performance data   | Sentry (errors only)    | App functionality                       | Yes             | No       |
-| Other → Birth year/month         | Backend                 | App functionality (age-appropriate)     | Yes             | No       |
+| Data type                         | Collected by            | Purpose(s)                              | Linked to user  | Tracking |
+| --------------------------------- | ----------------------- | --------------------------------------- | --------------- | -------- |
+| Contact info → Email address      | Backend (adults, teens) | App functionality (account, sign-in)    | Yes             | No       |
+| Contact info → Name               | Backend (display name)  | App functionality                       | Yes             | No       |
+| User content → Other              | Backend (avatar choice) | App functionality                       | Yes             | No       |
+| User content → Other user content | Backend (family chat)   | App functionality                       | Yes             | No       |
+| Identifiers → User ID             | Backend, Sentry, RC     | App functionality, analytics (crashes)  | Yes             | No       |
+| Identifiers → Device ID           | AdMob (adults/teens)    | Third-party advertising (non-personal.) | No              | No       |
+| Purchases → Purchase history      | RevenueCat, App Store   | App functionality                       | Yes             | No       |
+| Usage data → Product interaction  | Backend (gameplay)      | App functionality                       | Yes             | No       |
+| Usage data → Advertising data     | AdMob                   | Third-party advertising                 | No              | No       |
+| Diagnostics → Crash data          | Sentry                  | App functionality                       | Yes (member id) | No       |
+| Diagnostics → Performance data    | Sentry (errors only)    | App functionality                       | Yes             | No       |
+| Other → Birth year/month          | Backend                 | App functionality (age-appropriate)     | Yes             | No       |
 
 Not collected: location, contacts, photos, health, financial info (store handles payment),
 browsing history, search history, sensitive info, audio, precise identifiers for tracking.
 Sentry runs with `sendDefaultPii: false` and scrubs events; traces are off.
+
+Family chat messages: stored on our backend only (encrypted at rest, HTTPS in transit), linked to
+the author's family membership, never used for tracking or advertising, never sent to Sentry, logs
+or push payloads, not visible to staff in the admin panel, deleted automatically after 7 days (free)
+or 1 year (Family plan), and erased with the author's account. Declared as "Other User Content";
+**verify in App Store Connect** whether Apple's "Emails or Text Messages" type is the better fit
+for in-app messages and use that one if so (same answers).
 
 ### Google Play — Data safety
 
@@ -308,8 +351,12 @@ Sentry runs with `sendDefaultPii: false` and scrubs events; traces are off.
   functionality); App activity → **App interactions** (app functionality), **Other actions**
   (gameplay answers, goals); App info and performance → **Crash logs**, **Diagnostics**
   (analytics: crash reporting); Device or other IDs → **Device or other IDs** (advertising, fraud
-  prevention — AdMob; push token for notifications).
-- Not collected: location, contacts, photos/videos, audio, files, calendar, health, messages,
+  prevention — AdMob; push token for notifications); Messages → **Other in-app messages** (family
+  chat; app functionality; optional — members choose whether to write; not shared with third
+  parties; not processed ephemerally: kept 7 days on the free plan, 1 year on the Family plan, then
+  deleted automatically; encrypted in transit and at rest; users can delete their own messages,
+  parents any message in their family, and account deletion erases the user's messages).
+- Not collected: location, contacts, photos/videos, audio, files, calendar, health, emails, SMS,
   web browsing.
 
 ## 8. Screenshot plan
@@ -337,8 +384,12 @@ Connect help "Screenshot specifications" for the current list before uploading. 
 images (use the same 8); feature graphic `assets/images/store/play-feature-graphic.png`
 (1024×500); 512² icon. Optional later: 7"/10" tablet sets, a 30 s preview video.
 
-Capture on a simulator/emulator with a preview build pointed at the staging backend, then add
-captions in a frame tool (Figma/Canva/AppScreens) with the brand blue background.
+There is no staging backend. Capture on a simulator/emulator either with a build pointed at the
+**production** backend, signed in as the review/demo family (§9; demo data only, never real
+families), or with a local development build against the Docker backend's seeded demo family
+(`EXPO_PUBLIC_API_URL=http://<PC-LAN-IP>:8080`). Then add captions in a frame tool
+(Figma/Canva/AppScreens) with the brand blue background. Optional: swap one scene for the family
+chat (demo messages only).
 
 ## 9. Review notes (App Review / Play "App access")
 
@@ -356,6 +407,11 @@ manager, a child "Sam" (9) and a teen "Alex" (14), a few completed sessions and 
 > **Sign in with Apple** is offered next to Google and email sign-in. **Account deletion:**
 > Profile → Privacy → Delete account (deletes the account, or the whole family for the owner).
 > **Data export:** Profile → Privacy → Download my data.
+>
+> **Family chat:** Chat tab — a private group chat for members of this family only (text and
+> emoji; no strangers). A parent can turn chat off for a member (Family tab → member → Family
+> chat) and delete any message (long-press). Messages are deleted automatically after 7 days on
+> the free plan (1 year on the Family plan).
 >
 > **Subscriptions:** Profile → Family plan (sandbox). **Ads:** only rewarded videos the adult
 > chooses to watch for a second chance on the free plan; non-personalized; no App Tracking
@@ -402,7 +458,8 @@ and instructions.
 4. App Store Connect → the version: screenshots (iPhone 6.9" and iPad 13", §8), texts from
    §4/§5, keywords, support URL `https://brainyclan.com/support`, marketing URL
    `https://brainyclan.com`, privacy policy URL `https://brainyclan.com/privacy`, App Privacy (§7), age rating (§6), category, in-app
-   purchases/subscriptions attached to the version (first subscription must be submitted with
+   purchases/subscriptions (`brainyclan_family_monthly`, `brainyclan_family_6months`,
+   `brainyclan_family_annual`; entitlement `family`; README "Family plan purchases") attached to the version (first subscription must be submitted with
    the app), review notes + demo account (§9), "Sign in with Apple" capability enabled.
 5. Submit for review. Apple will look closely at: account deletion in the app (yes), Sign in with
    Apple offered alongside Google (yes), subscription terms in the description and paywall

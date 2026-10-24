@@ -347,6 +347,14 @@ themes (light/dark).
 
 ## Log
 
+### 2026-10-24 operations handbook
+
+- New `docs/OPERATIONS_HANDBOOK.md`: app-release runbook for the external ops team (EAS profiles,
+  env vars per profile, credentials, build/submit, OTA rules and rollback, `min_app_version`,
+  Sentry, store review replies, release + phone checklists); points to the canonical handbook in
+  the backend repo. README links it. Docs only. Found: STORE.md §6/§7 still say "no chat" /
+  "messages not collected" (family chat exists since 2026-10-23) — must be updated before submission.
+
 ### 2026-10-24 family chat web QA
 
 - Verified on web (Sam via demo token + Mom side by side at 390×844): emoji both ways (polling

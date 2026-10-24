@@ -6,6 +6,9 @@ one codebase for iOS, Android and web.
 The API is the separate **Brainy-Clan-Backend** (Laravel, Docker) at `http://<PC-LAN-IP>:8080`,
 contract in `../Brainy-Clan-Backend/docs/API.md`.
 
+**Operations (app releases, OTA, store reviews):** [docs/OPERATIONS_HANDBOOK.md](docs/OPERATIONS_HANDBOOK.md);
+the canonical ops handbook is `../Brainy-Clan-Backend/docs/OPERATIONS_HANDBOOK.md`.
+
 ## Prerequisites
 
 - **Node.js 22 LTS** (the plan's target). Node 24 also works — this machine runs 24.14 and
@@ -421,11 +424,12 @@ button (store billing needs the native app; web billing is a later milestone).
 
 1. **Store products** (needs the paid Apple Developer Program and a Google Play Console account):
    - App Store Connect → your app (`app.brainyclan`) → Subscriptions → a subscription group
-     "Family plan" with two auto-renewable products, e.g. `brainyclan_family_monthly` and
-     `brainyclan_family_annual`. Fill in prices, display names and the review screenshot. Also
-     sign the Paid Apps agreement (Business section), or products never load.
+     "Family plan" with three auto-renewable products (the B10 plans; same IDs on both stores):
+     `brainyclan_family_monthly`, `brainyclan_family_6months` and `brainyclan_family_annual`.
+     Fill in prices, display names and the review screenshot. Also sign the Paid Apps agreement
+     (Business section), or products never load.
    - Google Play Console → your app (`app.brainyclan`) → Monetize → Subscriptions → products with
-     the same IDs, each with a monthly / yearly base plan. Play only lists products after an app
+     the same IDs, each with a monthly / 6-month / yearly base plan. Play only lists products after an app
      build has been uploaded to a testing track (internal testing is enough).
 2. **RevenueCat project** (app.revenuecat.com, free to start):
    - Create a project "Brainy Clan", then add an **App Store app** (bundle ID `app.brainyclan`,
@@ -436,8 +440,10 @@ button (store billing needs the native app; web billing is a later milestone).
    - **Entitlement** with identifier exactly **`family`** (the backend's `REVENUECAT_ENTITLEMENT`)
      and attach all Family-plan products to it.
    - **Offering** (e.g. `default`), mark it **Current**, and add the packages **Monthly**
-     (`$rc_monthly`) and **Annual** (`$rc_annual`) with the matching iOS and Android products. The
-     app shows the current offering's packages with the store's localized prices, yearly first.
+     (`$rc_monthly`), **Six month** (`$rc_six_month`) and **Annual** (`$rc_annual`) with the
+     matching iOS and Android products. The app shows the current offering's packages with the
+     store's localized prices, yearly first; until F8 adds its own layout, the 6-month package is
+     listed last with its store title.
 3. **Webhook to the backend** (project → Integrations → Webhooks): URL
    `https://<public backend host>/api/v1/webhooks/revenuecat`, Authorization header value
    `Bearer <REVENUECAT_WEBHOOK_SECRET>` (same secret in the backend `.env`). For the faster
@@ -611,6 +617,37 @@ id. AdMob calls the backend's SSV callback; the app then calls
    consent" still plays a (limited) ad or shows "No video is available"; Profile → Privacy →
    **Privacy choices for ads** reopens the choices.
 
+## Push notifications — setup
+
+The backend sends pushes through the **Expo push service** (goal reached, results, family
+activity, daily reminder, family chat — a chat push never contains the message text). The app
+(`src/features/notifications/push.ts`, `expo-notifications` plugin in `app.json`) asks for
+permission from Profile → **Notifications**, gets an Expo push token and sends it with
+`PUT /me/push-token`. Push is skipped silently on web, in Expo Go, on simulators/emulators and
+while the app has no EAS `projectId`.
+
+1. **EAS project:** `npx eas-cli@latest login`, then `npx eas-cli@latest init` — it writes
+   `extra.eas.projectId` into `app.json`, which push (and OTA updates) need. Commit that change.
+2. **iOS — APNs key:** `npx eas-cli@latest credentials` → iOS → production (and development) →
+   **Push Notifications** → let EAS create an APNs key with your Apple Developer account (or
+   upload a `.p8` key from developer.apple.com → Keys with "Apple Push Notifications service"
+   enabled). One key works for every app of the team.
+3. **Android — FCM V1:** in the [Firebase console](https://console.firebase.google.com) create a
+   project and add an Android app with package `app.brainyclan`.
+   - Project settings → Service accounts → **Generate new private key** (JSON), then
+     `npx eas-cli@latest credentials` → Android → **Google Service Account** → "Manage your
+     Google Service Account Key for Push Notifications (FCM V1)" → upload it. Never commit the
+     key.
+   - The app also needs Firebase's client config: download `google-services.json` and point
+     `android.googleServicesFile` at it in `app.json` (not configured in the repo yet; it is a
+     native change, so a new build is needed). It contains no secrets but is project-specific.
+4. **Backend:** nothing to configure; optional `EXPO_ACCESS_TOKEN` only with Expo's enhanced push
+   security (backend README "Expo push notifications").
+5. **Check on a real device** with a development or store build: Profile → Notifications → allow
+   → the app registers the token for this device; trigger a push (e.g. send a chat
+   message from another member, or reach a goal). Tapping a chat push opens the Chat tab, a goal
+   push opens the goal. Quiet hours and per-type switches are applied by the server.
+
 ## Error monitoring — Sentry setup
 
 The app reports crashes and unhandled JS errors to [Sentry](https://sentry.io) with
@@ -692,6 +729,6 @@ drive into Docker is unreliable for Metro, so daily work should use `npm start` 
 
 ## Later
 
-RevenueCat web billing (subscriptions on the web version) and the EU consent form for ads. Push
-notifications, RevenueCat and AdMob are native modules and need the EAS development build (see
-above). See `CLAUDE.md` for architecture rules.
+RevenueCat web billing (subscriptions on the web version; planned as Paddle web checkout, PLAN
+F8). Push notifications, RevenueCat and AdMob are native modules and need the EAS development build
+(see above). See `CLAUDE.md` for architecture rules.

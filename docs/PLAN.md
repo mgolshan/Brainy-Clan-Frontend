@@ -221,9 +221,25 @@ the OS "reduce motion" setting). Components read tokens only through `useTheme()
 - App icon, splash, store screenshots and listings.
 - EAS Build and Submit; TestFlight and Google Play internal testing with waitlist families; store submission.
 
+### F8 — Pricing, affiliate codes and web checkout [B10] (planned 2026-10-24, Moe)
+
+Decisions and backend scope: `../Brainy-Clan-Backend/docs/PLAN.md` "B10". App scope:
+
+- Paywall with the three plans from the RevenueCat offering (monthly, 6 months, annual
+  highlighted with the per-month price and saving; trial badges), founding-families offer when
+  the offering has it. Prices always come from the store/offering, never hard-coded. Store
+  product IDs: `brainyclan_family_monthly`, `brainyclan_family_6months`,
+  `brainyclan_family_annual` (entitlement `family`; backend PLAN B10).
+- "Have a code?" field at adult sign-up and on the paywall → `POST /family/referral-code`;
+  store offer-code redemption (iOS `presentCodeRedemptionSheet`, Android promo code via Play).
+- Web checkout (Paddle) only where store rules allow an in-app link (US storefronts at the time of
+  writing; the server tells the app via policy/feature flag, the app never decides by country);
+  elsewhere no mention of web prices in the app. A plan bought on the web unlocks the app;
+  "Manage subscription" opens the right place (store or Paddle portal).
+
 ### Later
 
-- Web version (React Native for Web) with web subscriptions through RevenueCat web billing.
+- Web version (React Native for Web); web subscriptions go through Paddle (see F8 / B10).
 
 ## Open questions
 
