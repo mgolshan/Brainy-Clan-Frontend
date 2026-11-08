@@ -22,6 +22,7 @@ import {
   soft,
   sparkle,
   streaks,
+  tile,
   word,
 } from './props.mjs';
 
@@ -579,7 +580,126 @@ function lifeSkills() {
   return s;
 }
 
+// ---------------------------------------------------------------------------
+// cross-math: owl placing the last tile of a number crossword (2 + 5 = 7 across, 2 × 3 = 6 down)
+// ---------------------------------------------------------------------------
+function crossMath() {
+  const owl = character('owl', 'kid', 186, 88, 0.42);
+  let s = owl.svg;
+  // board
+  s += soft(rrect(8, 120, 226, 130, 18), C.wood, 6);
+  s += soft(rrect(16, 128, 210, 114, 12), C.paper, 3);
+  const T = 30;
+  // across: 2 + 5 = 7 (top row), down: 2 × 3 = 6 (left column)
+  s += tile('2', 40, 150, T, C.blue, '#FFFFFF');
+  s += glyph('+', 72, 150, 16, INK);
+  s += tile('5', 104, 150, T, C.yellow);
+  s += glyph('=', 136, 150, 16, INK);
+  s += tile('7', 172, 150, T, C.green, '#FFFFFF');
+  s += glyph('×', 40, 182, 16, INK);
+  s += tile('3', 40, 214, T, C.orange, '#FFFFFF');
+  s += glyph('=', 72, 214, 16, INK);
+  // the empty square, waiting for the tile in the owl's wing
+  s += path(rrect(89, 199, 30, 30, 7), 'none', {
+    stroke: C.paperShade,
+    'stroke-width': 3,
+    'stroke-dasharray': '5 4',
+  });
+  s += `<g transform="rotate(10 124 104)">${tile('6', 124, 104, 34, C.pink, '#FFFFFF')}</g>`;
+  s += paw(138, 118, 12, owl.fur);
+  s += sparkle(104, 76, 8, C.yellow) + sparkle(84, 104, 5, C.sky) + sparkle(30, 40, 7, C.pink);
+  s += sparkle(236, 168, 6, C.yellow);
+  return s;
+}
+
+// ---------------------------------------------------------------------------
+// mazes: rabbit with a map-like hedge maze, a dotted trail to the flag and a star
+// ---------------------------------------------------------------------------
+function mazes() {
+  const r = character('rabbit', 'kid', 74, 92, 0.42);
+  let s = r.svg;
+  // maze plate (top-down hedge maze)
+  const x0 = 28;
+  const y0 = 128;
+  const w = 210;
+  const h = 120;
+  s += soft(rrect(x0, y0, w, h, 16), darken(C.green, 0.2), 6);
+  s += soft(rrect(x0 + 6, y0 + 6, w - 12, h - 12, 11), '#EAF7D8', 2);
+  const hedge = darken(C.green, 0.05);
+  const W = 9;
+  s += line(
+    d`M${x0 + 46} ${y0 + 6} V${y0 + 70} M${x0 + 46} ${y0 + 70} H${x0 + 100} M${x0 + 100} ${y0 + 36} V${y0 + 114} M${x0 + 100} ${y0 + 36} H${x0 + 150} M${x0 + 150} ${y0 + 72} H${x0 + 204} M${x0 + 150} ${y0 + 72} V${y0 + 114} M${x0 + 6} ${y0 + 96} H${x0 + 64}`,
+    hedge,
+    W,
+  );
+  // dotted trail from the entrance to the flag
+  s += path(
+    d`M${x0 + 22} ${y0 + 20} V${y0 + 84} H${x0 + 80} V${y0 + 98} M${x0 + 80} ${y0 + 98} H${x0 + 80} M${x0 + 80} ${y0 + 98} Q${x0 + 82} ${y0 + 22} ${x0 + 124} ${y0 + 20} H${x0 + 176} V${y0 + 50} M${x0 + 176} ${y0 + 50} H${x0 + 126} V${y0 + 96} H${x0 + 128}`,
+    'none',
+    { stroke: C.orange, 'stroke-width': 4, 'stroke-dasharray': '2 7', 'stroke-linecap': 'round' },
+  );
+  // star and flag
+  s += soft(poly(ring(x0 + 176, y0 + 50, 13, 5, -90, 6)), C.yellow, 3);
+  s += line(d`M${x0 + 182} ${y0 + 112} V${y0 + 82}`, INK, 3.5);
+  s += path(d`M${x0 + 183} ${y0 + 82} L${x0 + 204} ${y0 + 89} L${x0 + 183} ${y0 + 97} Z`, C.red);
+  s += paw(60, 136, 12, r.fur);
+  s += paw(110, 132, 12, r.fur);
+  s += sparkle(150, 70, 9, C.yellow) + sparkle(200, 40, 7, C.sky) + sparkle(130, 34, 5, C.pink);
+  return s;
+}
+
+// ---------------------------------------------------------------------------
+// code-breaker: raccoon cracking a padlock with three Clan-colored dials and ✓ clues
+// ---------------------------------------------------------------------------
+function codeBreaker() {
+  const rc = character('raccoon', 'kid', 70, 96, 0.44);
+  let s = rc.svg;
+  // padlock: shackle + body
+  const cx = 164;
+  s += line(
+    d`M${cx - 38} 118 V92 Q${cx - 38} 52 ${cx} 52 Q${cx + 38} 52 ${cx + 38} 92 V104`,
+    '#9AA8C2',
+    14,
+  );
+  s += line(
+    d`M${cx - 38} 118 V92 Q${cx - 38} 52 ${cx} 52 Q${cx + 38} 52 ${cx + 38} 92 V104`,
+    '#C7D1E2',
+    6,
+  );
+  s += soft(rrect(cx - 72, 112, 144, 120, 22), C.yellow, 8);
+  s += soft(rrect(cx - 62, 122, 124, 54, 14), darken(C.yellow, 0.22), 4);
+  // three dials (peg colors) in the code window
+  [
+    [cx - 38, C.orange],
+    [cx, C.teal],
+    [cx + 38, C.purple],
+  ].forEach(([x, fill]) => {
+    s += circle(x, 149, 17, '#FFFFFF');
+    s += circle(x, 149, 13, fill);
+    s += circle(x - 4, 144, 4, '#FFFFFF', { opacity: 0.5 });
+  });
+  // clues under the window: two ✓ discs and one ↔ ring
+  const check = (x, y) =>
+    circle(x, y, 11, C.green) +
+    line(d`M${x - 5} ${y} L${x - 1} ${y + 4} L${x + 6} ${y - 4}`, '#FFFFFF', 3.4);
+  s += check(cx - 30, 202) + check(cx, 202);
+  s +=
+    circle(cx + 30, 202, 10, '#FFFFFF', { stroke: INK, 'stroke-width': 3 }) +
+    line(
+      d`M${cx + 24} 199 H${cx + 36} M${cx + 33} 196 L${cx + 36} 199 L${cx + 33} 202 M${cx + 36} 205 H${cx + 24} M${cx + 27} 202 L${cx + 24} 205 L${cx + 27} 208`,
+      INK,
+      2,
+    );
+  s += paw(96, 166, 13, rc.fur);
+  s += paw(90, 214, 13, rc.fur);
+  s += sparkle(222, 40, 8, C.yellow) + sparkle(110, 46, 6, C.sky) + sparkle(240, 212, 6, C.pink);
+  return s;
+}
+
 export const MORE_SCENES = {
+  'cross-math': crossMath,
+  mazes,
+  'code-breaker': codeBreaker,
   'logic-riddles': logicRiddles,
   'language-swap': languageSwap,
   'inventions-technology': inventions,

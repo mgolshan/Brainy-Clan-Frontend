@@ -1,7 +1,7 @@
 import type { MemoryMatchPayload, PatternSequencePayload, SessionItem } from '@/api/types';
 import { readAttempts, replayAttempts } from '@/challenges/memory/logic';
 import { readInput } from '@/challenges/pattern/logic';
-import { PUZZLE_SAMPLES } from '@/features/dev/puzzleSamples';
+import { LEVEL_UP_SAMPLES, PUZZLE_SAMPLES } from '@/features/dev/puzzleSamples';
 
 /**
  * Sample brain-game items for the dev preview (`/dev/games`), each with a local stand-in for the
@@ -105,4 +105,6 @@ export const BRAIN_GAME_SAMPLES: BrainGameSample[] = [
   }),
   // Nonogram + spot the difference (src/features/dev/puzzleSamples.ts).
   ...PUZZLE_SAMPLES,
+  // Level-up puzzles: Cross Math, Mazes, Code Breaker (same file).
+  ...LEVEL_UP_SAMPLES,
 ];

@@ -107,7 +107,7 @@ throw-away copy) against this list.
 **Short description (Play, 80):** Quizzes, brain games and family goals for every age, kids to grandparents.
 
 **Promotional text (iOS, 170):**
-Play together, learn together. Quizzes in 17 categories, brain games, sudoku and word puzzles for
+Play together, learn together. 20 categories of quizzes, brain games, mazes and math puzzles for
 every age — with family goals, a leaderboard and a private family chat.
 
 **Description:**
@@ -116,9 +116,11 @@ every age — with family goals, a leaderboard and a private family chat.
 > kids, teens, parents and grandparents — and the whole clan cheers each other on.
 >
 > **Play your way**
-> • Quizzes in 17 categories, with wisdom cards that teach something new (the free plan includes
+> • Quizzes and games in 20 categories, with wisdom cards that teach something new (the free plan includes
 > 3 categories; the Family plan unlocks all of them)
 > • Brain games: memory match, pattern sequences, nonograms and spot the difference
+> • Level-up puzzles that grow from age 4 to adult: Cross Math (number crosswords), Mazes with
+> stars to collect, and Code Breaker (crack the secret line of Clan friends)
 > • Sudoku (4×4 up to 9×9), Math Sprint and word puzzles (anagrams, missing letters, word search)
 > • Questions adapt to each player's age group and difficulty
 > • Second chances and a "redemption" round when you slip up
@@ -156,7 +158,7 @@ every age — with family goals, a leaderboard and a private family chat.
 
 **Keywords (iOS, 100):** `family,quiz,trivia,brain games,kids,learning,puzzle,sudoku,math,word,goals,leaderboard`
 
-**What's new (1.0.0):** First release — quizzes in 17 categories, brain games, sudoku, math sprint, word puzzles and a private family chat.
+**What's new (1.0.0):** First release — 20 categories of quizzes and games, brain games, Cross Math, mazes, Code Breaker, sudoku, math sprint, word puzzles and a private family chat.
 
 ## 5. Store listing — French (Canada / France)
 
@@ -165,7 +167,7 @@ every age — with family goals, a leaderboard and a private family chat.
 **Description courte (Play, 80) :** Quiz, jeux cérébraux et objectifs en famille, des enfants aux grands-parents.
 
 **Texte promotionnel (iOS, 170) :**
-Jouer ensemble, apprendre ensemble. Quiz en 17 catégories, jeux cérébraux, sudoku et jeux de mots
+Jouer ensemble, apprendre ensemble. Quiz et jeux en 20 catégories, labyrinthes, maths croisés
 pour tous les âges — avec objectifs, classement et chat familial privé.
 
 **Description :**
@@ -174,9 +176,11 @@ pour tous les âges — avec objectifs, classement et chat familial privé.
 > niveau — enfants, ados, parents et grands-parents — et tout le clan s'encourage.
 >
 > **Jouez à votre façon**
-> • Des quiz en 17 catégories, avec des cartes « sagesse » pour apprendre (3 catégories avec le
+> • Des quiz et des jeux en 20 catégories, avec des cartes « sagesse » pour apprendre (3 catégories avec le
 > forfait gratuit, toutes avec le forfait Famille)
 > • Jeux cérébraux : paires de mémoire, suites logiques, nonogrammes et jeu des différences
+> • Des casse-têtes qui grandissent avec vous, de 4 ans à l'âge adulte : Maths croisés, Labyrinthes
+> avec des étoiles à ramasser et Casse-code (retrouvez la ligne secrète d'amis du Clan)
 > • Sudoku (du 4×4 au 9×9), Sprint de calcul et jeux de mots (anagrammes, lettre manquante, mots
 > cachés)
 > • Des questions adaptées à la tranche d'âge et au niveau de chaque joueur
@@ -216,7 +220,7 @@ pour tous les âges — avec objectifs, classement et chat familial privé.
 
 **Mots-clés (iOS, 100) :** `famille,quiz,jeu,cerveau,enfants,apprendre,énigme,sudoku,maths,mots,objectifs,classement`
 
-**Nouveautés (1.0.0) :** Première version — quiz en 17 catégories, jeux cérébraux, sudoku, sprint de calcul, jeux de mots et un chat familial privé.
+**Nouveautés (1.0.0) :** Première version — quiz et jeux en 20 catégories, jeux cérébraux, maths croisés, labyrinthes, casse-code, sudoku, sprint de calcul, jeux de mots et un chat familial privé.
 
 ## 6. Category, audience and age rating
 

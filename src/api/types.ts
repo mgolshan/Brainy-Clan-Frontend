@@ -541,7 +541,10 @@ export type CategoryIcon =
   | 'restaurant'
   | 'football'
   | 'shield'
-  | 'sparkles';
+  | 'sparkles'
+  | 'crossmath'
+  | 'maze'
+  | 'lock';
 
 export interface Category {
   id: number;
@@ -808,6 +811,86 @@ export interface SpotDifferencePayload {
 /** `spot_difference` response: taps normalized 0–1 within the tapped picture, [x, y]. */
 export interface SpotDifferenceResponse {
   taps: [number, number][];
+}
+
+/** A Cross Math operator as sent by the API (the app shows `*` as ×, `/` as ÷). */
+export type CrossMathOperator = '+' | '-' | '*' | '/' | '=';
+
+/**
+ * One Cross Math cell: a given number, `"?"` (a blank to fill), an operator or `=`, or `null`
+ * (an empty square of the lattice).
+ */
+export type CrossMathCell = number | '?' | CrossMathOperator | null;
+
+/**
+ * `cross_math` (level-up puzzle): a number lattice, row-major. Numbers on even rows and even
+ * columns, operators between them; every even row and column is one equation (normal
+ * precedence). `bank` = the numbers to place, one per blank, sorted ascending (may repeat).
+ */
+export interface CrossMathPayload {
+  rows: number;
+  cols: number;
+  cells: CrossMathCell[][];
+  bank: number[];
+}
+
+/** `[row, col, value]` for one blank. */
+export type CrossMathFill = [number, number, number];
+
+/** `cross_math` response: one fill per blank. */
+export interface CrossMathResponse {
+  fills: CrossMathFill[];
+}
+
+/** `cross_math` correct_response: the generator's solution. */
+export interface CrossMathCorrectResponse {
+  fills: CrossMathFill[];
+}
+
+/**
+ * `maze` (level-up puzzle): `cells[r][c]` is a wall bitmask (1 north, 2 east, 4 south, 8 west).
+ * Perfect maze; every star must be collected on the way from `start` to `goal`.
+ */
+export interface MazePayload {
+  rows: number;
+  cols: number;
+  cells: number[][];
+  start: GridCell;
+  goal: GridCell;
+  stars: GridCell[];
+}
+
+/** `maze` response: every cell walked through, in order (revisits allowed). */
+export interface MazeResponse {
+  path: GridCell[];
+}
+
+/** `maze` correct_response: a shortest route through all stars. */
+export interface MazeCorrectResponse {
+  path: GridCell[];
+}
+
+/**
+ * `code_breaker` (level-up puzzle): `pegs` are Clan kid avatar keys (4–8), `code` indices into
+ * `pegs` (distinct when `repeats` is false). The app scores every guess itself.
+ */
+export interface CodeBreakerPayload {
+  pegs: string[];
+  length: number;
+  repeats: boolean;
+  max_guesses: number;
+  code: number[];
+}
+
+/** `code_breaker` response: every guess, in order (indices into `pegs`). */
+export interface CodeBreakerResponse {
+  guesses: number[][];
+}
+
+/** `code_breaker` correct_response. */
+export interface CodeBreakerCorrectResponse {
+  guesses: null;
+  code: number[];
 }
 
 // ---------------------------------------------------------------------------

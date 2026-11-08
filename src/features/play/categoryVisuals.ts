@@ -26,6 +26,10 @@ const VISUALS: Record<CategoryIcon, CategoryVisual> = {
   football: { icon: 'football-outline', emoji: '⚽' },
   shield: { icon: 'shield-checkmark-outline', emoji: '🦺' },
   sparkles: { icon: 'sparkles-outline', emoji: '✨' },
+  // Level-up puzzles (2026-11-08): `calculator` is Math Sprint, so Cross Math gets the plus sign.
+  crossmath: { icon: 'add-circle-outline', emoji: '➕' },
+  maze: { icon: 'trail-sign-outline', emoji: '🧭' },
+  lock: { icon: 'lock-closed-outline', emoji: '🔐' },
 };
 
 const hasVisual = (icon: string): icon is CategoryIcon =>

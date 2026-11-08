@@ -38,6 +38,7 @@ function GameSample({ sample }: { sample: BrainGameSample }) {
         <Challenge
           key={round}
           item={item}
+          avatar="fox"
           result={result}
           onSubmit={(response) => setResult({ ...sample.score(response), submitted: response })}
         />

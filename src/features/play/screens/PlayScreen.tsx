@@ -375,6 +375,7 @@ export function PlayScreen({ sessionId }: { sessionId: number }) {
           ) : null}
           <Challenge
             item={currentItem}
+            avatar={avatar}
             onSubmit={(response) => void play.submit(response)}
             pending={play.pending?.itemId === currentItem.id ? play.pending.response : null}
             result={

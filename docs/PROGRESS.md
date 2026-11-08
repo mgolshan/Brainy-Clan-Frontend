@@ -372,6 +372,36 @@ themes (light/dark).
 
 ## Log
 
+### 2026-11-08 level-up puzzles: Cross Math, Mazes, Code Breaker
+
+- Contract API.md "Level-up puzzles (2026-11-08)": types in `src/api/types.ts`
+  (`CrossMath*`, `Maze*`, `CodeBreaker*`), `CategoryIcon` + `crossmath` (add-circle, ➕), `maze`
+  (trail-sign, 🧭), `lock` (lock-closed, 🔐). Registered `cross_math`, `maze`, `code_breaker`.
+- `src/challenges/crossmath/` (lattice parsing, precedence evaluation, exact division, tile
+  placement; tap a tile then a square or a square then a tile, tap a filled square to return it;
+  a true row/column turns green with a ✓ on its `=`, a full but false one shows ≠; solution with
+  the differing squares after a wrong answer), `maze/` (SVG walls, the member's avatar walks;
+  arrow pad, web arrow keys / WASD, draw from the avatar, swipe = run to the next junction/star/
+  goal; a wall on either side blocks; star pop + sound; auto-submit at the goal with all stars;
+  "Show me the way" gives up; dashed shortest route after a miss; long paths are compacted under
+  the `rows × cols × 4` cap), `codebreaker/` (Clan kid pegs, ✓ disc / ↔ ring markers sorted,
+  spoken feedback, legend in words, guesses left, auto-submit when cracked or out; secret line
+  revealed after scoring; web number keys / Backspace / Enter).
+- First-time "How to play" card (`src/challenges/HowToPlay.tsx`, dismissed per device in
+  `brainyclan.seen-hints`, then a "How to play" chip). Challenge props gain `avatar` (PlayScreen
+  passes the member's).
+- Dev samples (`LEVEL_UP_SAMPLES` in `src/features/dev/puzzleSamples.ts`, `/dev/games?game=7…16`):
+  cross math 1/5/6 (÷)/8 (7×7), mazes 5×5/10×10★2/16×16★4 (seeded perfect mazes), code
+  breaker 3 of 4 / 4 of 6 repeats / 5 of 8.
+- Category art for `cross-math`, `mazes`, `code-breaker` (`scripts/illustrations/scenesMore.mjs`).
+- Store text: 20 categories + the new puzzles (en/fr).
+- Screenshots (headless Edge on the web dev build, 390 pt @2x, WebP): backend
+  `public/images/site/help/{cross-math,maze,code-breaker}.webp` (wired in the help center) and
+  `public/images/site/screens/puzzle-{cross-math,maze,code-breaker}.webp` (landing, not wired).
+- Tests: logic suites for the three games, registry cases, render smoke tests in 4 worlds
+  (light/dark) + scored states, play-through tests (maze arrows, code breaker, cross math taps),
+  translation keys exist, category visuals + art.
+
 ### 2026-10-24 audit rewordings + push localization
 
 - Applied content-audit findings A1–A6 (`en.json` + `fr.json`): `worlds.askParent` "Comes with the

@@ -47,6 +47,9 @@ describe('categoryVisual', () => {
     'football',
     'shield',
     'sparkles',
+    'crossmath',
+    'maze',
+    'lock',
   ];
   const fallback = categoryVisual(null);
 
@@ -57,6 +60,13 @@ describe('categoryVisual', () => {
       expect(visual.emoji).not.toBe(fallback.emoji);
     }
     expect(new Set(KEYS.map((k) => categoryVisual(k).icon)).size).toBe(KEYS.length);
+    expect(new Set(KEYS.map((k) => categoryVisual(k).emoji)).size).toBe(KEYS.length);
+  });
+
+  it('gives the level-up puzzles their own glyphs', () => {
+    expect(categoryVisual('crossmath').icon).toBe('add-circle-outline');
+    expect(categoryVisual('maze').icon).toBe('trail-sign-outline');
+    expect(categoryVisual('lock').icon).toBe('lock-closed-outline');
   });
 
   it('falls back to the generic icon for unknown, empty or prototype keys', () => {

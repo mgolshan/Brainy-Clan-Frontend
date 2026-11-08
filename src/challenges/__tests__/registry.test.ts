@@ -73,6 +73,48 @@ const VALID: [ChallengeTypeKey, string, unknown][] = [
       max_misses: 5,
     },
   ],
+  [
+    'cross_math',
+    '5×5 contract example',
+    {
+      rows: 5,
+      cols: 5,
+      cells: [
+        [4, '+', '?', '=', 9],
+        ['-', null, '*', null, '-'],
+        ['?', '+', 1, '=', '?'],
+        ['=', null, '=', null, '='],
+        [1, '+', 5, '=', 6],
+      ],
+      bank: [3, 5, 5],
+    },
+  ],
+  [
+    'maze',
+    '2×2 with a star',
+    {
+      rows: 2,
+      cols: 2,
+      cells: [
+        [9, 3],
+        [12, 6],
+      ],
+      start: [0, 0],
+      goal: [1, 1],
+      stars: [[0, 1]],
+    },
+  ],
+  [
+    'code_breaker',
+    'contract example',
+    {
+      pegs: ['fox', 'owl', 'frog', 'panda'],
+      length: 3,
+      repeats: false,
+      max_guesses: 10,
+      code: [2, 0, 3],
+    },
+  ],
 ];
 
 /** Malformed payloads: the play session must skip them instead of crashing. */
@@ -127,6 +169,46 @@ const INVALID: [ChallengeTypeKey, string, unknown][] = [
       max_misses: 3,
     },
   ],
+  [
+    'cross_math',
+    'bank size mismatch',
+    {
+      rows: 3,
+      cols: 3,
+      cells: [
+        [1, '+', '?'],
+        ['=', null, null],
+        ['?', null, null],
+      ],
+      bank: [],
+    },
+  ],
+  [
+    'maze',
+    'goal off the board',
+    {
+      rows: 2,
+      cols: 2,
+      cells: [
+        [9, 3],
+        [12, 6],
+      ],
+      start: [0, 0],
+      goal: [2, 2],
+      stars: [],
+    },
+  ],
+  [
+    'code_breaker',
+    'repeated pegs in a no-repeats code',
+    {
+      pegs: ['fox', 'owl', 'frog', 'panda'],
+      length: 3,
+      repeats: false,
+      max_guesses: 10,
+      code: [1, 1, 0],
+    },
+  ],
 ];
 
 describe('challenge registry', () => {
@@ -142,6 +224,9 @@ describe('challenge registry', () => {
         'pattern_sequence',
         'nonogram',
         'spot_difference',
+        'cross_math',
+        'maze',
+        'code_breaker',
       ].sort(),
     );
   });

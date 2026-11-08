@@ -1,7 +1,13 @@
 import type { ComponentType } from 'react';
 
 import type { SessionItem } from '@/api/types';
+import { CodeBreaker } from '@/challenges/codebreaker/CodeBreaker';
+import { isCodeBreakerPayload } from '@/challenges/codebreaker/logic';
+import { CrossMath } from '@/challenges/crossmath/CrossMath';
+import { isCrossMathPayload } from '@/challenges/crossmath/logic';
 import { MathSprint, isMathSprintPayload, readMathValue } from '@/challenges/MathSprint';
+import { isMazePayload } from '@/challenges/maze/logic';
+import { Maze } from '@/challenges/maze/Maze';
 import { isMemoryMatchPayload } from '@/challenges/memory/logic';
 import { MemoryMatch } from '@/challenges/memory/MemoryMatch';
 import { MultipleChoice, isMultipleChoicePayload } from '@/challenges/MultipleChoice';
@@ -30,7 +36,10 @@ export type ChallengeTypeKey =
   | 'memory_match'
   | 'pattern_sequence'
   | 'nonogram'
-  | 'spot_difference';
+  | 'spot_difference'
+  | 'cross_math'
+  | 'maze'
+  | 'code_breaker';
 
 /** Server verdict for an answered item. */
 export interface ChallengeResult<TResponse = unknown> {
@@ -50,6 +59,8 @@ export interface ChallengeComponentProps<TPayload = unknown, TResponse = unknown
   pending?: TResponse | null;
   /** Set once the server scored the answer: renderers highlight correct / wrong. */
   result?: ChallengeResult<TResponse> | null;
+  /** The playing member's Clan avatar key (the maze walker); renderers fall back to a default. */
+  avatar?: string | null;
 }
 
 export interface ChallengeDefinition<TPayload = unknown, TResponse = unknown> {
@@ -136,6 +147,26 @@ export const challengeRegistry: Partial<Record<ChallengeTypeKey, ChallengeDefini
     // Missed differences are circled in the pictures.
     describeCorrect: () => null,
     wide: true,
+  }),
+  cross_math: define({
+    component: CrossMath,
+    isValidPayload: isCrossMathPayload,
+    // The renderer fills in the solution and marks the squares that differed.
+    describeCorrect: () => null,
+    wide: true,
+  }),
+  maze: define({
+    component: Maze,
+    isValidPayload: isMazePayload,
+    // The renderer draws the shortest route after a wrong answer.
+    describeCorrect: () => null,
+    wide: true,
+  }),
+  code_breaker: define({
+    component: CodeBreaker,
+    isValidPayload: isCodeBreakerPayload,
+    // The renderer reveals the secret line.
+    describeCorrect: () => null,
   }),
 };
 
