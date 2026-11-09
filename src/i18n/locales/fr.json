@@ -461,8 +461,7 @@
     "version": "Version de l'application",
     "signOut": "Se déconnecter",
     "helpSupport": "Aide et assistance",
-    "helpSupportSubtitle": "Questions, problèmes ou idées",
-    "emailSupport": "Nous écrire"
+    "helpSupportSubtitle": "Réponses aux questions fréquentes"
   },
   "avatars": {
     "fox": "Renard",
@@ -1347,5 +1346,66 @@
     "invite": "Comment fonctionnent les codes d’invitation ?",
     "signInCode": "Comment fonctionnent les codes de connexion ?",
     "chat": "Comment fonctionne la discussion familiale ?"
+  },
+  "support": {
+    "title": "Contacter l’assistance",
+    "subtitle": "Une question, un problème ou une idée ? Écrivez à l’équipe Brainy Clan.",
+    "entryTitle": "Contacter l’assistance",
+    "entrySubtitle": "Questions, problèmes ou idées",
+    "askAdmin": "Besoin de l’équipe Brainy Clan ? Demandez à un administrateur de la famille de contacter l’assistance pour vous.",
+    "askParent": "Besoin d’aide ? Demande à un parent de contacter l’équipe Brainy Clan pour toi.",
+    "adminsOnlyTitle": "Les administrateurs de la famille écrivent à l’assistance",
+    "topicLabel": "De quoi s’agit-il ?",
+    "topics": {
+      "account": "Compte",
+      "billing": "Facturation",
+      "bug": "Bogue",
+      "content": "Question erronée",
+      "privacy": "Confidentialité",
+      "idea": "Idée",
+      "other": "Autre"
+    },
+    "messageLabel": "Votre message",
+    "messagePlaceholder": "Dites-nous ce qui s’est passé ou ce que vous aimeriez…",
+    "messageHint": "Au moins 10 caractères. N’écrivez jamais de mot de passe.",
+    "tooShort": "Écrivez au moins 10 caractères.",
+    "tooLong": "Votre message doit compter moins de {{max}} caractères.",
+    "counter": "{{count}} / {{max}}",
+    "replyNote": "Nous répondons par courriel à {{email}}.",
+    "replyNoteNoEmail": "Nous répondons par courriel à l’adresse de votre compte.",
+    "context": {
+      "title": "Envoyé avec votre message",
+      "showHint": "Affiche les détails envoyés avec votre message",
+      "hideHint": "Masque les détails",
+      "appVersion": "Version de l’application",
+      "platform": "Plateforme",
+      "device": "Appareil",
+      "unknown": "Inconnu",
+      "note": "Cela nous aide à comprendre les problèmes. Rien d’autre n’est envoyé : ni contacts, ni position."
+    },
+    "platforms": {
+      "ios": "iOS",
+      "android": "Android",
+      "web": "Web"
+    },
+    "send": "Envoyer le message",
+    "retry": "Réessayer",
+    "chooseTopicHint": "Choisissez d’abord un sujet",
+    "errorNetwork": "Votre message n’a pas pu être envoyé. Vérifiez votre connexion et réessayez. Votre texte est conservé.",
+    "rateLimited": "Vous avez envoyé plusieurs messages en peu de temps. Attendez un moment avant d’en envoyer un autre. Nous répondrons à ceux que nous avons déjà reçus.",
+    "forbidden": "Seuls les administrateurs de la famille peuvent contacter l’assistance depuis l’application.",
+    "sentTitle": "Message envoyé. Merci !",
+    "sentBody": "Nous vous répondrons par courriel à {{email}}, en français ou en anglais. Pensez à vérifier vos courriels indésirables.",
+    "sentBodyNoEmail": "Nous vous répondrons par courriel à l’adresse de votre compte, en français ou en anglais. Pensez à vérifier vos courriels indésirables.",
+    "writeAnother": "Écrire un autre message",
+    "yourMessages": "Vos messages",
+    "emptyTitle": "Aucun message pour l’instant",
+    "emptyBody": "Les messages envoyés à l’assistance apparaissent ici avec leur statut.",
+    "status": {
+      "open": "Reçu",
+      "answered": "Répondu",
+      "closed": "Fermé"
+    },
+    "answeredOn": "Réponse envoyée par courriel le {{date}}"
   }
 }

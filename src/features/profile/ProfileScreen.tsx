@@ -1,11 +1,11 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, View } from 'react-native';
+import { View } from 'react-native';
 
 import type { AvatarKey } from '@/api/types';
 import { API_URL, APP_VERSION } from '@/config/env';
-import { SUPPORT_EMAIL, WEBSITE_LINKS, supportMailto } from '@/config/links';
+import { WEBSITE_LINKS } from '@/config/links';
 import { useHealth } from '@/features/app/useHealth';
 import { useMe, useSignOut } from '@/features/auth/hooks';
 import { SignInMethods } from '@/features/auth/social/SignInMethods';
@@ -18,6 +18,7 @@ import { AccessibilityEditor } from '@/features/profile/AccessibilityEditor';
 import { AvatarPicker } from '@/features/profile/AvatarPicker';
 import { PasswordForm } from '@/features/profile/PasswordForm';
 import { useUpdateAccessibility, useUpdateMe } from '@/features/profile/hooks';
+import { SupportEntry } from '@/features/support/SupportEntry';
 import { canPurchaseFamilyPlan } from '@/features/worlds/catalog';
 import { useMyWorlds } from '@/features/worlds/hooks';
 import i18n, { supportedLanguages, type AppLanguage } from '@/i18n';
@@ -238,20 +239,13 @@ export function ProfileScreen() {
           accessibilityHint={t('legal.opensBrowser')}
           onPress={() => openLegalPage(WEBSITE_LINKS.support)}
         />
-        {/* Children get the help page only; adults and teens can also write to support. */}
-        {policy.is_child ? null : (
-          <>
-            <Divider />
-            <ListRow
-              title={t('profile.emailSupport')}
-              subtitle={SUPPORT_EMAIL}
-              leading={<Icon name="mail-outline" color={theme.colors.primary} />}
-              onPress={() =>
-                void Linking.openURL(supportMailto(`Brainy Clan ${APP_VERSION}`)).catch(() => {})
-              }
-            />
-          </>
-        )}
+        {/* Family admins write to support in the app (replies go to their email); everyone
+            else is told to ask a family admin (children: a parent). No public mailto. */}
+        <SupportEntry
+          isAdmin={member?.role === 'admin'}
+          isChild={policy.is_child}
+          onPress={() => router.push('/support')}
+        />
         <Divider />
         <ListRow title={t('profile.version')} subtitle={APP_VERSION} chevron={false} />
         <Divider />

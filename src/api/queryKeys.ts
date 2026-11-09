@@ -33,6 +33,8 @@ export const queryKeys = {
   chatPoll: ['chat', 'poll'] as const,
   /** `GET /family/chat/unread` (tab badge). */
   chatUnread: ['chat', 'unread'] as const,
+  /** `GET /support/messages` (admin): the caller's own support messages, newest first. */
+  supportMessages: ['support', 'messages'] as const,
   categories: ['categories'] as const,
   goals: ['goals'] as const,
   goal: (id: number) => ['goals', id] as const,

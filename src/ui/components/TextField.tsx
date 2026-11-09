@@ -14,11 +14,13 @@ export interface TextFieldProps extends Omit<TextInputProps, 'style'> {
   password?: boolean;
   /** Big centred monospace-ish entry (invite codes). */
   large?: boolean;
+  /** With `multiline`: visible height in lines (the box grows with the text size). */
+  minLines?: number;
 }
 
 /** Labeled, themed text input with error and hint text. */
 export const TextField = forwardRef<TextInput, TextFieldProps>(function TextField(
-  { label, error, hint, password, large, onFocus, onBlur, ...rest },
+  { label, error, hint, password, large, minLines, onFocus, onBlur, ...rest },
   ref,
 ) {
   const theme = useTheme();
@@ -35,6 +37,7 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
         ? c.borderStrong
         : c.border;
   const typeStyle = large ? theme.type.heading : theme.type.bodyLarge;
+  const multiline = !!rest.multiline;
 
   return (
     <View style={styles.wrap}>
@@ -44,6 +47,7 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
       <View
         style={[
           styles.field,
+          multiline ? styles.fieldMultiline : null,
           {
             minHeight: large ? theme.touchTarget + 16 : theme.touchTarget,
             borderRadius: theme.vibe === 'kid' ? theme.radius.md : theme.radius.md,
@@ -82,6 +86,12 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
               letterSpacing: large ? 4 : 0,
               textAlign: large ? 'center' : 'auto',
             },
+            multiline
+              ? {
+                  minHeight: Math.round(typeStyle.size * 1.45 * (minLines ?? 4)) + 20,
+                  textAlignVertical: 'top',
+                }
+              : null,
           ]}
         />
         {password ? (
@@ -110,6 +120,7 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
 const styles = StyleSheet.create({
   wrap: { gap: 6 },
   field: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  fieldMultiline: { alignItems: 'stretch' },
   // minWidth 0: a web <input> otherwise keeps its intrinsic width and pushes the eye icon out.
   input: { flex: 1, minWidth: 0, paddingVertical: 10, outlineStyle: 'none' } as object,
 });

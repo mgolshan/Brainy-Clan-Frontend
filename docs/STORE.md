@@ -46,10 +46,15 @@ and `UISupportedInterfaceOrientations~ipad` lists all four orientations (verifie
 | Terms of use                 | `https://brainyclan.com/terms`          | Store description, paywall fallback                         |
 | Account deletion (web)       | `https://brainyclan.com/account/delete` | Play Data safety → deletion URL                             |
 | Password reset (from emails) | `https://brainyclan.com/password/reset` | Linked from the "forgot password" email only                |
-| Support email                | `support@brainyclan.com`                | Play contact email, App Review contact, Profile → Email us  |
+| Support email                | `support@brainyclan.com`                | Play contact email, App Review contact, legal pages (¹)     |
 | API                          | `https://api.brainyclan.com/api/v1`     | `EXPO_PUBLIC_API_URL=https://api.brainyclan.com` (eas.json) |
 
 French pages: the same URLs with `?lang=fr` (the app adds it for French users).
+
+(¹) The app has no `mailto:` link (docs/PLAN.md "Support channel without a public mailto"): family
+admins write from Profile → Contact support (`POST /support/messages`, replies by email), everyone
+else uses the contact form on `https://brainyclan.com/support`. The App Store support URL stays
+`https://brainyclan.com/support`.
 
 Removed defaults: `SYSTEM_ALERT_WINDOW`, `READ/WRITE_EXTERNAL_STORAGE` (the data export is written
 to the app cache and shared via the share sheet, so no storage permission is needed) and the Face ID

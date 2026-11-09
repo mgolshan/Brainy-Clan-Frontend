@@ -13,6 +13,7 @@ import type {
 } from '@/api/types';
 import { useChallengeDrafts } from '@/challenges/drafts';
 import { useAnswerQueue } from '@/features/play/answerQueue';
+import { clearSupportDraft } from '@/features/support/draft';
 import { useAppStatus } from '@/store/appStatus';
 import { useSession } from '@/store/session';
 
@@ -25,6 +26,7 @@ export function signOutAfterDeletion() {
   useAppStatus.getState().setAccountDeleted(true);
   useAnswerQueue.getState().clear();
   useChallengeDrafts.getState().clear();
+  clearSupportDraft();
   useSession.getState().clear();
   clearPrivateQueries(queryClient);
 }

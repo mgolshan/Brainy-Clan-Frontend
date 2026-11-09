@@ -13,6 +13,11 @@ export const WEBSITE_URL: string = (
   clean(process.env.EXPO_PUBLIC_WEBSITE_URL) ?? 'https://brainyclan.com'
 ).replace(/\/+$/, '');
 
+/**
+ * Shown only where it is required (store listings, legal pages). The app has no `mailto:` link:
+ * family admins use "Contact support" (`/support`), everyone else the website's contact form
+ * (docs/PLAN.md "Support channel without a public mailto").
+ */
 export const SUPPORT_EMAIL: string =
   clean(process.env.EXPO_PUBLIC_SUPPORT_EMAIL) ?? 'support@brainyclan.com';
 
@@ -43,9 +48,4 @@ export function helpUrl(
 ): string {
   const lang = language?.toLowerCase().startsWith('fr') ? '?lang=fr' : '';
   return `${base}${lang}${anchor ? `#${anchor}` : ''}`;
-}
-
-/** `mailto:` link to support with a subject line. */
-export function supportMailto(subject: string): string {
-  return `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}`;
 }

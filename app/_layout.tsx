@@ -23,6 +23,7 @@ import { useMe } from '@/features/auth/hooks';
 import { configureNotifications } from '@/features/notifications/push';
 import { useNotificationDeepLinks, usePushRegistration } from '@/features/notifications/usePush';
 import { useAnswerQueue, useAnswerQueueSync } from '@/features/play/answerQueue';
+import { clearSupportDraft } from '@/features/support/draft';
 import { useAppStatus } from '@/store/appStatus';
 import { useSession } from '@/store/session';
 import { ErrorState, Loading, useTheme } from '@/ui';
@@ -101,6 +102,7 @@ function RootNavigator() {
     useAnswerQueue.getState().clear();
     useChallengeDrafts.getState().clear();
     useChatOutbox.getState().clear();
+    clearSupportDraft();
   }, [token]);
 
   const navTheme = useMemo(() => {
@@ -178,6 +180,7 @@ function RootNavigator() {
             <Stack.Screen name="delete-account" />
             <Stack.Screen name="delete-family" />
             <Stack.Screen name="family-plan" />
+            <Stack.Screen name="support" />
           </Stack.Protected>
           <Stack.Screen name="oauth-callback" />
           <Stack.Protected guard={__DEV__}>

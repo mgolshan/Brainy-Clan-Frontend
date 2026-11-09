@@ -35,7 +35,8 @@ Milestones are defined in `docs/PLAN.md`.
     countdown resumes with the right time, social buttons still work while locked. (d) Forgot
     password with a real mailbox (en + fr email, link opens the website page, then sign in with
     the new password; all other devices are signed out). (e) Profile → Help & support opens
-    `https://brainyclan.com/support` once the website is live; Email us opens the mail app.
+    `https://brainyclan.com/support` once the website is live; Contact support (admins) sends a
+    message (log "2026-11-08 Contact support").
 
 1.  **F7 release (Moe):** approve the owl mascot (`assets/brand/owl.svg`, rendered by
     `npm run brand:render`), then follow `docs/STORE.md` §10: store accounts, `eas init`
@@ -371,6 +372,38 @@ themes (light/dark).
   splash (blue `#1D6FD8`, dark `#10233F`). `npx expo-doctor` 21/21; `npx expo config --type public`.
 
 ## Log
+
+### 2026-11-08 Contact support
+
+- Contract API.md "Support messages (2026-11-08)" + PLAN.md "Support channel without a public
+  mailto". Types `SupportTopic`, `SupportStatus`, `SupportMessage`, `SendSupportMessageBody`;
+  key `queryKeys.supportMessages`; `src/features/support/` (`api.ts`, `model.ts` pure helpers,
+  `draft.ts` persisted draft + send, `hooks.ts`, `ContactSupportScreen.tsx`, `SupportEntry.tsx`);
+  route `app/support` (signed-in family stack).
+- Profile → About: the "Email us" `mailto:` row is gone (`supportMailto` removed; no signed-out
+  screen had one). Family admins get "Contact support"; other members see "ask a family admin",
+  children "ask a parent". "Help & support" still opens the website (FAQ + contact form for
+  everyone without the in-app channel).
+- Screen: topic chips (account, billing, bug, content = "Question looks wrong", privacy, idea,
+  other, with icons), message 10–5000 code points (counter from 4,500, "at least 10" after blur,
+  "never include a password" hint), "We reply by email to <account email>", collapsible "Sent
+  with your message" (app version, platform, `expo-device` model + OS, e.g. "iPad Air (iPadOS
+  18.1)"; nothing else), Send with loading/disabled; network error → "Try again" with the same
+  `client_id`; 429 friendly text; 403 refreshes `me`; thank-you card (website wording: answer by
+  email in English or French, check spam; no answer time is promised on the website, so none in
+  the app). "Your messages" below the form: topic, first line, date, status badge (Received /
+  Answered / Closed, unknown status = Received), "Answered by email on …", pull to refresh,
+  empty state. Reading column (centered on iPad/web), all worlds light/dark.
+- Draft (`brainyclan.support-draft`, AsyncStorage): topic + text + last attempt `client_id`,
+  owned by one user id, kept when leaving the screen, cleared after success, on sign-out and
+  after account deletion. Editing the text after a failed attempt makes a new `client_id` (a
+  retry of the same text re-uses it, so the server never stores it twice).
+- `TextField` gains `minLines` for `multiline` fields (top-aligned box).
+- Tests: `src/features/support/__tests__/` (model, draft/idempotent retry, request shapes with a
+  mocked fetch, render tests: admin-only entry, status labels, screen send/retry/429, every world
+  light + dark with text scale 1.5).
+- Not yet verified against the live endpoint (backend built in parallel; `/support/messages`
+  answered 404 on the dev stack at the end of this session) nor on a phone/iPad.
 
 ### 2026-11-08 level-up puzzles: Cross Math, Mazes, Code Breaker
 

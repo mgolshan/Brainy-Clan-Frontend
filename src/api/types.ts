@@ -1174,3 +1174,36 @@ export interface ChatReadBody {
 export interface ChatUnread {
   unread: number;
 }
+
+// --- Support messages (contract 2026-11-08) ---
+
+/** What a support message is about (`content`: a question or answer looks wrong). */
+export type SupportTopic = 'account' | 'billing' | 'bug' | 'content' | 'privacy' | 'idea' | 'other';
+
+/** `open` = received, not answered yet · `answered` = staff replied by email · `closed`. */
+export type SupportStatus = 'open' | 'answered' | 'closed';
+
+export interface SupportMessage {
+  id: number;
+  topic: SupportTopic;
+  message: string;
+  /** Typed loosely: an unknown future status shows as "Received". */
+  status: SupportStatus | (string & {});
+  created_at: string;
+  answered_at: string | null;
+}
+
+/**
+ * `POST /support/messages` (family admins; others 403 `forbidden`) → 201 `{ data }`, or 200 with
+ * the stored message when this `client_id` was already sent. `message`: 10–5000 code points
+ * after trimming; `app_version` ≤ 20; `device` ≤ 80 (model + OS only). 429 `rate_limited`
+ * (5/hour, 20/day).
+ */
+export interface SendSupportMessageBody {
+  topic: SupportTopic;
+  message: string;
+  client_id: string;
+  app_version: string;
+  platform: Platform;
+  device?: string;
+}

@@ -444,8 +444,7 @@
     "version": "App version",
     "signOut": "Sign out",
     "helpSupport": "Help & support",
-    "helpSupportSubtitle": "Questions, problems or ideas",
-    "emailSupport": "Email us"
+    "helpSupportSubtitle": "Answers to common questions"
   },
   "avatars": {
     "fox": "Fox",
@@ -1295,5 +1294,66 @@
     "invite": "How do invite codes work?",
     "signInCode": "How do sign-in codes work?",
     "chat": "How does the family chat work?"
+  },
+  "support": {
+    "title": "Contact support",
+    "subtitle": "Questions, problems or ideas? Write to the Brainy Clan team.",
+    "entryTitle": "Contact support",
+    "entrySubtitle": "Questions, problems or ideas",
+    "askAdmin": "Need help from the Brainy Clan team? Ask a family admin to contact support for you.",
+    "askParent": "Need help? Ask a parent to contact the Brainy Clan team for you.",
+    "adminsOnlyTitle": "Family admins write to support",
+    "topicLabel": "What is it about?",
+    "topics": {
+      "account": "Account",
+      "billing": "Billing",
+      "bug": "Bug",
+      "content": "Question looks wrong",
+      "privacy": "Privacy",
+      "idea": "Idea",
+      "other": "Other"
+    },
+    "messageLabel": "Your message",
+    "messagePlaceholder": "Tell us what happened or what you would like…",
+    "messageHint": "At least 10 characters. Never include a password.",
+    "tooShort": "Please write at least 10 characters.",
+    "tooLong": "Please keep your message under {{max}} characters.",
+    "counter": "{{count}} / {{max}}",
+    "replyNote": "We reply by email to {{email}}.",
+    "replyNoteNoEmail": "We reply by email to the address on your account.",
+    "context": {
+      "title": "Sent with your message",
+      "showHint": "Shows the details sent with your message",
+      "hideHint": "Hides the details",
+      "appVersion": "App version",
+      "platform": "Platform",
+      "device": "Device",
+      "unknown": "Unknown",
+      "note": "This helps us understand problems. Nothing else is sent: no contacts, no location."
+    },
+    "platforms": {
+      "ios": "iOS",
+      "android": "Android",
+      "web": "Web"
+    },
+    "send": "Send message",
+    "retry": "Try again",
+    "chooseTopicHint": "Choose a topic first",
+    "errorNetwork": "We couldn't send your message. Check your connection and try again. Your text is saved.",
+    "rateLimited": "You've sent several messages in a short time. Please wait a while before sending another one. We'll answer the ones we already have.",
+    "forbidden": "Only family admins can contact support from the app.",
+    "sentTitle": "Message sent. Thank you!",
+    "sentBody": "We'll answer by email at {{email}}, in English or French. Remember to check your spam folder.",
+    "sentBodyNoEmail": "We'll answer by email at the address on your account, in English or French. Remember to check your spam folder.",
+    "writeAnother": "Write another message",
+    "yourMessages": "Your messages",
+    "emptyTitle": "No messages yet",
+    "emptyBody": "Messages you send to support appear here with their status.",
+    "status": {
+      "open": "Received",
+      "answered": "Answered",
+      "closed": "Closed"
+    },
+    "answeredOn": "Answered by email on {{date}}"
   }
 }
