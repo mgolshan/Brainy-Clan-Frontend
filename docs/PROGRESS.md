@@ -373,6 +373,60 @@ themes (light/dark).
 
 ## Log
 
+### 2026-11-08 worlds castle, arctic, robot
+
+Moe: "3 more themes for the family plan" (docs/PLAN.md "Three more Family-plan worlds"). Contract
+keys `castle`, `arctic`, `robot` (API.md changelog 2026-11-08, unlock `family_plan`, served after
+`midnight`) added to `THEME_KEYS`, `SOUND_PACKS` and `WORLD_ORDER` (castle + arctic after dino
+with the kids' worlds, robot after lo-fi with the teens'); the picker still follows the server
+order. All 16 worlds pass the AA contrast test, light and dark.
+
+- **Fairy-Tale Castle** (kids, `src/ui/themes/castle.ts`): warm parchment + royal violet, teal and
+  gold; Cherry Swash headings over Nunito. Scene `CastleScene`: peach sunset sky with the sun
+  (light) or a starry twilight with a crescent moon (dark), puffy clouds, a soft rainbow, a pastel
+  castle (two towers, keep, battlements, arched windows that glow at night) whose three pennants
+  wave, a front hill with flowers, a friendly green dragon with tiny wings peeking over it, magic
+  sparkles twinkling at the edges. Card `pennant` (gold rim, plum bottom edge, bunting), progress
+  `quest` (a crown walks a golden stepping-stone path to a castle tower with a flag), celebration
+  `fireworks` (four bursts of glowing sparks).
+- **Polar Lights** (kids, `arctic.ts`): icy blues with aurora green/violet; Baloo 2 headings.
+  Scene `ArcticScene`: pastel (light) / deep night (dark, stars) sky with two aurora ribbons
+  drifting and shimmering, snowy mountains, drifts, an igloo, a penguin in a scarf rocking on the
+  left, a polar bear cub peeking up on the right, snow falling along both edges (seamless cycle).
+  Card `snowcap` (icy rim, snow cap with drips, snowflake), progress `sled` (a penguin slides on
+  its belly along the ice to its igloo), celebration `snowflakes`.
+- **Robot Lab** (teens, `robot.ts`): clean lab, teal + orange; Chakra Petch headings over Inter,
+  glow buttons. Scene `RobotScene`: blueprint grid, teal circuit traces with solder pads and
+  blinking orange signals, two meshed gears turning (one tooth per cycle, seamless) plus one on
+  the left, a hovering helper drone, a friendly robot with happy visor eyes and a blinking antenna
+  peeking over the lab bench. Card `panel` (corner brackets in the glow colour, screws, orange
+  status LED), progress `battery` (charges segment by segment, bolt on the face), celebration
+  `gears` (gears, bolts and chips pop up and spin).
+- Scenes follow the phase-2 rules (memoized, ≤ 2 loops on transform/opacity, static with reduced
+  motion and on play questions, ids via `useSvgId`). Fonts added: Cherry Swash, Baloo 2, Chakra
+  Petch (`npx expo install`). Category art is unchanged (transparent art on the category tint, the
+  new cards' ornaments sit on the frame).
+- **Sounds** (`scripts/sounds`, `npm run sounds:build`): `castle` storybook harp, `arctic` icy
+  glockenspiel with a shimmering twin and a crisp tick, `robot` friendly rounded "bleeps" that blip
+  up → 90 files, each < 30 KB; the 12 existing packs are byte-identical.
+- i18n en/fr: names (Fairy-Tale Castle / Château enchanté, Polar Lights / Aurores polaires, Robot
+  Lab / Labo des robots), picker descriptions, dev pack names.
+- Tests: `worlds.test.ts` (new worlds have their own scene, pack, card, progress and celebration),
+  `selectThemeKey.test.ts` (16 worlds), new `src/ui/scenes/__tests__/worldVisuals.render.test.tsx`
+  (scene at phone and thumbnail size, cards, progress tracks, celebration overlay in every world,
+  light + dark). Dev previews (`/dev/themes`, `/dev/games?world=…`, `/dev/sounds`) pick the new
+  worlds up from `WORLD_ORDER` / `SOUND_PACKS`.
+- Verified on web (static export, Sam via the demo token, world injected client-side by patching
+  the `/me` response; nothing changed on the server): `/dev/themes` gallery (all three, light +
+  dark), Home and Play in each world, every scene on its own. Landing-page screenshots (same
+  pipeline and format as the existing ones, 390×844 @2x → 480×1039 WebP q80):
+  `Brainy-Clan-Backend/public/images/site/screens/world-castle.webp` (Home, light),
+  `world-arctic.webp` (Play, light), `world-robot.webp` (Home, dark). `worlds-picker.webp` was not
+  re-shot: it shows a scrolled part of the list (the new worlds come after Midnight, below it) and
+  the server did not serve the new keys yet.
+- Needs a phone: scene frame rate (arctic snow cycle + aurora, robot gears), the `pennant` /
+  `snowcap` ornaments and the LED glow on Android, the new packs' loudness.
+
 ### 2026-11-08 Contact support
 
 - Contract API.md "Support messages (2026-11-08)" + PLAN.md "Support channel without a public

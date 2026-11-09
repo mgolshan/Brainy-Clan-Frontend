@@ -1,7 +1,9 @@
 import { memo, useState, type ComponentType } from 'react';
 import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 
+import { ArcticScene } from '@/ui/scenes/ArcticScene';
 import { CandyScene } from '@/ui/scenes/CandyScene';
+import { CastleScene } from '@/ui/scenes/CastleScene';
 import { DinoScene } from '@/ui/scenes/DinoScene';
 import { GlassScene } from '@/ui/scenes/GlassScene';
 import { JungleScene } from '@/ui/scenes/JungleScene';
@@ -9,6 +11,7 @@ import { LofiScene } from '@/ui/scenes/LofiScene';
 import { MidnightScene } from '@/ui/scenes/MidnightScene';
 import { NatureScene } from '@/ui/scenes/NatureScene';
 import { NeonScene } from '@/ui/scenes/NeonScene';
+import { RobotScene } from '@/ui/scenes/RobotScene';
 import { SeaScene } from '@/ui/scenes/SeaScene';
 import type { SceneProps } from '@/ui/scenes/shared';
 import { SpaceScene } from '@/ui/scenes/SpaceScene';
@@ -28,6 +31,9 @@ const SCENES: Record<Exclude<SceneKey, 'none'>, ComponentType<SceneProps>> = {
   lofi: LofiScene,
   nature: NatureScene,
   midnight: MidnightScene,
+  castle: CastleScene,
+  arctic: ArcticScene,
+  robot: RobotScene,
 };
 
 export interface SceneViewProps {

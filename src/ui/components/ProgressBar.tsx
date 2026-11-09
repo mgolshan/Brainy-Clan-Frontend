@@ -614,6 +614,276 @@ function MarkerTrack({ theme, width, progress, color }: TrackProps) {
   );
 }
 
+const QUEST_H = 36;
+const CROWN = 26;
+const TOWER = 26;
+
+/** A little gold crown with three jewels. */
+function Crown({ theme }: { theme: Theme }) {
+  const c = theme.colors;
+  return (
+    <Svg width={CROWN} height={CROWN} viewBox="0 0 26 26">
+      <Path
+        d="M3 19 L2 8 L8 13 L13 5 L18 13 L24 8 L23 19 Z"
+        fill={c.accent}
+        stroke={c.borderStrong}
+        strokeWidth={1.4}
+        strokeLinejoin="round"
+      />
+      <Rect
+        x={3}
+        y={18.5}
+        width={20}
+        height={4}
+        rx={1.5}
+        fill={c.accent}
+        stroke={c.borderStrong}
+        strokeWidth={1.4}
+      />
+      <Circle cx={13} cy={14.5} r={1.9} fill={c.sceneAccent[0]} />
+      <Circle cx={7.5} cy={16} r={1.3} fill={c.sceneAccent[1]} />
+      <Circle cx={18.5} cy={16} r={1.3} fill={c.sceneAccent[1]} />
+    </Svg>
+  );
+}
+
+/** Castle: a golden path of stepping stones leads a crown to a castle tower with a flag. */
+function QuestTrack({ theme, width, progress, color }: TrackProps) {
+  const c = theme.colors;
+  const travel = Math.max(0, width - CROWN - TOWER + 4);
+  const trail = useAnimatedStyle(() => ({
+    width: progress.get() * travel + CROWN / 2,
+    opacity: progress.get() > 0.001 ? 1 : 0,
+  }));
+  const walker = useAnimatedStyle(() => ({
+    transform: [{ translateX: progress.get() * travel }],
+  }));
+  const trackH = 12;
+  const top = QUEST_H - trackH - 4;
+  const stones = [];
+  for (let x = 8, i = 0; x < width - TOWER; x += 16, i++)
+    stones.push(
+      <Rect
+        key={x}
+        x={x - 4}
+        y={trackH / 2 - 2.5}
+        width={8}
+        height={5}
+        rx={2.5}
+        fill={c.borderStrong}
+        opacity={i % 2 ? 0.16 : 0.24}
+      />,
+    );
+  return (
+    <View style={{ height: QUEST_H }}>
+      <View
+        style={[
+          styles.rail,
+          {
+            top,
+            height: trackH,
+            borderRadius: trackH / 2,
+            backgroundColor: c.surfaceAlt,
+            borderWidth: 1.5,
+            borderColor: c.border,
+          },
+        ]}>
+        {width > 0 ? (
+          <Svg width={width} height={trackH} style={StyleSheet.absoluteFill}>
+            {stones}
+          </Svg>
+        ) : null}
+      </View>
+      <Animated.View
+        style={[styles.trail, { top, height: trackH, borderRadius: trackH / 2 }, trail]}>
+        <LinearGradient
+          colors={color ? [withAlpha(color, 0.35), color] : [withAlpha(c.accent, 0.4), c.accent]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={StyleSheet.absoluteFill}
+        />
+      </Animated.View>
+      <Svg width={TOWER} height={QUEST_H} style={styles.goal} viewBox="0 0 26 36">
+        <Path d="M13 2 V9" stroke={c.borderStrong} strokeWidth={1.3} />
+        <Path d="M13 2.5 L20 4.5 L13 7 Z" fill={c.sceneAccent[0]} />
+        <Path
+          d="M5 16 L13 7 L21 16 Z"
+          fill={c.primary}
+          stroke={c.borderStrong}
+          strokeWidth={1.2}
+          strokeLinejoin="round"
+        />
+        <Rect
+          x={6}
+          y={15.5}
+          width={14}
+          height={19}
+          rx={1}
+          fill={c.surface}
+          stroke={c.borderStrong}
+          strokeWidth={1.3}
+        />
+        <Path d="M10.5 34.5 V29 Q 13 26 15.5 29 V34.5 Z" fill={c.borderStrong} />
+        <Path d="M11.5 22 Q 13 19.5 14.5 22 V24.5 H11.5 Z" fill={c.accent} />
+      </Svg>
+      <Animated.View style={[styles.ship, { top: -2 }, walker]}>
+        <Crown theme={theme} />
+      </Animated.View>
+    </View>
+  );
+}
+
+const SLED_H = 36;
+const PENGUIN = 30;
+const IGLOO = 30;
+
+/** A round penguin sliding on its belly toward the right, in a little scarf. */
+function Penguin({ theme }: { theme: Theme }) {
+  const c = theme.colors;
+  const a = c.sceneAccent;
+  const ink = theme.scheme === 'dark' ? c.borderStrong : a[4];
+  return (
+    <Svg width={PENGUIN} height={PENGUIN} viewBox="0 0 30 30">
+      <Path d="M2 21 L-1 17 M2 24 L-2 23" stroke={c.glow} strokeWidth={1.4} />
+      <Ellipse cx={14} cy={19} rx={12} ry={8} fill={ink} />
+      <Ellipse cx={15} cy={21} rx={8.5} ry={5} fill={a[3]} />
+      <Circle cx={23} cy={13} r={6.5} fill={ink} />
+      <Ellipse cx={24.5} cy={14} rx={3.8} ry={3.5} fill={a[3]} />
+      <Circle cx={25.2} cy={12.6} r={1.3} fill={ink} />
+      <Path d="M28.5 14 L31 15.2 L28.5 16.3 Z" fill={a[5]} />
+      <Path d="M17 14.5 Q 21 18.5 26.5 17.5" stroke={c.primary} strokeWidth={2.6} fill="none" />
+      <Path d="M18 15.5 L14.5 12.5" stroke={c.primary} strokeWidth={2.2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+/** Arctic: a penguin slides along an icy track to its igloo, leaving a frosty trail. */
+function SledTrack({ theme, width, progress, color }: TrackProps) {
+  const c = theme.colors;
+  const travel = Math.max(0, width - PENGUIN - IGLOO + 4);
+  const trail = useAnimatedStyle(() => ({
+    width: progress.get() * travel + PENGUIN / 2,
+    opacity: progress.get() > 0.001 ? 1 : 0,
+  }));
+  const ship = useAnimatedStyle(() => ({
+    transform: [{ translateX: progress.get() * travel }],
+  }));
+  const trackH = 12;
+  const top = SLED_H - trackH - 4;
+  const glints = [];
+  for (let x = 12; x < width - IGLOO; x += 22) glints.push(`M${x} ${trackH / 2} h6`);
+  return (
+    <View style={{ height: SLED_H }}>
+      <View
+        style={[
+          styles.rail,
+          {
+            top,
+            height: trackH,
+            borderRadius: trackH / 2,
+            backgroundColor: c.surfaceAlt,
+            borderWidth: 1.5,
+            borderColor: withAlpha(c.glow, 0.6),
+          },
+        ]}>
+        {width > 0 ? (
+          <Svg width={width} height={trackH} style={StyleSheet.absoluteFill}>
+            <Path
+              d={glints.join(' ')}
+              stroke={c.glow}
+              strokeWidth={1.4}
+              strokeLinecap="round"
+              opacity={0.45}
+            />
+          </Svg>
+        ) : null}
+      </View>
+      <Animated.View
+        style={[styles.trail, { top, height: trackH, borderRadius: trackH / 2 }, trail]}>
+        <LinearGradient
+          colors={
+            color ? [withAlpha(color, 0.25), color] : [withAlpha(c.gradient[0], 0.2), ...c.gradient]
+          }
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={StyleSheet.absoluteFill}
+        />
+      </Animated.View>
+      <Svg width={IGLOO} height={SLED_H} style={styles.goal} viewBox="0 0 30 36">
+        <Path
+          d="M2 33 A 13 13 0 0 1 28 33 Z"
+          fill={c.sceneAccent[3]}
+          stroke={c.borderStrong}
+          strokeWidth={1.3}
+        />
+        <Path
+          d="M4.5 27 H25.5 M8 22 H22 M10 27 V33 M20 27 V33 M15 22 V27 M12 20.5 V22"
+          stroke={withAlpha(c.borderStrong, 0.45)}
+          strokeWidth={1}
+        />
+        <Path d="M11 33 V29.5 A 4 4 0 0 1 19 29.5 V33 Z" fill={c.borderStrong} />
+      </Svg>
+      <Animated.View style={[styles.ship, ship]}>
+        <Penguin theme={theme} />
+      </Animated.View>
+    </View>
+  );
+}
+
+const BAT_H = 24;
+
+/** Robot Lab: a battery charges segment by segment, with a bolt on its face. */
+function BatteryTrack({ theme, width, progress, color }: TrackProps) {
+  const c = theme.colors;
+  const nub = 6;
+  const inner = Math.max(0, width - nub - 2 * 4);
+  const fill = useFillWidth(progress, inner);
+  const gaps = [];
+  for (let x = 14; x < inner; x += 14) gaps.push(x);
+  const mid = (width - nub) / 2;
+  return (
+    <View style={{ height: BAT_H, flexDirection: 'row', alignItems: 'center' }}>
+      <View
+        style={[
+          styles.battery,
+          {
+            width: width - nub,
+            borderColor: c.borderStrong,
+            backgroundColor: c.surfaceAlt,
+          },
+        ]}>
+        <Animated.View style={[styles.fill, { borderRadius: 3 }, fill]}>
+          <LinearGradient
+            colors={color ? [color, color] : c.gradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={StyleSheet.absoluteFill}
+          />
+        </Animated.View>
+        {inner > 0 ? (
+          <Svg width={inner} height={BAT_H - 8} style={styles.cells}>
+            {gaps.map((x) => (
+              <Rect key={x} x={x - 1} y={0} width={2} height={BAT_H - 8} fill={c.surfaceAlt} />
+            ))}
+          </Svg>
+        ) : null}
+      </View>
+      <View style={[styles.nub, { backgroundColor: c.borderStrong }]} />
+      {width > 0 ? (
+        <Svg width={16} height={BAT_H} style={[styles.bolt, { left: mid - 8 }]}>
+          <Path
+            d="M9.5 2 L3 13.5 H8 L6.5 22 L13 10 H8 Z"
+            fill={c.accent}
+            stroke={c.borderStrong}
+            strokeWidth={1.2}
+            strokeLinejoin="round"
+          />
+        </Svg>
+      ) : null}
+    </View>
+  );
+}
+
 const TRACKS = {
   bar: BarTrack,
   vine: VineTrack,
@@ -623,12 +893,16 @@ const TRACKS = {
   footprints: FootprintsTrack,
   cassette: CassetteTrack,
   marker: MarkerTrack,
+  quest: QuestTrack,
+  sled: SledTrack,
+  battery: BatteryTrack,
 } as const;
 
 /**
  * Animated progress in the world's style: bar (candy / glass / calm), a growing vine (jungle), a
  * flying rocket (space), a segmented neon meter (neon), a diving submarine (sea), dino footprints
- * (dino), a cassette (lo-fi) or a highlighter strip (sticker street).
+ * (dino), a cassette (lo-fi), a highlighter strip (sticker street), a crown on a golden path
+ * (castle), a sliding penguin (arctic) or a charging battery (robot lab).
  */
 export function ProgressBar({
   value,
@@ -702,4 +976,14 @@ const styles = StyleSheet.create({
   },
   tapeWindow: { height: 12, borderRadius: 6, borderWidth: 1, overflow: 'hidden' },
   screw: { position: 'absolute', width: 3, height: 3, borderRadius: 1.5 },
+  battery: {
+    height: BAT_H,
+    borderRadius: 7,
+    borderWidth: 2,
+    padding: 2,
+    overflow: 'hidden',
+  },
+  nub: { width: 6, height: 10, borderTopRightRadius: 3, borderBottomRightRadius: 3 },
+  bolt: { position: 'absolute', top: 0 },
+  cells: { position: 'absolute', left: 2, top: 2 },
 });

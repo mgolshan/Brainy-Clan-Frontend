@@ -50,10 +50,11 @@ describe('selectThemeKey', () => {
 
   it('knows every world of the contract', () => {
     expect(Object.keys(themes).sort()).toEqual([...THEME_KEYS].sort());
-    expect(Object.keys(themes)).toHaveLength(13);
+    expect(Object.keys(themes)).toHaveLength(16);
     expect([...WORLD_ORDER].sort()).toEqual([...THEME_KEYS].sort());
     expect(selectThemeKey(policy(), member({ theme: 'midnight' }))).toBe('midnight');
     expect(selectThemeKey(policy(), member({ theme: 'neon' }))).toBe('neon');
+    expect(selectThemeKey(policy(), member({ theme: 'robot' }))).toBe('robot');
     expect(selectThemeKey(policy({ ui_theme: 'jungle' }), member({ theme: null }))).toBe('jungle');
     expect(isThemeKey(42)).toBe(false);
   });

@@ -113,7 +113,10 @@
       "sticker": "Rue des stickers",
       "lofi": "Crépuscule lo-fi",
       "nature": "Nature paisible",
-      "midnight": "Minuit"
+      "midnight": "Minuit",
+      "castle": "Château enchanté",
+      "arctic": "Aurores polaires",
+      "robot": "Labo des robots"
     },
     "light": "Clair",
     "dark": "Sombre",
@@ -134,7 +137,10 @@
       "sticker": "stickers, scotch et gribouillis",
       "lofi": "coucher de soleil pastel, lumières de la ville et pluie douce",
       "nature": "collines vertes et oiseaux, calme et facile à lire",
-      "midnight": "nuit bleu profond, lune et or"
+      "midnight": "nuit bleu profond, lune et or",
+      "castle": "tours de château, fanions et un gentil dragon",
+      "arctic": "aurores boréales, neige et amis polaires",
+      "robot": "robots sympas, circuits et engrenages"
     },
     "lookOnly": "Le thème change seulement l'apparence de l'application — jamais le contenu ni les règles.",
     "reducedMotionHint": "Moins d'animations et pas de confettis.",
@@ -299,7 +305,10 @@
       "sticker": "Stickers",
       "lofi": "Lo-fi",
       "nature": "Nature",
-      "midnight": "Minuit"
+      "midnight": "Minuit",
+      "castle": "Château",
+      "arctic": "Arctique",
+      "robot": "Robot"
     },
     "soundNames": {
       "tap": "Toucher",

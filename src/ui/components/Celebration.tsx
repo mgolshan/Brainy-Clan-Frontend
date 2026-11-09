@@ -31,7 +31,17 @@ interface PieceSpec {
   round: boolean;
   /** stars: flight angle (radians). */
   angle: number;
+  /** fireworks: which of the four bursts the spark belongs to. */
+  burst: number;
 }
+
+/** Firework burst centers (fractions of the screen) and their start delays (ms). */
+const BURSTS = [
+  { x: 0.28, y: 0.2, delay: 0 },
+  { x: 0.74, y: 0.15, delay: 380 },
+  { x: 0.55, y: 0.36, delay: 760 },
+  { x: 0.2, y: 0.42, delay: 1100 },
+];
 
 /** Deterministic pseudo-random pieces so re-renders don't reshuffle. */
 function makePieces(count: number, width: number, colors: readonly string[]): PieceSpec[] {
@@ -50,6 +60,7 @@ function makePieces(count: number, width: number, colors: readonly string[]): Pi
     drift: 10 + rand() * 30,
     round: rand() > 0.7,
     angle: (i / count) * Math.PI * 2 + rand() * 0.4,
+    burst: i % BURSTS.length,
   }));
 }
 
@@ -71,24 +82,38 @@ function Piece({
     const duration =
       kind === 'stars'
         ? spec.duration * 0.7
-        : kind === 'notes'
+        : kind === 'notes' || kind === 'stickers'
           ? spec.duration * 1.7
-          : kind === 'stickers'
-            ? spec.duration * 1.7
-            : spec.duration;
+          : kind === 'snowflakes'
+            ? spec.duration * 2.2
+            : kind === 'fireworks'
+              ? 1300
+              : kind === 'gears'
+                ? spec.duration * 0.9
+                : spec.duration;
     const delay =
-      kind === 'stars' ? spec.delay * 0.4 : kind === 'stickers' ? spec.delay * 2.2 : spec.delay;
+      kind === 'stars'
+        ? spec.delay * 0.4
+        : kind === 'stickers'
+          ? spec.delay * 2.2
+          : kind === 'fireworks'
+            ? BURSTS[spec.burst].delay + spec.delay * 0.1
+            : kind === 'snowflakes'
+              ? spec.delay * 3
+              : spec.delay;
     progress.set(
       withDelay(
         delay,
         withTiming(1, {
           duration,
           easing:
-            kind === 'bubbles' || kind === 'notes'
+            kind === 'bubbles' || kind === 'notes' || kind === 'snowflakes'
               ? Easing.inOut(Easing.sin)
-              : kind === 'stickers'
+              : kind === 'stickers' || kind === 'gears'
                 ? Easing.linear
-                : Easing.out(Easing.quad),
+                : kind === 'fireworks'
+                  ? Easing.out(Easing.cubic)
+                  : Easing.out(Easing.quad),
         }),
       ),
     );
@@ -119,6 +144,41 @@ function Piece({
           { translateY: height * (0.08 + ((spec.angle / (Math.PI * 2)) % 1) * 0.7) },
           { rotate: `${(spec.spin > 0 ? 1 : -1) * (8 + (spec.drift % 18))}deg` },
           { scale: 1.9 - slap * 0.9 },
+        ],
+      };
+    }
+    if (kind === 'fireworks') {
+      // Sparks fly out of a burst point, slow down, sag a little and fade.
+      const b = BURSTS[spec.burst];
+      const dist = p * (60 + spec.drift * 2.2);
+      return {
+        opacity: p < 0.55 ? 1 : (1 - p) / 0.45,
+        transform: [
+          { translateX: width * b.x + Math.cos(spec.angle) * dist },
+          { translateY: height * b.y + Math.sin(spec.angle) * dist + p * p * 36 },
+          { scale: 1.1 - p * 0.5 },
+        ],
+      };
+    }
+    if (kind === 'snowflakes') {
+      return {
+        opacity: p < 0.1 ? p / 0.1 : p > 0.85 ? (1 - p) / 0.15 : 1,
+        transform: [
+          { translateX: spec.x + Math.sin(p * Math.PI * 2.5) * spec.drift * 1.2 },
+          { translateY: -40 + p * (height + 80) },
+          { rotate: `${p * spec.spin * 0.25}deg` },
+        ],
+      };
+    }
+    if (kind === 'gears') {
+      // Pop up from the bottom in an arc, spinning, and fall back down.
+      const up = 4 * p * (1 - p);
+      return {
+        opacity: p > 0.88 ? (1 - p) / 0.12 : 1,
+        transform: [
+          { translateX: spec.x + (spec.spin > 0 ? 1 : -1) * p * spec.drift * 2 },
+          { translateY: height + 30 - up * height * (0.55 + (spec.drift % 10) / 40) },
+          { rotate: `${p * spec.spin}deg` },
         ],
       };
     }
@@ -190,6 +250,46 @@ function Piece({
       </Animated.View>
     );
   }
+  if (kind === 'fireworks') {
+    const d = spec.round ? 7 : 5;
+    return (
+      <Animated.View
+        style={[
+          styles.piece,
+          {
+            width: d,
+            height: d,
+            borderRadius: d / 2,
+            backgroundColor: spec.color,
+            shadowColor: spec.color,
+            shadowOpacity: 0.9,
+            shadowRadius: 4,
+            shadowOffset: { width: 0, height: 0 },
+          },
+          style,
+        ]}
+      />
+    );
+  }
+  if (kind === 'snowflakes') {
+    return (
+      <Animated.View style={[styles.piece, style]}>
+        <Icon name="snow" size={spec.size + 10} color={spec.color} />
+      </Animated.View>
+    );
+  }
+  if (kind === 'gears') {
+    const glyph: IconName[] = ['cog', 'settings-sharp', 'cog', 'flash', 'hardware-chip'];
+    return (
+      <Animated.View style={[styles.piece, style]}>
+        <Icon
+          name={glyph[Math.floor(spec.drift) % glyph.length]}
+          size={spec.size + 14}
+          color={spec.color}
+        />
+      </Animated.View>
+    );
+  }
   if (kind === 'notes') {
     return (
       <Animated.View style={[styles.piece, style]}>
@@ -248,8 +348,8 @@ function Piece({
 /**
  * The world's success effect overlay (absolute, ignores touches): confetti (jungle, dino),
  * sprinkles (candy), a star burst (space, neon, midnight), rising bubbles (glass, sea), stickers
- * slapping down (sticker street) or music notes drifting up (lo-fi). Nothing for calm worlds or with
- * reduced motion. Render it once per success (remount with a new `key` to replay).
+ * slapping down (sticker street), music notes drifting up (lo-fi), fireworks (castle), snowflakes
+ * (arctic) or gears popping up (robot lab). Nothing for calm worlds or with reduced motion. Render it once per success (remount with a new `key` to replay).
  */
 export function Confetti({ count }: { count?: number }) {
   const theme = useTheme();
@@ -263,11 +363,15 @@ export function Confetti({ count }: { count?: number }) {
         ? 30
         : kind === 'bubbles'
           ? 18
-          : kind === 'stickers'
+          : kind === 'stickers' || kind === 'notes'
             ? 14
-            : kind === 'notes'
-              ? 14
-              : 46);
+            : kind === 'fireworks'
+              ? 64
+              : kind === 'snowflakes'
+                ? 26
+                : kind === 'gears'
+                  ? 16
+                  : 46);
   const pieces = useMemo(
     () => makePieces(n, width, theme.colors.confetti),
     [n, width, theme.colors.confetti],

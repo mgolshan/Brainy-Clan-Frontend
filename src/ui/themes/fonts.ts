@@ -1,5 +1,13 @@
 import { AtkinsonHyperlegible_400Regular } from '@expo-google-fonts/atkinson-hyperlegible/400Regular';
 import { AtkinsonHyperlegible_700Bold } from '@expo-google-fonts/atkinson-hyperlegible/700Bold';
+import { Baloo2_600SemiBold } from '@expo-google-fonts/baloo-2/600SemiBold';
+import { Baloo2_700Bold } from '@expo-google-fonts/baloo-2/700Bold';
+import { Baloo2_800ExtraBold } from '@expo-google-fonts/baloo-2/800ExtraBold';
+import { ChakraPetch_500Medium } from '@expo-google-fonts/chakra-petch/500Medium';
+import { ChakraPetch_600SemiBold } from '@expo-google-fonts/chakra-petch/600SemiBold';
+import { ChakraPetch_700Bold } from '@expo-google-fonts/chakra-petch/700Bold';
+import { CherrySwash_400Regular } from '@expo-google-fonts/cherry-swash/400Regular';
+import { CherrySwash_700Bold } from '@expo-google-fonts/cherry-swash/700Bold';
 import { Fredoka_500Medium } from '@expo-google-fonts/fredoka/500Medium';
 import { Fredoka_600SemiBold } from '@expo-google-fonts/fredoka/600SemiBold';
 import { Fredoka_700Bold } from '@expo-google-fonts/fredoka/700Bold';
@@ -55,6 +63,14 @@ export const themeFonts = {
   PlayfairDisplay_400Regular_Italic,
   PlayfairDisplay_600SemiBold,
   PlayfairDisplay_700Bold,
+  CherrySwash_400Regular,
+  CherrySwash_700Bold,
+  Baloo2_600SemiBold,
+  Baloo2_700Bold,
+  Baloo2_800ExtraBold,
+  ChakraPetch_500Medium,
+  ChakraPetch_600SemiBold,
+  ChakraPetch_700Bold,
 } as const;
 
 export type FontName = keyof typeof themeFonts;

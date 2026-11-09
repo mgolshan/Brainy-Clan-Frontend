@@ -24,10 +24,30 @@ describe('world catalog', () => {
     });
   }
 
-  it('gives each phase-2 world its own scene and sound pack', () => {
-    for (const key of ['sea', 'dino', 'sticker', 'lofi', 'nature', 'midnight'] as const) {
+  it('gives each phase-2 and Family-plan world its own scene and sound pack', () => {
+    for (const key of [
+      'sea',
+      'dino',
+      'sticker',
+      'lofi',
+      'nature',
+      'midnight',
+      'castle',
+      'arctic',
+      'robot',
+    ] as const) {
       expect(themes[key].scene).toBe(key);
       expect(themes[key].soundPack).toBe(key);
+    }
+  });
+
+  it('gives the 2026-11-08 worlds their own card, progress and celebration', () => {
+    const looks = (['castle', 'arctic', 'robot'] as const).map((key) => themes[key]);
+    for (const world of looks) {
+      const others = Object.values(themes).filter((w) => w.key !== world.key);
+      expect(others.map((w) => w.card)).not.toContain(world.card);
+      expect(others.map((w) => w.progress)).not.toContain(world.progress);
+      expect(others.map((w) => w.celebration)).not.toContain(world.celebration);
     }
   });
 });

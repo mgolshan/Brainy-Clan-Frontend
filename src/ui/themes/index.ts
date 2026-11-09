@@ -1,4 +1,6 @@
 import type { Accessibility, Member, Policy } from '@/api/types';
+import { arctic } from '@/ui/themes/arctic';
+import { castle } from '@/ui/themes/castle';
 import { classic } from '@/ui/themes/classic';
 import { dino } from '@/ui/themes/dino';
 import { jungle } from '@/ui/themes/jungle';
@@ -8,6 +10,7 @@ import { modern } from '@/ui/themes/modern';
 import { nature } from '@/ui/themes/nature';
 import { neon } from '@/ui/themes/neon';
 import { playful } from '@/ui/themes/playful';
+import { robot } from '@/ui/themes/robot';
 import { sea } from '@/ui/themes/sea';
 import { sleek } from '@/ui/themes/sleek';
 import { space } from '@/ui/themes/space';
@@ -24,10 +27,13 @@ export const themes: Record<ThemeKey, ThemeDefinition> = {
   space,
   sea,
   dino,
+  castle,
+  arctic,
   sleek,
   neon,
   sticker,
   lofi,
+  robot,
   modern,
   classic,
   nature,
@@ -41,10 +47,13 @@ export const WORLD_ORDER: readonly ThemeKey[] = [
   'space',
   'sea',
   'dino',
+  'castle',
+  'arctic',
   'sleek',
   'neon',
   'sticker',
   'lofi',
+  'robot',
   'modern',
   'classic',
   'nature',

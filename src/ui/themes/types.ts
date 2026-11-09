@@ -133,7 +133,10 @@ export type SceneKey =
   | 'sticker'
   | 'lofi'
   | 'nature'
-  | 'midnight';
+  | 'midnight'
+  | 'castle'
+  | 'arctic'
+  | 'robot';
 
 /**
  * Card look:
@@ -147,6 +150,9 @@ export type SceneKey =
  * - `stone`: stone slab with a deep bottom edge and a fern frond on the corner
  * - `taped`: die-cut sticker with an ink outline, a hard offset edge, tape strips and a doodle
  * - `framed`: fine double-rule frame in the glow color (an elegant invitation card)
+ * - `pennant`: storybook page with a gold rim, a deep bottom edge and pennant bunting on top
+ * - `snowcap`: frosty panel with an icy rim, a deep bottom edge and a snow cap on the top edge
+ * - `panel`: tech panel with corner brackets in the glow color, two screws and a status LED
  */
 export type CardStyle =
   | 'flat'
@@ -158,7 +164,10 @@ export type CardStyle =
   | 'aqua'
   | 'stone'
   | 'taped'
-  | 'framed';
+  | 'framed'
+  | 'pennant'
+  | 'snowcap'
+  | 'panel';
 
 /**
  * Button look: `flat` (solid/gradient), `press3d` (candy edge that squishes), `glow`, `ink`
@@ -169,17 +178,39 @@ export type ButtonStyle = 'flat' | 'press3d' | 'glow' | 'ink';
 /**
  * Progress bar look: `bar`, `vine` (grows leaves), `rocket` (flies along), `neon`, `submarine`
  * (dives along a bubbly current), `footprints` (dino tracks toward an egg), `cassette` (tape
- * winds from one reel to the other), `marker` (a highlighter stroke on a taped strip).
+ * winds from one reel to the other), `marker` (a highlighter stroke on a taped strip), `quest`
+ * (a golden path leads a crown to a castle tower), `sled` (a penguin slides along the ice to its
+ * igloo), `battery` (a battery charges, segment by segment).
  */
 export type ProgressStyle =
-  'bar' | 'vine' | 'rocket' | 'neon' | 'submarine' | 'footprints' | 'cassette' | 'marker';
+  | 'bar'
+  | 'vine'
+  | 'rocket'
+  | 'neon'
+  | 'submarine'
+  | 'footprints'
+  | 'cassette'
+  | 'marker'
+  | 'quest'
+  | 'sled'
+  | 'battery';
 
 /**
  * The success moment (completed session, goal reached). `stickers`: die-cut stickers slap down
- * with a tilt; `notes`: music notes drift slowly upward.
+ * with a tilt; `notes`: music notes drift slowly upward; `fireworks`: bursts of sparks pop over the
+ * character; `snowflakes`: flakes drift down and sway; `gears`: gears and bolts pop up and spin.
  */
 export type CelebrationStyle =
-  'confetti' | 'stars' | 'bubbles' | 'sprinkles' | 'calm' | 'stickers' | 'notes';
+  | 'confetti'
+  | 'stars'
+  | 'bubbles'
+  | 'sprinkles'
+  | 'calm'
+  | 'stickers'
+  | 'notes'
+  | 'fireworks'
+  | 'snowflakes'
+  | 'gears';
 
 /** Sound pack key read by `useSoundEffects` (`src/features/sound`). */
 export type SoundPackKey =
@@ -194,7 +225,10 @@ export type SoundPackKey =
   | 'sticker'
   | 'lofi'
   | 'nature'
-  | 'midnight';
+  | 'midnight'
+  | 'castle'
+  | 'arctic'
+  | 'robot';
 
 /**
  * Overall tone shared by worlds, for the few places that differ beyond tokens: `kid` (emoji,

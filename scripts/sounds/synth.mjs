@@ -211,6 +211,47 @@ export const VOICES = {
       );
     });
   },
+  /** Castle: a storybook harp: a plucked string whose bright partials fade first, warm body. */
+  castle(out, t0, m, { dur = 0.8, amp = 1, tau = 0.3, glide = 0 } = {}) {
+    const f = midiHz(m);
+    const p = phaser(f, glide, 0.2);
+    addNote(out, t0, dur, (t) => {
+      const ph = p(t);
+      let s = sine(ph) * env(t, 0.002, tau);
+      for (let k = 2; k <= 6; k++) s += (0.55 / k) * sine(k * ph) * env(t, 0.002, tau / (k * 0.9));
+      return amp * s * 0.8;
+    });
+  },
+  /** Arctic: icy glockenspiel: a pure high tone with a shimmering detuned twin and a crisp tick. */
+  arctic(out, t0, m, { dur = 0.8, amp = 1, tau = 0.32, glide = 0 } = {}) {
+    const f = midiHz(m);
+    const p1 = phaser(f, glide, 0.2);
+    const p2 = phaser(f * 1.0035, glide, 0.2);
+    const noise = rng(m * 23 + Math.round(t0 * 1000));
+    addNote(out, t0, dur, (t) => {
+      const a = p1(t);
+      const tick = t < 0.004 ? (noise() * 2 - 1) * 0.25 * (1 - t / 0.004) : 0;
+      return (
+        amp *
+        (env(t, 0.002, tau) * (0.7 * sine(a) + 0.45 * sine(p2(t))) +
+          0.2 * sine(3.01 * a) * env(t, 0.001, tau * 0.2) +
+          tick)
+      );
+    });
+  },
+  /** Robot: friendly "bleep": a rounded square-ish tone that blips up at the start, light ring-mod. */
+  robot(out, t0, m, { dur = 0.16, amp = 1, tau = 0.09, glide } = {}) {
+    const f = midiHz(m);
+    const p = phaser(f * 2 ** (-4 / 12), glide ?? 4, 0.02);
+    const hold = Math.max(0.02, dur * 0.5);
+    addNote(out, t0, dur, (t) => {
+      const ph = p(t);
+      const e = t < 0.003 ? t / 0.003 : t < hold ? 1 : Math.exp(-(t - hold) / tau);
+      const w = sine(ph) + 0.3 * sine(3 * ph) + 0.12 * sine(5 * ph);
+      const ring = 1 - 0.18 * (0.5 + 0.5 * Math.sin(TAU * 30 * t));
+      return amp * e * w * ring * 0.75;
+    });
+  },
 };
 
 // ---------------------------------------------------------------------------

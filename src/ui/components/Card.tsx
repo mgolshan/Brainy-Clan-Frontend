@@ -209,6 +209,49 @@ export function surfaceStyle(theme: Theme, opts: { tint?: string; selected?: boo
         shadowOffset: { width: 0, height: 8 },
         elevation: 2,
       } satisfies ViewStyle;
+    case 'pennant':
+      // A storybook page: gold rim, a deep plum bottom edge (bunting added as an ornament).
+      return {
+        backgroundColor: c.surface,
+        borderRadius: theme.radius.xl,
+        borderWidth: opts.selected ? 3 : 2.5,
+        borderBottomWidth: 7,
+        borderColor: ring ?? (opts.tint ? withAlpha(opts.tint, 0.7) : withAlpha(c.glow, 0.75)),
+        borderBottomColor: ring ?? (opts.tint ? withAlpha(opts.tint, 0.9) : c.borderStrong),
+        shadowColor: c.shadow,
+        shadowOpacity: dark ? 0.5 : 0.14,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 5 },
+        elevation: 3,
+      } satisfies ViewStyle;
+    case 'snowcap':
+      // Frosty panel: icy rim and an icy bottom edge (the snow cap is an ornament).
+      return {
+        backgroundColor: c.surface,
+        borderRadius: theme.radius.xl,
+        borderWidth: opts.selected ? 3 : 2,
+        borderBottomWidth: 6,
+        borderColor: ring ?? withAlpha(opts.tint ?? c.glow, dark ? 0.5 : 0.55),
+        borderBottomColor: ring ?? (opts.tint ? withAlpha(opts.tint, 0.85) : c.borderStrong),
+        shadowColor: c.glow,
+        shadowOpacity: dark ? 0.28 : 0.2,
+        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 3,
+      } satisfies ViewStyle;
+    case 'panel':
+      // Lab panel: crisp frame (brackets, screws and a status LED are ornaments).
+      return {
+        backgroundColor: c.surface,
+        borderRadius: theme.radius.md,
+        borderWidth: opts.selected ? 2 : 1.5,
+        borderColor: ring ?? (opts.tint ? withAlpha(opts.tint, 0.6) : c.border),
+        shadowColor: c.shadow,
+        shadowOpacity: dark ? 0.5 : 0.08,
+        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 2,
+      } satisfies ViewStyle;
   }
 }
 
@@ -354,9 +397,108 @@ function FrameRule({ theme }: { theme: Theme }) {
   );
 }
 
+/** Pennant bunting hanging over the top-left of castle cards. */
+function Bunting({ theme }: { theme: Theme }) {
+  const a = theme.colors.sceneAccent;
+  const flags = [a[0], a[1], a[2], a[0]];
+  // A sagging string from (2,4) to (88,4); four flags hang along it.
+  const sag = (x: number) => 4 + Math.sin((x / 90) * Math.PI) * 6;
+  return (
+    <View pointerEvents="none" style={styles.bunting}>
+      <Svg width={90} height={28}>
+        <Path
+          d="M2 4 Q 45 16 88 4"
+          stroke={theme.colors.borderStrong}
+          strokeWidth={1.4}
+          fill="none"
+        />
+        {flags.map((color, i) => {
+          const x = 12 + i * 21;
+          const y = sag(x);
+          return (
+            <Path
+              key={i}
+              d={`M${x - 7} ${y} L${x + 7} ${y + 0.5} L${x} ${y + 15} Z`}
+              fill={color}
+              stroke={theme.colors.surface}
+              strokeWidth={1}
+              strokeLinejoin="round"
+            />
+          );
+        })}
+      </Svg>
+    </View>
+  );
+}
+
+/** A soft snow cap with drips on the top edge of arctic cards, plus a small snowflake. */
+function SnowCap({ theme }: { theme: Theme }) {
+  const c = theme.colors;
+  const snow = c.sceneAccent[3];
+  const edge = withAlpha(c.glow, theme.scheme === 'dark' ? 0.55 : 0.7);
+  return (
+    <>
+      <View pointerEvents="none" style={styles.snowCap}>
+        <Svg width={96} height={24}>
+          <Path
+            d="M2 9 C 6 1 16 0 24 4 C 32 -1 44 0 50 5 C 58 0 72 1 78 5 C 86 2 94 5 94 10 C 94 13 90 13 88 12 C 86 16 82 16 81 12 C 72 14 64 13 58 12 C 56 20 50 21 49 13 C 40 14 30 14 22 12 C 14 14 6 14 2 9 Z"
+            fill={snow}
+            stroke={edge}
+            strokeWidth={1.2}
+          />
+          <Circle cx={26} cy={6} r={1.6} fill={c.surface} opacity={0.9} />
+        </Svg>
+      </View>
+      <View pointerEvents="none" style={styles.flake}>
+        <Svg width={22} height={22}>
+          <G transform="translate(11 11)">
+            {[0, 60, 120].map((r) => (
+              <Path
+                key={r}
+                d="M0 -8 V8 M-2.5 -6 L0 -4 L2.5 -6 M-2.5 6 L0 4 L2.5 6"
+                stroke={c.glow}
+                strokeWidth={1.6}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+                transform={`rotate(${r})`}
+              />
+            ))}
+          </G>
+        </Svg>
+      </View>
+    </>
+  );
+}
+
+/** Corner brackets in the glow color, two screws and a status LED: robot lab panels. */
+function PanelTrim({ theme }: { theme: Theme }) {
+  const c = theme.colors;
+  const line = withAlpha(c.glow, 0.9);
+  const screw = { backgroundColor: withAlpha(c.borderStrong, 0.5) };
+  return (
+    <>
+      <View pointerEvents="none" style={[styles.bracket, styles.bTL, { borderColor: line }]} />
+      <View pointerEvents="none" style={[styles.bracket, styles.bTR, { borderColor: line }]} />
+      <View pointerEvents="none" style={[styles.bracket, styles.bBL, { borderColor: line }]} />
+      <View pointerEvents="none" style={[styles.bracket, styles.bBR, { borderColor: line }]} />
+      <View pointerEvents="none" style={[styles.screw, screw, { bottom: 7, left: 22 }]} />
+      <View pointerEvents="none" style={[styles.screw, screw, { bottom: 7, right: 22 }]} />
+      <View
+        pointerEvents="none"
+        style={[
+          styles.led,
+          { backgroundColor: c.accent, borderColor: c.surface, shadowColor: c.accent },
+        ]}
+      />
+    </>
+  );
+}
+
 /**
  * The world's card: sticker (Candy), plank (Jungle), porthole (Space), aqua (Sea), stone (Dino),
- * taped (Sticker Street), framed (Midnight), glass (Glass, Lo-fi), neon, or flat.
+ * taped (Sticker Street), framed (Midnight), pennant (Castle), snowcap (Arctic), panel (Robot Lab),
+ * glass (Glass, Lo-fi), neon, or flat.
  */
 export function Card({
   children,
@@ -430,11 +572,14 @@ export function Card({
       ) : null}
       {ornaments && theme.card === 'porthole' ? <PortholeRim theme={theme} /> : null}
       {ornaments && theme.card === 'framed' ? <FrameRule theme={theme} /> : null}
+      {ornaments && theme.card === 'panel' ? <PanelTrim theme={theme} /> : null}
       {children}
       {ornaments && theme.card === 'chunky' ? <LeafCorner theme={theme} /> : null}
       {ornaments && theme.card === 'aqua' ? <BubbleCorner theme={theme} /> : null}
       {ornaments && theme.card === 'stone' ? <FernCorner theme={theme} /> : null}
       {ornaments && theme.card === 'taped' ? <TapeAndDoodle theme={theme} /> : null}
+      {ornaments && theme.card === 'pennant' ? <Bunting theme={theme} /> : null}
+      {ornaments && theme.card === 'snowcap' ? <SnowCap theme={theme} /> : null}
     </>
   );
 
@@ -486,4 +631,31 @@ const styles = StyleSheet.create({
   rule: { position: 'absolute', top: 4, left: 4, right: 4, bottom: 4, borderWidth: 0.75 },
   diamondWrap: { position: 'absolute', top: -5, left: 0, right: 0, alignItems: 'center' },
   diamond: { width: 9, height: 9, borderWidth: 1, transform: [{ rotate: '45deg' }] },
+  bunting: { position: 'absolute', top: -5, left: 14 },
+  snowCap: { position: 'absolute', top: -11, left: 12 },
+  flake: { position: 'absolute', top: -9, right: -6 },
+  bracket: { position: 'absolute', width: 12, height: 12 },
+  bTL: { top: 4, left: 4, borderTopWidth: 2, borderLeftWidth: 2, borderTopLeftRadius: 4 },
+  bTR: { top: 4, right: 4, borderTopWidth: 2, borderRightWidth: 2, borderTopRightRadius: 4 },
+  bBL: { bottom: 4, left: 4, borderBottomWidth: 2, borderLeftWidth: 2, borderBottomLeftRadius: 4 },
+  bBR: {
+    bottom: 4,
+    right: 4,
+    borderBottomWidth: 2,
+    borderRightWidth: 2,
+    borderBottomRightRadius: 4,
+  },
+  screw: { position: 'absolute', width: 4, height: 4, borderRadius: 2 },
+  led: {
+    position: 'absolute',
+    top: 8,
+    right: 22,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    borderWidth: 1,
+    shadowOpacity: 0.9,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 0 },
+  },
 });

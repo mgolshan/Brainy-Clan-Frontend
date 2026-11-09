@@ -135,7 +135,7 @@ every age — with family goals, a leaderboard and a private family chat.
 > • Kids sign in with a one-time code from a parent's phone
 > • A private family chat: only members of your family, text and emoji only — no strangers.
 > Parents can turn chat off for a child and delete any message
-> • 13 worlds to play in, from Jungle and Space to Under the Sea — unlock new ones with points and
+> • 16 worlds to play in, from Jungle and Space to Under the Sea — unlock new ones with points and
 > streaks (some come with the Family plan)
 > • A look for every age: playful for kids, sleek for teens, calm and clear for adults, extra
 > readable for seniors — with adjustable text size and reduced motion
@@ -197,7 +197,7 @@ pour tous les âges — avec objectifs, classement et chat familial privé.
 > • Les enfants se connectent avec un code à usage unique créé sur le téléphone d'un parent
 > • Un chat familial privé : seulement les membres de votre famille, texte et émojis uniquement —
 > aucun inconnu. Les parents peuvent désactiver le chat d'un enfant et supprimer tout message
-> • 13 mondes à explorer, de la Jungle à l'Espace en passant par les fonds marins — débloquez-en
+> • 16 mondes à explorer, de la Jungle à l'Espace en passant par les fonds marins — débloquez-en
 > de nouveaux avec vos points et vos séries (certains avec le forfait Famille)
 > • Un style pour chaque âge : ludique pour les enfants, épuré pour les ados, clair pour les
 > adultes, très lisible pour les aînés — taille du texte et animations réglables

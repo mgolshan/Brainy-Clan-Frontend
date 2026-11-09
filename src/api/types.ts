@@ -81,6 +81,10 @@ export const THEME_KEYS = [
   'lofi',
   'nature',
   'midnight',
+  // Contract 2026-11-08: three more Family-plan worlds.
+  'castle',
+  'arctic',
+  'robot',
 ] as const;
 export type ThemeKey = (typeof THEME_KEYS)[number];
 

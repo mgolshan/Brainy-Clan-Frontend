@@ -19,6 +19,9 @@ export const SOUND_PACKS = [
   'lofi',
   'nature',
   'midnight',
+  'castle',
+  'arctic',
+  'robot',
 ] as const satisfies readonly SoundPack[];
 
 export const DEFAULT_SOUND_PACK: SoundPack = 'candy';

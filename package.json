@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "dependencies": {
     "@expo-google-fonts/atkinson-hyperlegible": "^0.4.1",
+    "@expo-google-fonts/baloo-2": "^0.4.2",
+    "@expo-google-fonts/chakra-petch": "^0.4.1",
+    "@expo-google-fonts/cherry-swash": "^0.4.1",
     "@expo-google-fonts/fredoka": "^0.4.1",
     "@expo-google-fonts/google-sans": "^0.4.3",
     "@expo-google-fonts/inter": "^0.4.2",

@@ -109,7 +109,10 @@
       "sticker": "Sticker Street",
       "lofi": "Lo-fi Dusk",
       "nature": "Calm Nature",
-      "midnight": "Midnight"
+      "midnight": "Midnight",
+      "castle": "Fairy-Tale Castle",
+      "arctic": "Polar Lights",
+      "robot": "Robot Lab"
     },
     "light": "Light",
     "dark": "Dark",
@@ -130,7 +133,10 @@
       "sticker": "bold stickers, tape and doodles",
       "lofi": "pastel sunset, city lights and soft rain",
       "nature": "soft green hills and birds, calm and easy to read",
-      "midnight": "deep blue night, moon and gold"
+      "midnight": "deep blue night, moon and gold",
+      "castle": "castle towers, banners and a friendly dragon",
+      "arctic": "aurora lights, snow and polar friends",
+      "robot": "friendly robots, circuits and gears"
     },
     "lookOnly": "The theme only changes how the app looks — never the content or the rules.",
     "reducedMotionHint": "Fewer animations and no confetti.",
@@ -284,7 +290,10 @@
       "sticker": "Sticker",
       "lofi": "Lo-fi",
       "nature": "Nature",
-      "midnight": "Midnight"
+      "midnight": "Midnight",
+      "castle": "Castle",
+      "arctic": "Arctic",
+      "robot": "Robot"
     },
     "soundNames": {
       "tap": "Tap",
