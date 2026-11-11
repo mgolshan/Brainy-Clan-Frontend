@@ -7,9 +7,8 @@ import {
   StyleSheet,
   TextInput,
   View,
-  type NativeSyntheticEvent,
-  type TextInputKeyPressEventData,
-  type TextInputSelectionChangeEventData,
+  type TextInputKeyPressEvent,
+  type TextInputSelectionChangeEvent,
 } from 'react-native';
 
 import { COUNTER_FROM, MAX_BODY_LENGTH, insertAt, prepareBody } from '@/features/chat/messages';
@@ -48,9 +47,9 @@ export function Composer({ onSend }: ComposerProps) {
     selection.current = { start: next.cursor, end: next.cursor };
   };
 
-  const onKeyPress = (e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+  const onKeyPress = (e: TextInputKeyPressEvent) => {
     if (Platform.OS !== 'web') return;
-    const native = e.nativeEvent as TextInputKeyPressEventData & { shiftKey?: boolean };
+    const native = e.nativeEvent as TextInputKeyPressEvent['nativeEvent'] & { shiftKey?: boolean };
     if (native.key === 'Enter' && !native.shiftKey) {
       e.preventDefault();
       send();
@@ -96,7 +95,7 @@ export function Composer({ onSend }: ComposerProps) {
           <TextInput
             value={text}
             onChangeText={setText}
-            onSelectionChange={(e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+            onSelectionChange={(e: TextInputSelectionChangeEvent) => {
               selection.current = e.nativeEvent.selection;
             }}
             onKeyPress={onKeyPress}

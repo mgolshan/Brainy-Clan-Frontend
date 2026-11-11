@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View, type TextInputInstance } from 'react-native';
 
 import type { MissingLetterPayload, WordResponse } from '@/api/types';
 import type { ChallengeComponentProps } from '@/challenges/registry';
@@ -32,7 +32,7 @@ export function MissingLetter({
     [chars],
   );
   const [fills, setFills] = useState<string[]>(() => blanks.map(() => ''));
-  const inputs = useRef<(TextInput | null)[]>([]);
+  const inputs = useRef<(TextInputInstance | null)[]>([]);
   const [width, onLayout] = useMeasuredWidth();
   const locked = !!disabled || !!pending || !!result;
   const full = fills.every((f) => f.length > 0);

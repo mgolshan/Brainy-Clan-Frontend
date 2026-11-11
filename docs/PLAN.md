@@ -1,6 +1,6 @@
 # Brainy Clan Frontend — Plan
 
-Expo SDK 57 app (React Native, TypeScript, Expo Router) for iOS, Android and web.
+Expo SDK 58 app (React Native, TypeScript, Expo Router) for iOS, Android and web.
 The full product and architecture design is in the design doc linked in `CLAUDE.md`; this file
 turns it into ordered app milestones. Track status in `docs/PROGRESS.md`.
 Each app milestone depends on the backend milestone named in brackets.

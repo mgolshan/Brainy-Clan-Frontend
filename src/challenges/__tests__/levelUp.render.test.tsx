@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 
 import type { CodeBreakerPayload, CrossMathPayload, MazePayload, ThemeKey } from '@/api/types';
@@ -7,9 +8,6 @@ import { getChallenge, type ChallengeComponentProps } from '@/challenges/registr
 import { LEVEL_UP_SAMPLES, shortestTour } from '@/features/dev/puzzleSamples';
 import en from '@/i18n/locales/en.json';
 import { PressableScale, ThemeProvider } from '@/ui';
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-require('react-native-gesture-handler/jestSetup');
 
 // The shared Reanimated mock has no `useReducedMotion` (used by ThemeProvider).
 jest.mock('react-native-reanimated', () => ({
@@ -46,10 +44,13 @@ function render(
   const Challenge = def.component as ComponentType<ChallengeComponentProps>;
   let tree: ReactTestRenderer | undefined;
   act(() => {
+    // Gesture Handler 3 requires every GestureDetector to sit under a root view (as in the app).
     tree = create(
-      <ThemeProvider themeKey={themeKey} schemePreference={scheme}>
-        <Challenge item={sample.item} onSubmit={() => undefined} avatar="owl" {...extra} />
-      </ThemeProvider>,
+      <GestureHandlerRootView>
+        <ThemeProvider themeKey={themeKey} schemePreference={scheme}>
+          <Challenge item={sample.item} onSubmit={() => undefined} avatar="owl" {...extra} />
+        </ThemeProvider>
+      </GestureHandlerRootView>,
     );
   });
   return tree!;

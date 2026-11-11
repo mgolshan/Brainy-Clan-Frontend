@@ -21,7 +21,8 @@ function tabIcon(active: IconName, inactive: IconName) {
     size: number;
     focused: boolean;
   }) {
-    return <Ionicons name={focused ? active : inactive} color={color} size={size} />;
+    // Tabs always pass the resolved tint colour string (the theme colours are strings).
+    return <Ionicons name={focused ? active : inactive} color={color as string} size={size} />;
   }
   return TabIcon;
 }

@@ -1,6 +1,6 @@
 # Brainy Clan – Frontend
 
-Family learning & quiz app. React Native + Expo (SDK 57) with Expo Router and TypeScript —
+Family learning & quiz app. React Native + Expo (SDK 58, React Native 0.88) with Expo Router and TypeScript —
 one codebase for iOS, Android and web.
 
 The API is the separate **Brainy-Clan-Backend** (Laravel, Docker) at `http://<PC-LAN-IP>:8080`,
@@ -11,12 +11,13 @@ the canonical ops handbook is `../Brainy-Clan-Backend/docs/OPERATIONS_HANDBOOK.m
 
 ## Prerequisites
 
-- **Node.js 22 LTS** (the plan's target). Node 24 also works — this machine runs 24.14 and
-  `npx expo-doctor` passes.
+- **Node.js 22 LTS** (the plan's target; SDK 58 needs 22.13+ on the 22 line, or 24.3+). Node 24
+  also works — this machine runs 24.14 and `npx expo-doctor` passes.
 - **The backend running** (see the backend README): `http://localhost:8080/api/v1/health` answers
   on the PC, and `http://<PC-LAN-IP>:8080/api/v1/health` opens in your phone's browser.
 - For a phone: **Expo Go** (App Store / Play Store) for everyday work, phone and PC on the
-  **same Wi-Fi**. Google/Facebook sign-in needs the **development build** instead (see
+  **same Wi-Fi**. The project is on **Expo SDK 58**, and the current Expo Go only runs SDK 58
+  projects: keep Expo Go updated from the store. Google/Facebook sign-in needs the **development build** instead (see
   [Expo Go or development build](#expo-go-or-development-build)).
 - For the browser: Chrome or Edge; the backend must allow CORS from `http://localhost:8081`.
 
@@ -67,7 +68,9 @@ LAN IP differs; don't commit a personal IP unless the team shares that dev serve
 | `npm start`                | **Expo Go** (`expo start --go`)            | everyday work: everything except Google/Facebook sign-in              |
 | `npm run start:dev-client` | the **development build** (`--dev-client`) | native features (Google/Facebook sign-in; later ads, purchases, push) |
 
-Scan the QR code with Expo Go (Android) or the Camera app (iOS). The development build must be
+Scan the QR code with Expo Go (Android) or the Camera app (iOS). Expo Go must be the SDK 58
+version (update it from the store if it says the project's SDK is incompatible). The first run
+after an SDK upgrade: `npx expo start --go --clear` (clears Metro's cache). The development build must be
 built and installed once first (Step 4 of the sign-in setup below); afterwards open **Brainy
 Clan** on the phone and pick the running server. In Expo Go the Google/Facebook buttons are
 hidden.
@@ -164,8 +167,12 @@ npx jest -t "word search"         # tests whose name matches
   notification times, the offline answer queue (persist / flush / retry with a fake submit and
   in-memory AsyncStorage) and en/fr locale parity (same keys, plural forms, placeholders, no
   empty strings).
-- **Setup:** `jest` config in `package.json`; `jest.setup.ts` swaps native modules
-  (Reanimated, Worklets, AsyncStorage) for the mocks their packages ship;
+- **Setup:** `jest` config in `package.json` (Jest 30 + `jest-expo` for SDK 58). Its `resolver`
+  is `react-native-reanimated/jest/resolver` (Reanimated 4.7 needs it in Jest) and
+  `react-native-gesture-handler/jestSetup.js` runs first (Gesture Handler 3 mocks; render tests
+  wrap gesture components in `GestureHandlerRootView`, as the app does). `jest.setup.ts` swaps
+  native modules (Reanimated, Worklets, AsyncStorage) for the mocks their packages ship. Render
+  tests use `react-test-renderer` (a devDependency pinned to the React version);
   `jest.globalSetup.js` pins the device time zone to `America/Toronto` so date tests behave the
   same on every machine.
 - **Adding tests:** prefer pure functions (move logic out of components into a `.ts` file and
@@ -736,6 +743,9 @@ If a build fails on the Sentry upload step, check the token, or unset `SENTRY_OR
 - Phone shows "Can't reach Brainy Clan": allow Node.js and port 8080 through Windows Defender
   Firewall (Private network) and make sure the Wi-Fi is a _Private_ network in Windows.
 - Phone can't load the bundle: try `npx expo start --tunnel`.
+- Expo Go says the project is incompatible / needs a different SDK: update Expo Go from the store
+  (it runs SDK 58 only), force-close it, then restart Metro with `npx expo start --go --clear`. A
+  development build made before the SDK 58 upgrade must be rebuilt (`eas build --profile development`).
 - "Time for an update" screen: the API reported a `min_app_version` newer than `app.json`'s
   `version` (or answered 426).
 

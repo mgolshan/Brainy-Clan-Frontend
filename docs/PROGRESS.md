@@ -163,7 +163,7 @@ Milestones are defined in `docs/PLAN.md`.
   (appearance needs a family) is accepted as is.
 - Daily development runs natively on Windows (`npm start`); Docker on Windows often misses file changes from the F: drive.
 - Token storage falls back to `localStorage` on web (not secure); fine until the web version is built.
-- Node 24 is installed instead of the planned 22 LTS; Expo SDK 57 works with it (expo-doctor clean).
+- Node 24 is installed instead of the planned 22 LTS; Expo SDK 58 works with it (needs Node 22.13+ or 24.3+; expo-doctor clean).
 - `npm audit` reports advisories in transitive dev/build dependencies of the Expo toolchain; not
   addressed (`npm audit fix --force` would break SDK-pinned versions).
 - `npm start` now runs `expo start --go` (Expo Go, as before). `expo-dev-client` is installed for
@@ -372,6 +372,52 @@ themes (light/dark).
   splash (blue `#1D6FD8`, dark `#10233F`). `npx expo-doctor` 21/21; `npx expo config --type public`.
 
 ## Log
+
+### 2026-11-11 Expo SDK 58 upgrade
+
+Moe: Expo Go on the phone refused the QR code ("project must be SDK 58"): the store Expo Go now
+only runs SDK 58. Upgraded from SDK 57 following the official SDK 58 changelog and upgrade guide.
+
+- Versions: `expo` 57.0.30 → 58.0.24, React 19.2.3 → 19.3.0, React Native 0.86.3 → 0.88.1, all
+  `expo-*` to their `~58` versions, `expo-router` 58.0.31, Reanimated 4.5.1 → 4.7.1, Worklets
+  0.10.1 → 0.13.0, Gesture Handler 2.32 → 3.3, Screens 4.30, Safe Area 5.11, SVG 15.16,
+  FlashList 2.3.2, `@sentry/react-native` 7.11 → 8.28, Jest 29 → 30, `jest-expo` /
+  `eslint-config-expo` 58, `@types/react` 19.3. New: `expo-asset` (required peer of `expo-audio`,
+  flagged by expo-doctor) and `react-test-renderer` 19.3.0 as an explicit devDependency (jest-expo
+  58 no longer brings it). Non-Expo packages (RevenueCat, AdMob, Nitro Google sign-in, TanStack
+  Query, i18next, zustand, prettier) kept at their previous versions. The lockfile was
+  regenerated (npm could not resolve SDK 58's optional router peers on top of the old tree).
+- React Native strict TypeScript API (default in 0.88): `TextInputInstance` for TextInput refs
+  (`TextField`, `MissingLetter`), `TextInputKeyPressEvent` / `TextInputSelectionChangeEvent`
+  in the chat composer, `ListViewToken` in the chat list, `ListFooterComponent` gets `undefined`
+  instead of `null`, the tab icon colour is cast to the string Tabs pass.
+- `expo-file-system`: `File.write()` is async now; the data export awaits it before sharing.
+- Gesture Handler 3: the legacy `Gesture.*` + `GestureDetector` API still works; every detector
+  must sit under `GestureHandlerRootView` (the app root already has one; the level-up render test
+  now wraps its tree too).
+- Jest: `resolver: react-native-reanimated/jest/resolver` (Reanimated 4.7 otherwise throws
+  "`setCSSEventHandler` is not available in JSReanimated") and
+  `react-native-gesture-handler/jestSetup.js` in `setupFiles`.
+- Lint: one `import/namespace` false positive on `Notifications.AndroidImportance`
+  (expo-notifications 58's build output hides the export from eslint-plugin-import) silenced on
+  that line; tsc still checks it.
+- Checked and not affecting us: `web.output` default is now `server` (we set `static`
+  explicitly); iOS 26+ transparent Liquid Glass Stack header (all stacks use
+  `headerShown: false`); foreground notifications shown by default (our handler already shows
+  them); RTL no longer forced by expo-localization (en/fr only); removed RN APIs
+  (`InteractionManager`, `Modal animated`, `StatusBar` props, `ImageBackground`) are unused;
+  `NODE_ENV` now set by the CLI (only `.env`, no per-environment files); R8 minification on by
+  default in Android release builds and iOS scene lifecycle are handled by prebuild (CNG).
+- Expo Go: the native-only modules (RevenueCat, AdMob, Nitro Google sign-in, push) stay behind the
+  existing `isExpoGo` / lazy-import guards; nothing new needs a development build. Any existing
+  EAS development/preview build is SDK 57 native code and must be rebuilt.
+- Known harmless Metro warning: `@sentry/react-native` probes
+  `expo-router/build/global-state/router-store`, which SDK 58 moved; it falls back and we do not
+  use Sentry's Expo Router integration.
+- Checks: expo-doctor 20/20, `expo install --check` up to date, typecheck, lint, format:check,
+  Jest 56 suites / 954 tests, `expo export` web + android + ios, Metro `--go` serves
+  `sdkVersion 58.0.0` and builds the android and ios bundles.
+- Moe: update Expo Go from the store, then `npx expo start --go --clear` once.
 
 ### 2026-11-08 worlds castle, arctic, robot
 

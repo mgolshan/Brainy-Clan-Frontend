@@ -1,6 +1,13 @@
 import { forwardRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  TextInput,
+  View,
+  type TextInputInstance,
+  type TextInputProps,
+} from 'react-native';
 
 import { Icon } from '@/ui/components/Icon';
 import { Text, fontFor } from '@/ui/components/Text';
@@ -19,7 +26,7 @@ export interface TextFieldProps extends Omit<TextInputProps, 'style'> {
 }
 
 /** Labeled, themed text input with error and hint text. */
-export const TextField = forwardRef<TextInput, TextFieldProps>(function TextField(
+export const TextField = forwardRef<TextInputInstance, TextFieldProps>(function TextField(
   { label, error, hint, password, large, minLines, onFocus, onBlur, ...rest },
   ref,
 ) {

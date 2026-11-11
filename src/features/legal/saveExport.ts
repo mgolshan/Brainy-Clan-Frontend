@@ -8,7 +8,7 @@ import * as Sharing from 'expo-sharing';
 export async function saveExportFile(name: string, json: string): Promise<'shared'> {
   const file = new File(Paths.cache, name);
   file.create({ overwrite: true });
-  file.write(json);
+  await file.write(json); // async since SDK 58 (`writeSync` is the old behaviour)
   if (!(await Sharing.isAvailableAsync())) throw new Error('sharing unavailable');
   await Sharing.shareAsync(file.uri, {
     mimeType: 'application/json',

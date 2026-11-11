@@ -9,7 +9,7 @@ import {
   View,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
-  type ViewToken,
+  type ListViewToken,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -200,7 +200,7 @@ function ChatRoom({ memberId }: { memberId: number }) {
   }, [live, markRead]);
   const [onViewableItemsChanged] = useState(
     () =>
-      ({ viewableItems }: { viewableItems: ViewToken<ChatRow>[] }) => {
+      ({ viewableItems }: { viewableItems: (ListViewToken & { item: ChatRow })[] }) => {
         let max = 0;
         for (const v of viewableItems) {
           if (v.item?.type === 'message' && v.item.message.id > max) max = v.item.message.id;
@@ -374,7 +374,7 @@ function ChatRoom({ memberId }: { memberId: number }) {
               list.current?.scrollToOffset({ offset: index * averageItemLength, animated: false });
               setTimeout(() => list.current?.scrollToIndex({ index, viewPosition: 0.5 }), 250);
             }}
-            ListFooterComponent={history.isFetchingNextPage ? <Loading fill={false} /> : null}
+            ListFooterComponent={history.isFetchingNextPage ? <Loading fill={false} /> : undefined}
             onViewableItemsChanged={onViewableItemsChanged}
             viewabilityConfig={viewability}
             onScroll={onScroll}

@@ -57,6 +57,9 @@ async function ensureChannel(): Promise<void> {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
     name: i18n.t('notifications.channelName'),
+    // False positive since SDK 58: expo-notifications' build output starts the line with a JSDoc
+    // comment before `export var`, so eslint-plugin-import cannot see the export (tsc checks it).
+    // eslint-disable-next-line import/namespace
     importance: Notifications.AndroidImportance.DEFAULT,
   });
 }
