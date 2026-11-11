@@ -13,7 +13,6 @@ export default function AuthLayout() {
         contentStyle: { backgroundColor: theme.colors.background },
         animation: theme.reducedMotion ? 'none' : 'default',
       }}>
-      <Stack.Screen name="index" />
       <Stack.Screen name="welcome" />
       <Stack.Screen name="login" />
       <Stack.Screen name="register" />
