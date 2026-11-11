@@ -2,7 +2,13 @@ import '@/i18n';
 
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider as NavThemeProvider } from 'expo-router';
+import {
+  DarkTheme,
+  DefaultTheme,
+  Stack,
+  ThemeProvider as NavThemeProvider,
+  type Href,
+} from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import * as WebBrowser from 'expo-web-browser';
@@ -130,6 +136,18 @@ function RootNavigator() {
   const needsLegal =
     signedIn && me.data?.legal?.needs_acceptance === true && !me.data.policy.is_child;
 
+  // Where a guarded route sends the user. Explicit, because expo-router's own fallback is the
+  // first unguarded route in its internal sort order, which in dev can be a /dev preview screen.
+  const landing: Href = updateRequired
+    ? '/update-required'
+    : !signedIn
+      ? '/welcome'
+      : needsLegal
+        ? '/legal-update'
+        : !hasFamily
+          ? '/create-family'
+          : '/';
+
   usePushRegistration(signedIn);
   useNotificationDeepLinks(hydrated && !updateRequired && signedIn && hasFamily && !needsLegal);
 
@@ -153,19 +171,23 @@ function RootNavigator() {
             contentStyle: { backgroundColor: theme.colors.background },
             animation: theme.reducedMotion ? 'none' : 'default',
           }}>
-          <Stack.Protected guard={updateRequired}>
+          <Stack.Protected guard={updateRequired} redirectTo={landing}>
             <Stack.Screen name="update-required" />
           </Stack.Protected>
-          <Stack.Protected guard={!updateRequired && !signedIn}>
+          <Stack.Protected guard={!updateRequired && !signedIn} redirectTo={landing}>
             <Stack.Screen name="(auth)" />
           </Stack.Protected>
-          <Stack.Protected guard={!updateRequired && needsLegal}>
+          <Stack.Protected guard={!updateRequired && needsLegal} redirectTo={landing}>
             <Stack.Screen name="legal-update" />
           </Stack.Protected>
-          <Stack.Protected guard={!updateRequired && signedIn && !needsLegal && !hasFamily}>
+          <Stack.Protected
+            guard={!updateRequired && signedIn && !needsLegal && !hasFamily}
+            redirectTo={landing}>
             <Stack.Screen name="(onboarding)" />
           </Stack.Protected>
-          <Stack.Protected guard={!updateRequired && signedIn && !needsLegal && hasFamily}>
+          <Stack.Protected
+            guard={!updateRequired && signedIn && !needsLegal && hasFamily}
+            redirectTo={landing}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="play/[session]" options={{ gestureEnabled: false }} />
             <Stack.Screen name="category/[id]" />
@@ -183,7 +205,7 @@ function RootNavigator() {
             <Stack.Screen name="support" />
           </Stack.Protected>
           <Stack.Screen name="oauth-callback" />
-          <Stack.Protected guard={__DEV__}>
+          <Stack.Protected guard={__DEV__} redirectTo={landing}>
             <Stack.Screen name="dev/themes" />
             <Stack.Screen name="dev/sounds" />
             <Stack.Screen name="dev/games" />
