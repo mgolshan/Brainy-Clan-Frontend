@@ -4,14 +4,18 @@ import { AppState, type AppStateStatus } from 'react-native';
 
 import { queryClient } from '@/api/queryClient';
 import { queryKeys } from '@/api/queryKeys';
-import type { ChatMessagesMeta, ChatUnread } from '@/api/types';
+import { ApiError } from '@/api/client';
+import type { ChatMessage, ChatMessagesMeta, ChatReactionKey, ChatUnread } from '@/api/types';
 import { useMe } from '@/features/auth/hooks';
 import {
   deleteChatMessage,
+  deleteChatReaction,
   fetchChatMessages,
+  fetchChatReactionChanges,
   fetchChatUnread,
   isChatDisabledError,
   postChatRead,
+  putChatReaction,
   reportChatMessage,
 } from '@/features/chat/api';
 import {
@@ -26,6 +30,12 @@ import {
   type ChatHistory,
 } from '@/features/chat/messages';
 import { useChatOutboxSync } from '@/features/chat/outbox';
+import {
+  applyOwnReaction,
+  collectReactionChanges,
+  findReactions,
+  patchReactions,
+} from '@/features/chat/reactions';
 
 /** Poll for new messages this often while the chat screen is open (contract: ~4 s). */
 export const POLL_MS = 4_000;
@@ -65,6 +75,23 @@ function onChatError(error: unknown) {
   if (isChatDisabledError(error)) void queryClient.invalidateQueries({ queryKey: queryKeys.me });
 }
 
+// The reactions cursor has no observer of its own: keep it until sign-out clears the cache.
+queryClient.setQueryDefaults(queryKeys.chatReactionsCursor, { gcTime: Infinity });
+
+/**
+ * Takes the current reactions cursor (`GET /family/chat/reactions` without `since`) so the poll
+ * only reads changes after the history was loaded. A failure leaves no cursor: the poll then
+ * takes one itself (an older backend without reactions just never shows any changes).
+ */
+async function takeReactionsCursor(signal?: AbortSignal): Promise<void> {
+  try {
+    const page = await fetchChatReactionChanges(null, signal);
+    queryClient.setQueryData<string>(queryKeys.chatReactionsCursor, page.meta.cursor);
+  } catch {
+    // The messages request reports chat errors; reactions are optional.
+  }
+}
+
 /**
  * Message history (`GET /family/chat/messages?before=`), newest page first; `fetchNextPage`
  * loads older messages. The last page's `meta` (retention, last read id) is exposed as `meta`.
@@ -75,7 +102,12 @@ export function useChatHistory(enabled: boolean) {
     initialPageParam: null as number | null,
     queryFn: async ({ pageParam, signal }) => {
       try {
-        return await fetchChatMessages({ before: pageParam }, PAGE_SIZE, signal);
+        // The first page also takes the reactions cursor (in parallel: one round trip).
+        const [page] = await Promise.all([
+          fetchChatMessages({ before: pageParam }, PAGE_SIZE, signal),
+          pageParam === null ? takeReactionsCursor(signal) : Promise.resolve(),
+        ]);
+        return page;
       } catch (error) {
         onChatError(error);
         throw error;
@@ -136,7 +168,78 @@ export function useChatPolling(active: boolean) {
         onChatError(error);
         throw error;
       }
+      await pollReactions(client, signal);
       return { at: Date.now() };
+    },
+  });
+}
+
+/**
+ * Reads reaction changes since the stored cursor (`GET /family/chat/reactions?since=`, paging
+ * while a page is full) and patches them into the cached messages; only changed messages get new
+ * objects, so only their bubbles re-render. Never fails the message poll.
+ */
+async function pollReactions(client: typeof queryClient, signal?: AbortSignal) {
+  const cursor = client.getQueryData<string>(queryKeys.chatReactionsCursor);
+  if (!cursor) {
+    await takeReactionsCursor(signal);
+    return;
+  }
+  try {
+    const result = await collectReactionChanges(
+      (since) => fetchChatReactionChanges(since, signal),
+      cursor,
+    );
+    if (result.updates.size > 0) {
+      client.setQueryData<ChatHistory>(queryKeys.chatMessages, (prev) =>
+        patchReactions(prev, result.updates),
+      );
+    }
+    if (result.cursor !== cursor) {
+      client.setQueryData<string>(queryKeys.chatReactionsCursor, result.cursor);
+    }
+  } catch (error) {
+    // A malformed or expired cursor (422): start again from now.
+    if (error instanceof ApiError && error.status === 422) {
+      client.removeQueries({ queryKey: queryKeys.chatReactionsCursor, exact: true });
+    }
+    onChatError(error);
+  }
+}
+
+/**
+ * Sets (`key`) or removes (`null`) the member's reaction on a message
+ * (`PUT`/`DELETE /family/chat/messages/{id}/reaction`): shown at once, rolled back when the server
+ * refuses (rate limit, chat off, message gone), then replaced by the server's copy.
+ */
+export function useReactToMessage(memberId: number | null) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ messageId, key }: { messageId: number; key: ChatReactionKey | null }) =>
+      key ? putChatReaction(messageId, key) : deleteChatReaction(messageId),
+    onMutate: ({ messageId, key }) => {
+      const history = client.getQueryData<ChatHistory>(queryKeys.chatMessages);
+      const previous = findReactions(history, messageId);
+      if (previous) {
+        client.setQueryData<ChatHistory>(queryKeys.chatMessages, (prev) =>
+          patchReactions(prev, new Map([[messageId, applyOwnReaction(previous, key, memberId)]])),
+        );
+      }
+      return { previous };
+    },
+    onError: (error, { messageId }, context) => {
+      const previous = context?.previous;
+      if (previous) {
+        client.setQueryData<ChatHistory>(queryKeys.chatMessages, (prev) =>
+          patchReactions(prev, new Map([[messageId, previous]])),
+        );
+      }
+      onChatError(error);
+    },
+    onSuccess: (message: ChatMessage) => {
+      client.setQueryData<ChatHistory>(queryKeys.chatMessages, (prev) =>
+        insertMessages(prev, [message]),
+      );
     },
   });
 }

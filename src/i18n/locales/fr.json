@@ -215,7 +215,10 @@
       "body_other": "Tu as marqué {{count}} points. Génial !",
       "points": "Points",
       "answered": "Réponses",
-      "mistakes": "Erreurs"
+      "mistakes": "Erreurs",
+      "towardGoal_one": "+{{count}} point pour {{name}}",
+      "towardGoal_many": "+{{count}} points pour {{name}}",
+      "towardGoal_other": "+{{count}} points pour {{name}}"
     },
     "failed": {
       "title": "Plus de vies",
@@ -265,7 +268,17 @@
       "lives_other": "{{count}} vies sur {{total}} restantes",
       "outOfLives": "Plus de vies : seconde chance possible ou fin de la partie",
       "redemption": "Manche de rattrapage"
-    }
+    },
+    "goalCounts": "Compte pour {{name}}",
+    "goalCountsMany_one": "Compte pour {{count}} objectif",
+    "goalCountsMany_many": "Compte pour {{count}} objectifs",
+    "goalCountsMany_other": "Compte pour {{count}} objectifs",
+    "goalInside": "Sujets pour {{name}}",
+    "goalInsideMany_one": "Sujets pour {{count}} objectif",
+    "goalInsideMany_many": "Sujets pour {{count}} objectifs",
+    "goalInsideMany_other": "Sujets pour {{count}} objectifs",
+    "goalCountsA11y": "Jouer ici compte pour {{names}}",
+    "goalInsideA11y": "Certains sujets à l'intérieur comptent pour {{names}}"
   },
   "dev": {
     "themesTitle": "Aperçu des thèmes",
@@ -644,13 +657,40 @@
       "reviewEachTarget_one": "{{count}} point chacun",
       "reviewEachTarget_many": "{{count}} points chacun",
       "reviewEachTarget_other": "{{count}} points chacun",
-      "noReward": "Pas de récompense — on peut quand même jouer pour la gloire."
+      "noReward": "Pas de récompense — on peut quand même jouer pour la gloire.",
+      "editTitle": "Modifier l'objectif",
+      "save": "Enregistrer",
+      "editNote": "Les changements s'appliquent à la prochaine période. La période en cours garde son objectif.",
+      "allCategoriesOption": "Toutes les catégories",
+      "allCategoriesHelp": "Chaque partie compte, quelle que soit la catégorie.",
+      "pickCategoriesOption": "Choisir des catégories",
+      "pickCategoriesHelp": "Seuls les points des catégories choisies comptent.",
+      "everyoneOption": "Toute la famille",
+      "everyoneHelp": "Les nouveaux membres rejoignent automatiquement.",
+      "pickMembersOption": "Choisir les membres",
+      "pickMembersHelp": "Seuls les membres choisis jouent. Les nouveaux membres ne sont pas ajoutés.",
+      "ownTargets": "Objectifs personnels (facultatif)",
+      "reviewEveryone": "Toute la famille (les nouveaux membres rejoignent automatiquement)"
     },
     "gone": {
       "title": "Cet objectif a été supprimé",
       "body": "Un administrateur l'a retiré. Ses points comptent toujours dans tes statistiques.",
       "action": "Retour aux objectifs"
-    }
+    },
+    "summary": {
+      "allCategories": "Toutes les catégories",
+      "categories_one": "{{count}} catégorie",
+      "categories_many": "{{count}} catégories",
+      "categories_other": "{{count}} catégories",
+      "everyone": "Tout le monde",
+      "players_one": "{{count}} joueur",
+      "players_many": "{{count}} joueurs",
+      "players_other": "{{count}} joueurs",
+      "label": "Ce qui compte et qui joue : {{summary}}"
+    },
+    "everyoneNote": "Toute la famille joue. Les nouveaux membres rejoignent automatiquement.",
+    "allCategoriesNote": "Les points de toutes les catégories comptent.",
+    "edit": "Modifier l'objectif"
   },
   "codeSignIn": {
     "title": "Se connecter avec un code",
@@ -1317,7 +1357,7 @@
     "failedRateLimited": "Trop de messages · Touchez pour réessayer",
     "retry": "Réessayer",
     "retryHint": "Renvoie le message",
-    "longPressHint": "Appui long pour supprimer",
+    "longPressHint": "Appui long pour réagir ou supprimer",
     "delete": "Supprimer",
     "deleteTitle": "Supprimer ce message ?",
     "deleteBody": "Tout le monde verra « Message supprimé » à la place.",
@@ -1331,7 +1371,7 @@
     "emptyBody": "Les messages ici ne sont vus que par votre famille.",
     "jumpToLatest": "Derniers messages",
     "listLabel": "Messages",
-    "longPressReportHint": "Appui long pour le signaler à un parent",
+    "longPressReportHint": "Appui long pour réagir ou le signaler à un parent",
     "report": "Signaler à un parent",
     "reportTitle": "Signaler ce message à un parent ?",
     "reportBody": "Vos parents seront prévenus. Ils peuvent supprimer le message.",
@@ -1347,7 +1387,31 @@
     "reviewBody": "Un membre de la famille a signalé ce message de {{name}}. Vous pouvez le supprimer ou désactiver la discussion pour {{name}}.",
     "reviewBodyDeleteOnly": "Un membre de la famille a signalé ce message de {{name}}. Vous pouvez le supprimer.",
     "turnOffChatFor": "Désactiver la discussion pour {{name}}",
-    "chatTurnedOff": "La discussion est désactivée pour {{name}}."
+    "chatTurnedOff": "La discussion est désactivée pour {{name}}.",
+    "reactionNames": {
+      "heart": "Cœur",
+      "thumbs_up": "Pouce levé",
+      "laugh": "Rire",
+      "wow": "Waouh",
+      "party": "Fête",
+      "star": "Étoile"
+    },
+    "react": "Réagir",
+    "reactWith": "Réagir avec {{name}}",
+    "removeReaction": "Retirer ta réaction {{name}}",
+    "reactionChip_one": "{{name}}, {{count}} réaction",
+    "reactionChip_many": "{{name}}, {{count}} réactions",
+    "reactionChip_other": "{{name}}, {{count}} réactions",
+    "reactionMine": "dont la tienne",
+    "reactionAddHint": "Réagit avec {{name}}. Appui long pour voir qui a réagi",
+    "reactionRemoveHint": "Retire ta réaction. Appui long pour voir qui a réagi",
+    "whoReacted": "Qui a réagi",
+    "menuTitle": "Message",
+    "reactFailed": "La réaction n'a pas pu être enregistrée. Réessaie.",
+    "reactRateLimited": "Beaucoup de réactions ! Attends une minute et réessaie.",
+    "reviewReport": "Examiner le signalement",
+    "longPressReactHint": "Appui long pour réagir",
+    "reactionsLabel": "Réactions"
   },
   "help": {
     "howToPlay": "Comment jouer",

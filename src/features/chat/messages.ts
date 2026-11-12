@@ -2,6 +2,7 @@ import type { InfiniteData } from '@tanstack/react-query';
 import type { TFunction } from 'i18next';
 
 import type { ChatMessage, ChatMessagesPage, MePayload } from '@/api/types';
+import { sameReactions } from '@/features/chat/reactions';
 
 /**
  * Pure family-chat logic (no React, no network): merging server pages, the local outbox shown as
@@ -124,7 +125,8 @@ export function insertMessages(
         next !== m &&
         (next.deleted !== m.deleted ||
           next.body !== m.body ||
-          (next.reported ?? false) !== (m.reported ?? false))
+          (next.reported ?? false) !== (m.reported ?? false) ||
+          !sameReactions(next.reactions, m.reactions))
       ) {
         pageChanged = true;
         return next;
@@ -169,7 +171,9 @@ export function markDeleted(history: ChatHistory | undefined, id: number): ChatH
       page.data.some((m) => m.id === id)
         ? {
             ...page,
-            data: page.data.map((m) => (m.id === id ? { ...m, deleted: true, body: null } : m)),
+            data: page.data.map((m) =>
+              m.id === id ? { ...m, deleted: true, body: null, reactions: [] } : m,
+            ),
           }
         : page,
     ),

@@ -10,7 +10,7 @@ Design doc: https://claude.ai/code/artifact/47b231d3-1586-470a-865b-5ea4b6349434
 
 ## Stack (locked decisions)
 
-- Expo SDK 57, TypeScript strict, Expo Router (file-based routes in `app/`)
+- Expo SDK 58 (React Native 0.88, React 19.3), TypeScript strict, Expo Router (file-based routes in `app/`)
 - Zustand for app/client state, TanStack Query for server state
 - i18next + react-i18next + expo-localization (locales in `src/i18n/locales/`)
 - expo-secure-store for the auth token, @shopify/flash-list for long lists, Reanimated
@@ -19,7 +19,7 @@ Design doc: https://claude.ai/code/artifact/47b231d3-1586-470a-865b-5ea4b6349434
 ## Expo changes fast – do not trust training data
 
 Before using an Expo / React Native API, check the docs for the installed SDK major
-(`expo` in package.json): `https://docs.expo.dev/versions/v57.0.0/`, index at
+(`expo` in package.json): `https://docs.expo.dev/versions/v58.0.0/`, index at
 https://docs.expo.dev/llms.txt. Add Expo/RN packages with `npx expo install <pkg>` (never plain
 `npm install`) so versions match the SDK; pure JS packages may use `npm install`.
 

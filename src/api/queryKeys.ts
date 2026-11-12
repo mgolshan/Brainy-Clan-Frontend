@@ -31,6 +31,11 @@ export const queryKeys = {
   chatMessages: ['chat', 'messages'] as const,
   /** `GET /family/chat/messages?after=` polling while the chat screen is open. */
   chatPoll: ['chat', 'poll'] as const,
+  /**
+   * Cursor for `GET /family/chat/reactions?since=` (an opaque string set by the history's first
+   * page and the poll; no query function of its own).
+   */
+  chatReactionsCursor: ['chat', 'reactions-cursor'] as const,
   /** `GET /family/chat/unread` (tab badge). */
   chatUnread: ['chat', 'unread'] as const,
   /** `GET /support/messages` (admin): the caller's own support messages, newest first. */

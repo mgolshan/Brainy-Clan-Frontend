@@ -6,6 +6,8 @@ import { StyleSheet, Text as RNText, View } from 'react-native';
 import type { PlaySession } from '@/api/types';
 import { getChallenge } from '@/challenges/registry';
 import { useMe } from '@/features/auth/hooks';
+import { useGoalMatching } from '@/features/goals/hooks';
+import { sessionGoalContributions, type GoalContribution } from '@/features/goals/matching';
 import type { AdStage } from '@/features/play/api';
 import { FeedbackPanel } from '@/features/play/components/FeedbackPanel';
 import { sessionProgressCaption } from '@/features/play/progress';
@@ -121,11 +123,14 @@ function CompletedView({
   onPlayAgain,
   starting,
   avatar,
+  contributions,
 }: {
   session: PlaySession;
   onPlayAgain: () => void;
   starting: boolean;
   avatar?: string | null;
+  /** Goals this session's points counted toward ("+12 toward Pizza Friday"). */
+  contributions: GoalContribution[];
 }) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -158,6 +163,18 @@ function CompletedView({
           </Text>
         </View>
       </Card>
+      {contributions.length > 0 ? (
+        <Card variant="tinted" tint={theme.colors.success} style={styles.goals}>
+          {contributions.map((c) => (
+            <View key={c.goalId} style={styles.goalRow}>
+              <Icon name="flag" size={18} color={theme.colors.success} />
+              <Text weight="bold" style={styles.flex}>
+                {t('play.completed.towardGoal', { count: c.points, name: c.name })}
+              </Text>
+            </View>
+          ))}
+        </Card>
+      ) : null}
       <Button
         title={t('play.playAgain')}
         icon="refresh"
@@ -292,6 +309,7 @@ export function PlayScreen({ sessionId }: { sessionId: number }) {
   const { session, phase, currentItem, feedback } = play;
   const me = useMe().data;
   const avatar = me?.member?.avatar ?? me?.user.avatar;
+  const matching = useGoalMatching();
   const sound = useSoundEffects();
   const playSound = sound.play;
 
@@ -435,6 +453,13 @@ export function PlayScreen({ sessionId }: { sessionId: number }) {
           session={session}
           starting={again.isPending}
           avatar={avatar}
+          contributions={sessionGoalContributions(
+            matching.goals,
+            matching.parents,
+            session.category_id,
+            matching.memberId,
+            session.points,
+          )}
           onPlayAgain={() => again.open(session.category_id, { replace: true })}
         />
       ) : null}
@@ -508,6 +533,8 @@ const styles = StyleSheet.create({
   centerFill: { justifyContent: 'center' },
   stats: { flexDirection: 'row', justifyContent: 'space-around', alignSelf: 'stretch' },
   stat: { alignItems: 'center', gap: 2 },
+  goals: { alignSelf: 'stretch', gap: 6 },
+  goalRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   bigEmoji: { fontSize: 52 },
   worth: { flexDirection: 'row', justifyContent: 'flex-end' },
 });

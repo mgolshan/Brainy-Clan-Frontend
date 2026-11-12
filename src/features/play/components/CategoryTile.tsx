@@ -13,6 +13,11 @@ interface CategoryTileProps {
   index?: number;
   /** Top-level ancestor's slug for sub-categories (their illustration). */
   parentSlug?: string;
+  /**
+   * Playing here counts toward one of the member's goals (`counts`), or some topics inside do
+   * (`inside`): a small marker with the goal's name, plus a sentence for screen readers.
+   */
+  goalMarker?: { kind: 'counts' | 'inside'; label: string; a11y: string } | null;
 }
 
 /**
@@ -20,7 +25,13 @@ interface CategoryTileProps {
  * the category's Clan illustration in a tinted window. Locked categories stay visible, dimmed,
  * with a lock and an upgrade hint.
  */
-export function CategoryTile({ category, onPress, index, parentSlug }: CategoryTileProps) {
+export function CategoryTile({
+  category,
+  onPress,
+  index,
+  parentSlug,
+  goalMarker,
+}: CategoryTileProps) {
   const theme = useTheme();
   const { t } = useTranslation();
   const color = categoryColor(theme, category, index);
@@ -35,7 +46,11 @@ export function CategoryTile({ category, onPress, index, parentSlug }: CategoryT
       tint={color}
       padding="sm"
       accessibilityLabel={
-        category.is_locked ? `${category.name}, ${t('play.locked')}` : category.name
+        category.is_locked
+          ? `${category.name}, ${t('play.locked')}`
+          : goalMarker
+            ? `${category.name}. ${goalMarker.a11y}`
+            : category.name
       }
       accessibilityHint={category.is_locked ? t('play.lockedHint') : undefined}
       style={[styles.tile, { minHeight: theme.touchTarget * 2.3, gap: theme.spacing.sm }]}>
@@ -74,6 +89,15 @@ export function CategoryTile({ category, onPress, index, parentSlug }: CategoryT
             {t('play.subCategories', { count: subCount })}
           </Text>
         ) : null}
+        {goalMarker && !category.is_locked ? (
+          <View style={styles.marker}>
+            <Badge
+              label={goalMarker.label}
+              icon={goalMarker.kind === 'counts' ? 'flag' : 'flag-outline'}
+              tone={goalMarker.kind === 'counts' ? 'success' : 'neutral'}
+            />
+          </View>
+        ) : null}
       </View>
     </Card>
   );
@@ -95,4 +119,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   body: { gap: 4, paddingBottom: 4 },
+  marker: { flexDirection: 'row' },
 });

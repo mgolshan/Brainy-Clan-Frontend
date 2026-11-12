@@ -197,6 +197,7 @@ function RootNavigator() {
             <Stack.Screen name="goals/index" />
             <Stack.Screen name="goals/[id]" />
             <Stack.Screen name="goals/new" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="goals/edit/[id]" options={{ presentation: 'modal' }} />
             <Stack.Screen name="notifications" />
             <Stack.Screen name="member-notifications/[id]" />
             <Stack.Screen name="delete-account" />

@@ -2,7 +2,7 @@ import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 
 import { ApiError } from '@/api/client';
 import type { ChatMessage } from '@/api/types';
-import { reportErrorKey } from '@/features/chat/api';
+import { reactionErrorKey, reportErrorKey } from '@/features/chat/api';
 import { MessageBubble } from '@/features/chat/components/MessageBubble';
 import en from '@/i18n/locales/en.json';
 import { ThemeProvider } from '@/ui';
@@ -48,6 +48,7 @@ describe('report errors', () => {
 
 const message = (over: Partial<ChatMessage> = {}): ChatMessage => ({
   id: 7,
+  reactions: [],
   member_id: 6,
   nickname: 'Sam',
   avatar: null,
@@ -118,5 +119,79 @@ describe('MessageBubble long-press action', () => {
   it('offers nothing without an action', () => {
     const tree = render({ action: null, onLongPress: jest.fn() });
     expect(withActions(tree)).toHaveLength(0);
+  });
+});
+
+describe('reaction errors', () => {
+  it.each([
+    [429, 'rate_limited', 'chat.reactRateLimited'],
+    [403, 'chat_disabled', 'chat.disabledTitle'],
+    [404, 'not_found', 'chat.reportGone'],
+    [422, 'validation_failed', 'chat.reactFailed'],
+    [0, 'network_error', 'errors.network'],
+  ])('%i %s → %s', (status, code, key) => {
+    const result = reactionErrorKey(err(status, code));
+    expect(result).toBe(key);
+    expect(hasKey(result)).toBe(true);
+  });
+});
+
+describe('MessageBubble reactions', () => {
+  const reacted = message({
+    reactions: [
+      { key: 'heart', count: 2, mine: true, member_ids: [6, 1] },
+      { key: 'rocket', count: 1, mine: false, member_ids: [3] },
+    ],
+  });
+  const chips = (tree: ReactTestRenderer) =>
+    tree.root.findAll(
+      (node) =>
+        typeof node.type !== 'string' &&
+        node.props.accessibilityRole === 'button' &&
+        typeof node.props.accessibilityLabel === 'string' &&
+        node.props.accessibilityLabel.startsWith('chat.reactionChip'),
+    );
+
+  it('offers "React" next to the message action', () => {
+    const tree = render({ action: 'delete', onLongPress: jest.fn(), onToggleReaction: jest.fn() });
+    expect(withActions(tree)[0].props.accessibilityActions).toEqual([
+      { name: 'react', label: 'chat.react' },
+      { name: 'delete', label: 'chat.delete' },
+    ]);
+  });
+
+  it('lets anyone react to a message without an action', () => {
+    const onLongPress = jest.fn();
+    const tree = render({ action: null, onLongPress, onToggleReaction: jest.fn() });
+    const press = withActions(tree)[0];
+    expect(press.props.accessibilityHint).toBe('chat.longPressReactHint');
+    act(() => press.props.onLongPress());
+    expect(onLongPress).toHaveBeenCalled();
+  });
+
+  it('shows known reactions as chips; tapping one toggles it', () => {
+    const onToggle = jest.fn();
+    const onShow = jest.fn();
+    const tree = render({
+      message: reacted,
+      onToggleReaction: onToggle,
+      onShowReactions: onShow,
+    });
+    const found = chips(tree);
+    // One chip (the unknown key is skipped); Pressable and its forwardRef wrapper both match.
+    expect(new Set(found.map((n) => n.props.accessibilityLabel)).size).toBe(1);
+    expect(found[0].props.accessibilityState).toEqual({ selected: true });
+    act(() => found[0].props.onPress());
+    expect(onToggle).toHaveBeenCalledWith(expect.objectContaining({ id: 7 }), 'heart');
+    act(() => found[0].props.onLongPress());
+    expect(onShow).toHaveBeenCalledWith(expect.objectContaining({ id: 7 }));
+  });
+
+  it('shows no reactions on a deleted message', () => {
+    const tree = render({
+      message: { ...reacted, deleted: true, body: null },
+      onToggleReaction: jest.fn(),
+    });
+    expect(chips(tree)).toHaveLength(0);
   });
 });

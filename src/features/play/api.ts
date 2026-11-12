@@ -52,6 +52,8 @@ export function syncCurrentSession(session: PlaySession, answeredItemId?: number
   );
   if (!isUnfinished(session.status)) {
     void queryClient.invalidateQueries({ queryKey: queryKeys.currentSession });
+    // Goal meters (Home, goals list, results) refresh once the game is over.
+    void queryClient.invalidateQueries({ queryKey: queryKeys.goals });
     // A finished session can extend the streak: streak worlds may have unlocked.
     void invalidateWorlds();
   }

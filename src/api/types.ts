@@ -950,6 +950,14 @@ export interface GoalPlan {
   starts_on: string;
   ends_on: string | null;
   is_active: boolean;
+  /**
+   * 2026-11-11: the team is the whole family; members who join later are added automatically
+   * (`target_override: null`).
+   */
+  everyone: boolean;
+  /** 2026-11-11: points in any category count; `scopes` is then `[]`. */
+  all_categories: boolean;
+  /** Empty when `all_categories`. */
   scopes: GoalScope[];
   members: GoalPlanMember[];
   current_period: GoalProgress | null;
@@ -981,11 +989,23 @@ export interface CreateGoalBody {
   reward_text?: string;
   starts_on: string;
   ends_on?: string;
-  category_ids: number[];
+  /** 2026-11-11: any category counts; `category_ids` must then be absent or empty. */
+  all_categories?: boolean;
+  /** ≥ 1 unless `all_categories` is true. */
+  category_ids?: number[];
+  /**
+   * 2026-11-11: whole family (default `true` when `members` is absent). With `true`, `members`
+   * only carries `target_override`s; with `false`, `members` (≥ 1) is the team.
+   */
+  everyone?: boolean;
   members?: { member_id: number; target_override?: number }[];
 }
 
-export type UpdateGoalBody = Partial<CreateGoalBody> & { is_active?: boolean };
+/** `PATCH /goals/{plan}`: all optional; `reward_text: null` clears the reward. */
+export type UpdateGoalBody = Omit<Partial<CreateGoalBody>, 'reward_text'> & {
+  reward_text?: string | null;
+  is_active?: boolean;
+};
 
 // ---------------------------------------------------------------------------
 // Leaderboard
@@ -1142,6 +1162,40 @@ export interface ChatMessage {
    * members always get `false`. Optional until every backend serves it (absent = not reported).
    */
   reported?: boolean;
+  /**
+   * Reactions (2026-11-11): fixed order, only keys with a count above 0; `[]` for deleted
+   * messages. Unknown keys must be skipped.
+   */
+  reactions: ChatReaction[];
+}
+
+/** The fixed reaction set (2026-11-11), in display order. */
+export type ChatReactionKey = 'heart' | 'thumbs_up' | 'laugh' | 'wow' | 'party' | 'star';
+
+export interface ChatReaction {
+  /** Typed loosely: the server may add keys later; the app skips unknown ones. */
+  key: string;
+  count: number;
+  /** The viewer's own reaction. */
+  mine: boolean;
+  /** In reaction order; members who left the family are not listed. */
+  member_ids: number[];
+}
+
+/** `PUT /family/chat/messages/{id}/reaction` → `{ data: ChatMessage }`. */
+export interface SetChatReactionBody {
+  key: ChatReactionKey;
+}
+
+/** One row of `GET /family/chat/reactions?since=<cursor>` (oldest change first, ≤ 200 rows). */
+export interface ChatReactionChange {
+  message_id: number;
+  reactions: ChatReaction[];
+}
+
+export interface ChatReactionChangesPage {
+  data: ChatReactionChange[];
+  meta: { cursor: string };
 }
 
 export interface ChatMessagesMeta {

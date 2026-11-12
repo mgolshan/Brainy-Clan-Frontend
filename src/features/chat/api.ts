@@ -2,6 +2,8 @@ import { api, ApiError } from '@/api/client';
 import type {
   ChatMessage,
   ChatMessagesPage,
+  ChatReactionChangesPage,
+  ChatReactionKey,
   ChatReadBody,
   ChatUnread,
   Envelope,
@@ -40,6 +42,29 @@ export function reportChatMessage(id: number): Promise<void> {
   return api.post<void>(`/family/chat/messages/${id}/report`);
 }
 
+/** `PUT /family/chat/messages/{id}/reaction`: sets the caller's one reaction (replaces an earlier one). */
+export async function putChatReaction(id: number, key: ChatReactionKey): Promise<ChatMessage> {
+  return (await api.put<Envelope<ChatMessage>>(`/family/chat/messages/${id}/reaction`, { key }))
+    .data;
+}
+
+/** `DELETE /family/chat/messages/{id}/reaction` (idempotent) → the message. */
+export async function deleteChatReaction(id: number): Promise<ChatMessage> {
+  return (await api.delete<Envelope<ChatMessage>>(`/family/chat/messages/${id}/reaction`)).data;
+}
+
+/**
+ * `GET /family/chat/reactions?since=<cursor>`: messages whose reactions changed after the cursor
+ * (≤ 200 rows, oldest first). Without `since`: no rows and the current cursor.
+ */
+export function fetchChatReactionChanges(
+  since: string | null,
+  signal?: AbortSignal,
+): Promise<ChatReactionChangesPage> {
+  const query = since ? `?since=${encodeURIComponent(since)}` : '';
+  return api.get<ChatReactionChangesPage>(`/family/chat/reactions${query}`, { signal });
+}
+
 export function postChatRead(body: ChatReadBody): Promise<void> {
   return api.post<void>('/family/chat/read', body);
 }
@@ -51,6 +76,23 @@ export async function fetchChatUnread(signal?: AbortSignal): Promise<ChatUnread>
 /** 403 `chat_disabled`: a parent turned chat off for this member. */
 export function isChatDisabledError(error: unknown): boolean {
   return error instanceof ApiError && error.code === 'chat_disabled';
+}
+
+/** Translation key for a failed reaction (set or remove). */
+export type ReactionErrorKey =
+  | 'chat.reactRateLimited'
+  | 'chat.reportGone'
+  | 'chat.disabledTitle'
+  | 'errors.network'
+  | 'chat.reactFailed';
+
+export function reactionErrorKey(error: unknown): ReactionErrorKey {
+  if (!(error instanceof ApiError)) return 'chat.reactFailed';
+  if (error.code === 'network_error' || error.code === 'timeout') return 'errors.network';
+  if (error.code === 'chat_disabled') return 'chat.disabledTitle';
+  if (error.status === 429) return 'chat.reactRateLimited';
+  if (error.status === 404) return 'chat.reportGone';
+  return 'chat.reactFailed';
 }
 
 /** Translation key for a failed report (`POST /family/chat/messages/{id}/report`). */

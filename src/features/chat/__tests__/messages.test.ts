@@ -32,6 +32,7 @@ const t = ((key: string, opts?: { count?: number }) =>
 
 const msg = (id: number, over: Partial<ChatMessage> = {}): ChatMessage => ({
   id,
+  reactions: [],
   member_id: 1,
   nickname: 'Sam',
   avatar: 'fox-kid',

@@ -13,11 +13,16 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import type { ChatMessage } from '@/api/types';
+import type { ChatMessage, ChatReactionKey } from '@/api/types';
 import { useIsAdmin, usePolicy } from '@/features/auth/hooks';
-import { isChatDisabledError, reportErrorKey } from '@/features/chat/api';
+import { isChatDisabledError, reactionErrorKey, reportErrorKey } from '@/features/chat/api';
 import { Composer } from '@/features/chat/components/Composer';
 import { ConfirmSheet } from '@/features/chat/components/ConfirmSheet';
+import {
+  MessageMenuSheet,
+  ReactorsSheet,
+  type MenuAction,
+} from '@/features/chat/components/MessageMenuSheet';
 import {
   DaySeparator,
   MessageBubble,
@@ -30,6 +35,7 @@ import {
   useChatPolling,
   useDeleteChatMessage,
   useMarkChatRead,
+  useReactToMessage,
   useReportChatMessage,
 } from '@/features/chat/hooks';
 import {
@@ -45,6 +51,7 @@ import {
   type ChatRow,
   type OutboxItem,
 } from '@/features/chat/messages';
+import { myReaction, reactionIntent, visibleReactions } from '@/features/chat/reactions';
 import {
   discardChatMessage,
   retryChatMessage,
@@ -67,8 +74,13 @@ import {
 } from '@/ui';
 import { maxContentWidth } from '@/ui/themes/layout';
 
-/** The open sheet: delete a message, discard an unsent one, report one, or review a report (admins). */
+/**
+ * The open sheet: the long-press menu (reactions + actions), who reacted, delete a message,
+ * discard an unsent one, report one, or review a report (admins).
+ */
 type SheetTarget =
+  | { kind: 'menu'; message: ChatMessage }
+  | { kind: 'reactors'; message: ChatMessage }
   | { kind: 'message'; message: ChatMessage }
   | { kind: 'pending'; item: OutboxItem }
   | { kind: 'report'; message: ChatMessage }
@@ -180,6 +192,7 @@ function ChatRoom({ memberId }: { memberId: number }) {
   const outbox = useChatOutbox((s) => s.items);
   const remove = useDeleteChatMessage();
   const report = useReportChatMessage();
+  const { mutate: react } = useReactToMessage(memberId);
   const markRead = useMarkChatRead(history.meta?.last_read_id);
   const [target, setTarget] = useState<SheetTarget | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
@@ -221,7 +234,8 @@ function ChatRoom({ memberId }: { memberId: number }) {
     return () => clearTimeout(timer);
   }, [notice]);
 
-  const onLongPress = useCallback(
+  // A message's action (delete, report, review), straight to its confirmation.
+  const onAction = useCallback(
     (message: ChatMessage) => {
       const action = messageAction(message, memberId, isAdmin);
       if (action === 'delete') {
@@ -233,6 +247,24 @@ function ChatRoom({ memberId }: { memberId: number }) {
       }
     },
     [memberId, isAdmin],
+  );
+  // Long press: the menu with the reactions and the action.
+  const onLongPress = useCallback((message: ChatMessage) => {
+    if (!message.deleted) setTarget({ kind: 'menu', message });
+  }, []);
+  const toggleReaction = useCallback(
+    (message: ChatMessage, key: ChatReactionKey) => {
+      const intent = reactionIntent(message.reactions, key);
+      react(
+        { messageId: message.id, key: intent.action === 'set' ? intent.key : null },
+        { onError: (error) => setNotice({ tone: 'danger', text: t(reactionErrorKey(error)) }) },
+      );
+    },
+    [react, t],
+  );
+  const onShowReactions = useCallback(
+    (message: ChatMessage) => setTarget({ kind: 'reactors', message }),
+    [],
   );
   const onReviewReport = useCallback(
     (message: ChatMessage) => setTarget({ kind: 'review', message }),
@@ -295,6 +327,9 @@ function ChatRoom({ memberId }: { memberId: number }) {
               locale={locale}
               action={messageAction(item.message, memberId, isAdmin)}
               onLongPress={onLongPress}
+              onAction={onAction}
+              onToggleReaction={toggleReaction}
+              onShowReactions={onShowReactions}
               reported={reported}
               onReviewReport={reported ? onReviewReport : undefined}
               highlighted={item.message.id === highlightId}
@@ -309,12 +344,49 @@ function ChatRoom({ memberId }: { memberId: number }) {
       onRetry,
       onPendingLongPress,
       onLongPress,
+      onAction,
+      toggleReaction,
+      onShowReactions,
       onReviewReport,
       memberId,
       isAdmin,
       highlightId,
     ],
   );
+
+  // The cached copy of a message (reactions may have changed since the sheet opened).
+  const currentMessage = (message: ChatMessage) =>
+    messages.find((m) => m.id === message.id) ?? message;
+
+  const menuActions = (message: ChatMessage): MenuAction[] => {
+    const list: MenuAction[] = [];
+    if (visibleReactions(currentMessage(message)).length > 0) {
+      list.push({
+        label: t('chat.whoReacted'),
+        icon: 'people-outline',
+        variant: 'outline',
+        onPress: () => setTarget({ kind: 'reactors', message }),
+      });
+    }
+    const action = messageAction(message, memberId, isAdmin);
+    if (action === 'report') {
+      list.push({
+        label: t('chat.report'),
+        icon: 'flag-outline',
+        variant: 'outline',
+        onPress: () => onAction(message),
+      });
+    } else if (action === 'delete') {
+      const review = showReportedTag(message, isAdmin) && message.member_id !== memberId;
+      list.push({
+        label: review ? t('chat.reviewReport') : t('chat.delete'),
+        icon: review ? 'flag' : 'trash-outline',
+        variant: review ? 'outline' : 'danger',
+        onPress: () => onAction(message),
+      });
+    }
+    return list;
+  };
 
   const sendReport = (message: ChatMessage) => {
     report.mutate(message.id, {
@@ -410,6 +482,24 @@ function ChatRoom({ memberId }: { memberId: number }) {
           ) : null}
         </View>
       )}
+      {target?.kind === 'menu' ? (
+        <MessageMenuSheet
+          mine={myReaction(currentMessage(target.message).reactions)}
+          canReact={!currentMessage(target.message).deleted}
+          onReact={(key) => {
+            setTarget(null);
+            toggleReaction(currentMessage(target.message), key);
+          }}
+          actions={menuActions(target.message)}
+          onClose={() => setTarget(null)}
+        />
+      ) : null}
+      {target?.kind === 'reactors' ? (
+        <ReactorsSheet
+          reactions={visibleReactions(currentMessage(target.message))}
+          onClose={() => setTarget(null)}
+        />
+      ) : null}
       {target?.kind === 'message' || target?.kind === 'pending' ? (
         <ConfirmSheet
           title={target.kind === 'message' ? t('chat.deleteTitle') : t('chat.discardTitle')}

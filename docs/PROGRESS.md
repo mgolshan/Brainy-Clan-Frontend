@@ -373,6 +373,85 @@ themes (light/dark).
 
 ## Log
 
+### 2026-11-11 Goals that explain themselves + chat reactions
+
+Moe: "Pizza Friday" stayed at 0/100 after Dad played Mental Math and Jordan played Sudoku. The
+goal only counts World Geography, and Jordan wasn't on its team, but nothing in the UI said so.
+He also couldn't react to chat messages. The contract is in API.md (Goals 2026-11-11 additions,
+Family chat "Reactions") and the PLAN.md decision. Built against it while the backend agent
+builds the server side.
+
+- Types: `GoalPlan.everyone` / `all_categories`; `CreateGoalBody` gains `everyone`,
+  `all_categories` (then `category_ids` is optional); `UpdateGoalBody.reward_text` may be `null`.
+  `ChatMessage.reactions`, `ChatReaction`, `ChatReactionKey`, `ChatReactionChange(sPage)`.
+- Goal cards (Home + goals list) have a line saying what counts and who plays: "World Geography ·
+  4 players", "All categories · Everyone", "2 categories · 3 players" (`goalSummary`, en/fr
+  plurals; part of the card's screen-reader label).
+- Wizard: the categories step starts with two choices, "All categories" (any game counts) and
+  "Pick categories" (the existing tree picker). "Who plays" has "Everyone in the family (new
+  members join automatically)" and "Pick members". Own targets in a race are still possible
+  in both cases. A new goal starts with the whole family and the categories still to choose. The
+  request bodies are built by the pure `goalForm.ts`:
+  - `everyone: true` sends `members` only to carry own targets.
+  - `everyone: false` sends the picked team.
+  - `all_categories: true` sends no `category_ids`.
+- New: **Edit goal** (admins, goal detail → `/goals/edit/[id]`, modal). It is the same wizard,
+  filled from the plan. It has no start-date choice, says "Changes apply from the next period",
+  and sends `PATCH` with the whole team as `members` (so removed own targets are cleared) and
+  `reward_text: null` when the reward is emptied. This lets Moe switch Pizza Friday to all
+  categories.
+- Goal detail: an "All categories" badge with "Points from every category count", and an
+  "Everyone" badge with "New members join automatically".
+- Play tab and drill-down: a tile shows "Counts for Pizza Friday" (green flag) when playing it
+  counts toward one of your active goals: you are on the team (`everyone` plans include you)
+  and the category is a scope or inside one. A parent with a scope deeper inside shows "Topics
+  for Pizza Friday". Several goals → "Counts for 2 goals". `all_categories` goals are never
+  badged (that would mark every tile); their card says "All categories". The drill-down screen
+  shows the badge above "Play all". The logic is in the pure `goals/matching.ts`: a parent index
+  built from the cached `GET /categories` tree, and the plans from `GET /goals`. No new
+  endpoint.
+- Results screen: "+12 points toward Pizza Friday" for each goal the finished session's
+  category counts toward (`all_categories` included). It uses the same helper and the session's
+  points. Goals are now also invalidated when a session ends, on top of every answer that scores.
+- Chat reactions:
+  - A long press on a message (screen readers: the "React" action) opens one menu. It has the
+    six reactions ❤️ 👍 😂 😮 🎉 ⭐ (your own highlighted; tapping it removes it) and the existing
+    actions: Delete / Report to a parent / Review the report (admins on a reported message), plus
+    "Who reacted". The screen-reader "Delete"/"Report" actions still go straight to their
+    confirmation. Tombstones offer nothing.
+  - Under the bubble are chips with counts, your own outlined in the world's primary colour.
+    Tapping toggles: your own → `DELETE`, another → `PUT` (it replaces yours). Press and hold
+    (or the "Who reacted" accessibility action) lists who reacted, with nicknames from
+    `GET /family`. Unknown ids and unknown keys are skipped.
+  - The update is optimistic with a per-message rollback; the server's message then replaces
+    it. 429 → "Lots of reactions! Wait a minute…", `chat_disabled` → the existing
+    refresh-`me` path, 404 → "no longer in the chat", all shown through the existing notice.
+  - Polling: the history's first page also takes the cursor (`GET /family/chat/reactions`
+    without `since`, in parallel). The 4 s poll then reads `?since=` after `after`, calling
+    again while a page has 200 rows (max 10), and patches only the changed messages, so only
+    their bubbles re-render (memoised `MessageBubble`, stable callbacks). A 422 cursor is
+    dropped and taken again. A backend without the endpoint just shows no changes. The cursor
+    lives in the query cache (`chatReactionsCursor`, `gcTime: Infinity`, cleared on sign-out).
+    `insertMessages` now also notices reaction changes. Deleting a message clears its
+    reactions.
+- Tests: `goals/__tests__/matching.test.ts`, `goalForm.test.ts`, `chat/__tests__/reactions.test.ts`
+  (toggle, patch/merge, cursor paging), reaction cases in `report.test.tsx`, and the chat
+  fixtures gained `reactions: []`.
+- CLAUDE.md: the stack line says SDK 58 (RN 0.88, React 19.3), and the docs link points to v58.
+- Checks: typecheck, lint, format:check, Jest 59 suites / 1008 tests, and `expo export
+--platform web` all pass. The generated `dist/` is git-ignored and was removed.
+- To check against the real backend:
+  - Create a goal with Everyone + All categories, then play any category: the card meter moves
+    and the results say "+N toward …".
+  - Edit Pizza Friday to all categories.
+  - Make a World Geography goal and see the tile badge, including the Geography parent
+    ("Topics for …").
+  - React from two accounts and see the chips update within ~4 s on the other device.
+  - Tap your own chip to remove it.
+  - Press and hold a chip for who reacted.
+  - Use VoiceOver/TalkBack actions on a bubble and a chip.
+  - Send 60+ reactions in a minute to see the rate-limit notice.
+
 ### 2026-11-11 Expo SDK 58 upgrade
 
 Moe: Expo Go on the phone refused the QR code ("project must be SDK 58"): the store Expo Go now

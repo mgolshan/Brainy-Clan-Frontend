@@ -1,4 +1,5 @@
 import { FlashList } from '@shopify/flash-list';
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
@@ -93,6 +94,14 @@ function AdminActions({ goal }: { goal: GoalPlan }) {
   const error = update.error ?? remove.error;
   return (
     <Card style={{ gap: 8 }}>
+      <Button
+        title={t('goals.edit')}
+        icon="create-outline"
+        variant="outline"
+        onPress={() =>
+          router.push({ pathname: '/goals/edit/[id]', params: { id: String(goal.id) } })
+        }
+      />
       <Button
         title={goal.is_active ? t('goals.pause') : t('goals.resume')}
         icon={goal.is_active ? 'pause-circle-outline' : 'play-circle-outline'}
@@ -288,13 +297,28 @@ export function GoalDetailScreen({ id }: { id: number }) {
           {t('goals.scopes')}
         </Text>
         <View style={styles.badges}>
-          {g.scopes.map((s) => (
-            <Badge key={s.category_id} label={s.name} />
-          ))}
+          {g.all_categories ? (
+            <Badge label={t('goals.summary.allCategories')} icon="apps-outline" tone="primary" />
+          ) : (
+            g.scopes.map((s) => <Badge key={s.category_id} label={s.name} />)
+          )}
         </View>
+        {g.all_categories ? (
+          <Text variant="caption" tone="muted">
+            {t('goals.allCategoriesNote')}
+          </Text>
+        ) : null}
         <Text variant="label" tone="muted">
           {t('goals.membersLabel')}
         </Text>
+        {g.everyone ? (
+          <View style={styles.memberChip}>
+            <Badge label={t('goals.summary.everyone')} icon="people-outline" tone="primary" />
+            <Text variant="caption" tone="muted" style={styles.flex}>
+              {t('goals.everyoneNote')}
+            </Text>
+          </View>
+        ) : null}
         <View style={styles.badges}>
           {g.members.map((m) => (
             <View key={m.member_id} style={styles.memberChip}>

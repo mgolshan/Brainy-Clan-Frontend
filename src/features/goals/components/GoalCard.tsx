@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import type { GoalPlan } from '@/api/types';
 import { RewardBanner } from '@/features/goals/components/RewardBanner';
+import { goalSummary } from '@/features/goals/matching';
 import { formatTimeLeft, useNow } from '@/features/goals/time';
 import { Avatar, Badge, Card, Icon, ProgressBar, Text, useTheme } from '@/ui';
 
@@ -22,6 +23,8 @@ export function GoalCard({ goal, meId, onPress, featured }: GoalCardProps) {
   const p = goal.current_period;
   const mine = p?.entries.find((e) => e.member_id === meId);
   const leader = p?.entries[0];
+  // What counts and who plays ("World Geography · 4 players"), so a goal at 0 explains itself.
+  const summary = goalSummary(goal, t);
 
   // Cooperation: the team reached the target. Competition: the bar shows the viewer's own target
   // (or the leader's), and the reward goes to the top scorer when the period closes, so "reached"
@@ -53,7 +56,7 @@ export function GoalCard({ goal, meId, onPress, featured }: GoalCardProps) {
       onPress={onPress}
       padding={featured ? 'lg' : 'md'}
       style={{ gap: theme.spacing.sm, opacity: goal.is_active ? 1 : 0.7 }}
-      accessibilityLabel={goal.name}>
+      accessibilityLabel={`${goal.name}. ${t('goals.summary.label', { summary })}`}>
       <View style={styles.header}>
         <Icon
           name={goal.mode === 'cooperation' ? 'people' : 'podium'}
@@ -64,6 +67,16 @@ export function GoalCard({ goal, meId, onPress, featured }: GoalCardProps) {
         </Text>
         {reached ? <Badge label={t('goals.reached')} tone="success" icon="checkmark" /> : null}
         {!goal.is_active ? <Badge label={t('goals.paused')} /> : null}
+      </View>
+      <View style={styles.summary}>
+        <Icon
+          name={goal.all_categories ? 'apps-outline' : 'pricetag-outline'}
+          size={16}
+          color={theme.colors.textMuted}
+        />
+        <Text variant="caption" tone="muted" weight="bold" style={styles.flex} numberOfLines={2}>
+          {summary}
+        </Text>
       </View>
       <View style={styles.badges}>
         <Badge label={t(`goals.mode.${goal.mode}`)} tone="primary" />
@@ -104,6 +117,7 @@ export function GoalCard({ goal, meId, onPress, featured }: GoalCardProps) {
 const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   flex: { flex: 1 },
+  summary: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   avatars: { flexDirection: 'row', gap: 4 },
 });

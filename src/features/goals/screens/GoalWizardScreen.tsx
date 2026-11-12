@@ -3,17 +3,29 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text as RNText, View } from 'react-native';
 
-import type { Category, CreateGoalBody, GoalMode, GoalPeriodType } from '@/api/types';
+import type { Category, GoalPlan } from '@/api/types';
 import { usePolicy } from '@/features/auth/hooks';
 import { useFamily } from '@/features/family/hooks';
 import { RewardBanner } from '@/features/goals/components/RewardBanner';
-import { useCreateGoal, useGoals } from '@/features/goals/hooks';
+import {
+  NEW_GOAL_FORM,
+  buildCreateBody,
+  buildUpdateBody,
+  categoriesValid,
+  formFromGoal,
+  parseTarget,
+  targetStepValid,
+  teamMemberIds,
+  type GoalFormState,
+} from '@/features/goals/goalForm';
+import { useCreateGoal, useGoal, useGoals, useUpdateGoal } from '@/features/goals/hooks';
 import { GoalLimitHint, isGoalLimitReached } from '@/features/goals/screens/GoalsScreen';
 import { startDateOptions } from '@/features/goals/time';
 import { useCategories } from '@/features/play/api';
 import { categoryColor, categoryVisual } from '@/features/play/categoryVisuals';
 import { formatDate } from '@/lib/format';
 import { formErrors } from '@/lib/formErrors';
+import { goBack } from '@/lib/navigation';
 import {
   Avatar,
   Badge,
@@ -212,8 +224,44 @@ function findName(tree: Category[], id: number): string | undefined {
   return undefined;
 }
 
-/** Admin: create a goal plan step by step (`POST /goals`). */
-export function GoalWizardScreen() {
+/** Own-target field for a member in a race (empty = the plan target). */
+function OwnTargetField({
+  name,
+  value,
+  placeholder,
+  onChange,
+}: {
+  name: string;
+  value: string;
+  placeholder: string;
+  onChange: (value: string) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <TextField
+      label={t('goals.wizard.ownTarget', { name })}
+      value={value}
+      onChangeText={(v) => onChange(v.replace(/[^0-9]/g, '').slice(0, 5))}
+      keyboardType="number-pad"
+      placeholder={placeholder}
+      hint={t('goals.wizard.ownTargetHint')}
+    />
+  );
+}
+
+interface GoalWizardProps {
+  /** Starting form (a new goal, or the plan being edited). */
+  initial: GoalFormState;
+  /** Set when editing: no start date step, "Save changes", `PATCH`. */
+  editing?: GoalPlan;
+}
+
+/**
+ * Admin: create (`POST /goals`) or edit (`PATCH /goals/{plan}`) a goal plan step by step. The
+ * categories step offers "All categories" first; "Who plays" defaults to the whole family
+ * (newcomers join automatically) with an option to pick members.
+ */
+function GoalWizard({ initial, editing }: GoalWizardProps) {
   const { t, i18n } = useTranslation();
   const theme = useTheme();
   const policy = usePolicy();
@@ -221,88 +269,63 @@ export function GoalWizardScreen() {
   const categories = useCategories();
   const family = useFamily();
   const create = useCreateGoal();
+  const update = useUpdateGoal(editing?.id ?? 0);
+  const save = editing ? update : create;
   const timeZone = family.data?.family.timezone;
   const dates = useMemo(() => startDateOptions(new Date(), timeZone), [timeZone]);
 
   const [step, setStep] = useState(0);
-  const [name, setName] = useState('');
-  const [selected, setSelected] = useState<Set<number>>(new Set());
-  const [mode, setMode] = useState<GoalMode>('cooperation');
-  const [period, setPeriod] = useState<GoalPeriodType>('weekly');
+  const [form, setForm] = useState<GoalFormState>(initial);
   const [startChoice, setStartChoice] = useState<keyof typeof dates>('today');
   const startsOn = dates[startChoice];
-  const [target, setTarget] = useState('100');
-  const [excluded, setExcluded] = useState<Set<number>>(new Set());
-  const [overrides, setOverrides] = useState<Record<number, string>>({});
-  const [reward, setReward] = useState('');
-  const errors = formErrors(create.error, t, [
-    'name',
-    'target_points',
-    'category_ids',
-    'starts_on',
-  ]);
+  const errors = formErrors(save.error, t, ['name', 'target_points', 'category_ids', 'starts_on']);
+  const set = <K extends keyof GoalFormState>(key: K, value: GoalFormState[K]) =>
+    setForm((prev) => ({ ...prev, [key]: value }));
 
   const current: Step = STEPS[step];
-  const targetNum = Number(target);
-  const targetValid = Number.isInteger(targetNum) && targetNum >= 1 && targetNum <= 10000;
   const members = family.data?.members ?? [];
-  const includedMembers = members.filter((m) => !excluded.has(m.id));
+  const memberIds = members.map((m) => m.id);
+  const team = new Set(teamMemberIds(form, memberIds));
+  const teamMembers = members.filter((m) => team.has(m.id));
+  const targetNum = parseTarget(form.target) ?? 0;
+  const selected = new Set(form.categoryIds);
 
   const canNext =
-    (current === 'name' && name.trim().length > 0) ||
-    (current === 'categories' && selected.size > 0) ||
+    (current === 'name' && form.name.trim().length > 0) ||
+    (current === 'categories' && categoriesValid(form)) ||
     current === 'mode' ||
     current === 'period' ||
-    (current === 'target' && targetValid && includedMembers.length > 0) ||
+    (current === 'target' && targetStepValid(form, memberIds)) ||
     current === 'reward' ||
     current === 'review';
 
-  if (isGoalLimitReached(policy, goals.data) && !create.isSuccess) {
-    return (
-      <Screen title={t('goals.create')} back>
-        <GoalLimitHint />
-      </Screen>
-    );
-  }
-
   const toggleCategory = (id: number) =>
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+    setForm((prev) => ({
+      ...prev,
+      categoryIds: prev.categoryIds.includes(id)
+        ? prev.categoryIds.filter((c) => c !== id)
+        : [...prev.categoryIds, id],
+    }));
+  const toggleMember = (id: number, on: boolean) =>
+    setForm((prev) => ({
+      ...prev,
+      excluded: on ? prev.excluded.filter((m) => m !== id) : [...prev.excluded, id],
+    }));
+  const setOverride = (id: number, value: string) =>
+    setForm((prev) => ({ ...prev, overrides: { ...prev.overrides, [id]: value } }));
 
-  const buildBody = (): CreateGoalBody => {
-    const customMembers =
-      excluded.size > 0 ||
-      (mode === 'competition' && Object.values(overrides).some((v) => v.trim()));
-    return {
-      name: name.trim(),
-      mode,
-      period_type: period,
-      target_points: targetNum,
-      ...(reward.trim() ? { reward_text: reward.trim() } : {}),
-      starts_on: startsOn,
-      category_ids: [...selected],
-      ...(customMembers
-        ? {
-            members: includedMembers.map((m) => {
-              const o = Number(overrides[m.id]);
-              return mode === 'competition' && overrides[m.id]?.trim() && o >= 1
-                ? { member_id: m.id, target_override: o }
-                : { member_id: m.id };
-            }),
-          }
-        : {}),
-    };
+  const submit = () => {
+    if (editing) {
+      update.mutate(buildUpdateBody(form, memberIds), {
+        onSuccess: () => goBack({ pathname: '/goals/[id]', params: { id: String(editing.id) } }),
+      });
+    } else {
+      create.mutate(buildCreateBody(form, memberIds, startsOn), {
+        onSuccess: (plan) =>
+          router.replace({ pathname: '/goals/[id]', params: { id: String(plan.id) } }),
+      });
+    }
   };
-
-  const submit = () =>
-    create.mutate(buildBody(), {
-      onSuccess: (plan) =>
-        router.replace({ pathname: '/goals/[id]', params: { id: String(plan.id) } }),
-    });
 
   const footer = (
     <View style={styles.footerRow}>
@@ -318,9 +341,9 @@ export function GoalWizardScreen() {
       ) : null}
       {current === 'review' ? (
         <Button
-          title={t('goals.wizard.create')}
-          icon="flag"
-          loading={create.isPending}
+          title={editing ? t('goals.wizard.save') : t('goals.wizard.create')}
+          icon={editing ? 'checkmark' : 'flag'}
+          loading={save.isPending}
           onPress={submit}
           style={styles.flex2}
         />
@@ -336,6 +359,20 @@ export function GoalWizardScreen() {
     </View>
   );
 
+  if (!editing && isGoalLimitReached(policy, goals.data) && !create.isSuccess) {
+    return (
+      <Screen title={t('goals.create')} back>
+        <GoalLimitHint />
+      </Screen>
+    );
+  }
+
+  const categoriesSummary = form.allCategories
+    ? t('goals.summary.allCategories')
+    : form.categoryIds
+        .map((id) => (categories.data && findName(categories.data, id)) ?? id)
+        .join(', ');
+
   return (
     <Screen
       title={t(`goals.wizard.steps.${current}`)}
@@ -346,18 +383,28 @@ export function GoalWizardScreen() {
 
       {current === 'name' ? (
         <View style={{ gap: theme.spacing.md }}>
+          {editing ? (
+            <Card variant="tinted" tint={theme.colors.accent}>
+              <Text variant="caption">{t('goals.wizard.editNote')}</Text>
+            </Card>
+          ) : null}
           <Text tone="muted">{t('goals.wizard.nameHelp')}</Text>
           <TextField
             label={t('goals.wizard.nameLabel')}
-            value={name}
-            onChangeText={setName}
+            value={form.name}
+            onChangeText={(v) => set('name', v)}
             maxLength={60}
             placeholder={t('goals.ideas.name1')}
             error={errors.field('name')}
           />
           <View style={styles.wrap}>
             {NAME_IDEAS.map((k) => (
-              <Chip key={k} label={t(k)} selected={name === t(k)} onPress={() => setName(t(k))} />
+              <Chip
+                key={k}
+                label={t(k)}
+                selected={form.name === t(k)}
+                onPress={() => set('name', t(k))}
+              />
             ))}
           </View>
         </View>
@@ -365,27 +412,51 @@ export function GoalWizardScreen() {
 
       {current === 'categories' ? (
         <View style={{ gap: theme.spacing.md }}>
-          <Text tone="muted">{t('goals.wizard.categoriesHelp')}</Text>
-          {selected.size > 0 && categories.data ? (
-            <View style={styles.wrap}>
-              {[...selected].map((id) => (
-                <Chip
-                  key={id}
-                  label={findName(categories.data, id) ?? String(id)}
-                  selected
-                  icon="close"
-                  onPress={() => toggleCategory(id)}
+          <OptionCard
+            selected={form.allCategories}
+            onPress={() => set('allCategories', true)}
+            emoji="🌈"
+            icon="apps-outline"
+            title={t('goals.wizard.allCategoriesOption')}
+            body={t('goals.wizard.allCategoriesHelp')}
+          />
+          <OptionCard
+            selected={!form.allCategories}
+            onPress={() => set('allCategories', false)}
+            emoji="🎯"
+            icon="pricetags-outline"
+            title={t('goals.wizard.pickCategoriesOption')}
+            body={t('goals.wizard.pickCategoriesHelp')}
+          />
+          {!form.allCategories ? (
+            <>
+              <Text tone="muted">{t('goals.wizard.categoriesHelp')}</Text>
+              {form.categoryIds.length > 0 && categories.data ? (
+                <View style={styles.wrap}>
+                  {form.categoryIds.map((id) => (
+                    <Chip
+                      key={id}
+                      label={findName(categories.data, id) ?? String(id)}
+                      selected
+                      icon="close"
+                      onPress={() => toggleCategory(id)}
+                    />
+                  ))}
+                </View>
+              ) : null}
+              {categories.isPending ? (
+                <Loading fill={false} />
+              ) : categories.isError ? (
+                <ErrorState error={categories.error} onRetry={() => void categories.refetch()} />
+              ) : (
+                <CategoryPicker
+                  tree={categories.data}
+                  selected={selected}
+                  onToggle={toggleCategory}
                 />
-              ))}
-            </View>
+              )}
+            </>
           ) : null}
-          {categories.isPending ? (
-            <Loading fill={false} />
-          ) : categories.isError ? (
-            <ErrorState error={categories.error} onRetry={() => void categories.refetch()} />
-          ) : (
-            <CategoryPicker tree={categories.data} selected={selected} onToggle={toggleCategory} />
-          )}
           {errors.field('category_ids') ? (
             <Text tone="danger">{errors.field('category_ids')}</Text>
           ) : null}
@@ -395,16 +466,16 @@ export function GoalWizardScreen() {
       {current === 'mode' ? (
         <View style={{ gap: theme.spacing.md }}>
           <OptionCard
-            selected={mode === 'cooperation'}
-            onPress={() => setMode('cooperation')}
+            selected={form.mode === 'cooperation'}
+            onPress={() => set('mode', 'cooperation')}
             emoji="🤝"
             icon="people-outline"
             title={t('goals.mode.cooperation')}
             body={t('goals.modeHelp.cooperation')}
           />
           <OptionCard
-            selected={mode === 'competition'}
-            onPress={() => setMode('competition')}
+            selected={form.mode === 'competition'}
+            onPress={() => set('mode', 'competition')}
             emoji="🏁"
             icon="podium-outline"
             title={t('goals.mode.competition')}
@@ -418,8 +489,8 @@ export function GoalWizardScreen() {
           {(['daily', 'weekly', 'monthly'] as const).map((p) => (
             <OptionCard
               key={p}
-              selected={period === p}
-              onPress={() => setPeriod(p)}
+              selected={form.period === p}
+              onPress={() => set('period', p)}
               emoji={p === 'daily' ? '☀️' : p === 'weekly' ? '📅' : '🗓️'}
               icon={
                 p === 'daily'
@@ -432,26 +503,30 @@ export function GoalWizardScreen() {
               body={t(`goals.periodHelp.${p}`)}
             />
           ))}
-          <Text variant="label" tone="muted">
-            {t('goals.wizard.startsLabel')}
-          </Text>
-          <View style={styles.wrap}>
-            <Chip
-              label={t('goals.wizard.today')}
-              selected={startChoice === 'today'}
-              onPress={() => setStartChoice('today')}
-            />
-            <Chip
-              label={t('goals.wizard.tomorrow')}
-              selected={startChoice === 'tomorrow'}
-              onPress={() => setStartChoice('tomorrow')}
-            />
-            <Chip
-              label={t('goals.wizard.nextMonday')}
-              selected={startChoice === 'nextMonday'}
-              onPress={() => setStartChoice('nextMonday')}
-            />
-          </View>
+          {editing ? null : (
+            <>
+              <Text variant="label" tone="muted">
+                {t('goals.wizard.startsLabel')}
+              </Text>
+              <View style={styles.wrap}>
+                <Chip
+                  label={t('goals.wizard.today')}
+                  selected={startChoice === 'today'}
+                  onPress={() => setStartChoice('today')}
+                />
+                <Chip
+                  label={t('goals.wizard.tomorrow')}
+                  selected={startChoice === 'tomorrow'}
+                  onPress={() => setStartChoice('tomorrow')}
+                />
+                <Chip
+                  label={t('goals.wizard.nextMonday')}
+                  selected={startChoice === 'nextMonday'}
+                  onPress={() => setStartChoice('nextMonday')}
+                />
+              </View>
+            </>
+          )}
           {errors.field('starts_on') ? (
             <Text tone="danger">{errors.field('starts_on')}</Text>
           ) : null}
@@ -461,18 +536,20 @@ export function GoalWizardScreen() {
       {current === 'target' ? (
         <View style={{ gap: theme.spacing.md }}>
           <Text tone="muted">
-            {mode === 'cooperation'
+            {form.mode === 'cooperation'
               ? t('goals.wizard.targetHelpTeam')
               : t('goals.wizard.targetHelpEach')}
           </Text>
           <TextField
             label={t('goals.wizard.targetLabel')}
-            value={target}
-            onChangeText={(v) => setTarget(v.replace(/[^0-9]/g, '').slice(0, 5))}
+            value={form.target}
+            onChangeText={(v) => set('target', v.replace(/[^0-9]/g, '').slice(0, 5))}
             keyboardType="number-pad"
             error={
               errors.field('target_points') ??
-              (target && !targetValid ? t('goals.wizard.targetRange') : undefined)
+              (form.target && parseTarget(form.target) === null
+                ? t('goals.wizard.targetRange')
+                : undefined)
             }
           />
           <View style={styles.wrap}>
@@ -480,50 +557,67 @@ export function GoalWizardScreen() {
               <Chip
                 key={n}
                 label={String(n)}
-                selected={target === String(n)}
-                onPress={() => setTarget(String(n))}
+                selected={form.target === String(n)}
+                onPress={() => set('target', String(n))}
               />
             ))}
           </View>
           <Text variant="title">{t('goals.wizard.whoPlays')}</Text>
+          <OptionCard
+            selected={form.everyone}
+            onPress={() => set('everyone', true)}
+            emoji="👨‍👩‍👧‍👦"
+            icon="people-outline"
+            title={t('goals.wizard.everyoneOption')}
+            body={t('goals.wizard.everyoneHelp')}
+          />
+          <OptionCard
+            selected={!form.everyone}
+            onPress={() => set('everyone', false)}
+            emoji="☝️"
+            icon="person-add-outline"
+            title={t('goals.wizard.pickMembersOption')}
+            body={t('goals.wizard.pickMembersHelp')}
+          />
           {family.isPending ? (
             <Loading fill={false} />
-          ) : (
+          ) : !form.everyone ? (
             <Card padding="sm">
               {members.map((m, i) => (
                 <View key={m.id} style={{ gap: 6, paddingBottom: 6 }}>
                   {i > 0 ? <Divider /> : null}
                   <ToggleRow
                     label={m.nickname}
-                    value={!excluded.has(m.id)}
-                    onValueChange={(on) =>
-                      setExcluded((prev) => {
-                        const next = new Set(prev);
-                        if (on) next.delete(m.id);
-                        else next.add(m.id);
-                        return next;
-                      })
-                    }
+                    value={team.has(m.id)}
+                    onValueChange={(on) => toggleMember(m.id, on)}
                   />
-                  {mode === 'competition' && !excluded.has(m.id) ? (
-                    <TextField
-                      label={t('goals.wizard.ownTarget', { name: m.nickname })}
-                      value={overrides[m.id] ?? ''}
-                      onChangeText={(v) =>
-                        setOverrides((prev) => ({
-                          ...prev,
-                          [m.id]: v.replace(/[^0-9]/g, '').slice(0, 5),
-                        }))
-                      }
-                      keyboardType="number-pad"
-                      placeholder={target || '100'}
-                      hint={t('goals.wizard.ownTargetHint')}
+                  {form.mode === 'competition' && team.has(m.id) ? (
+                    <OwnTargetField
+                      name={m.nickname}
+                      value={form.overrides[m.id] ?? ''}
+                      placeholder={form.target || '100'}
+                      onChange={(v) => setOverride(m.id, v)}
                     />
                   ) : null}
                 </View>
               ))}
             </Card>
-          )}
+          ) : form.mode === 'competition' ? (
+            <Card padding="sm" style={{ gap: theme.spacing.sm }}>
+              <Text variant="label" tone="muted">
+                {t('goals.wizard.ownTargets')}
+              </Text>
+              {members.map((m) => (
+                <OwnTargetField
+                  key={m.id}
+                  name={m.nickname}
+                  value={form.overrides[m.id] ?? ''}
+                  placeholder={form.target || '100'}
+                  onChange={(v) => setOverride(m.id, v)}
+                />
+              ))}
+            </Card>
+          ) : null}
         </View>
       ) : null}
 
@@ -532,8 +626,8 @@ export function GoalWizardScreen() {
           <Text tone="muted">{t('goals.wizard.rewardHelp')}</Text>
           <TextField
             label={t('goals.wizard.rewardLabel')}
-            value={reward}
-            onChangeText={setReward}
+            value={form.reward}
+            onChangeText={(v) => set('reward', v)}
             maxLength={120}
             placeholder={t('goals.ideas.reward1')}
           />
@@ -542,64 +636,73 @@ export function GoalWizardScreen() {
               <Chip
                 key={k}
                 label={t(k)}
-                selected={reward === t(k)}
-                onPress={() => setReward(t(k))}
+                selected={form.reward === t(k)}
+                onPress={() => set('reward', t(k))}
               />
             ))}
           </View>
-          {reward.trim() ? <RewardBanner reward={reward.trim()} /> : null}
+          {form.reward.trim() ? <RewardBanner reward={form.reward.trim()} /> : null}
         </View>
       ) : null}
 
       {current === 'review' ? (
         <View style={{ gap: theme.spacing.md }}>
           <Card padding="lg" style={{ gap: 4 }}>
-            <Text variant="heading">{name.trim()}</Text>
+            <Text variant="heading">{form.name.trim()}</Text>
             <View style={styles.wrap}>
-              <Badge label={t(`goals.mode.${mode}`)} tone="primary" />
-              <Badge label={t(`goals.period.${period}`)} />
-              <Badge
-                label={t('goals.startsOn', {
-                  date: formatDate(`${startsOn}T12:00:00`, i18n.language),
-                })}
-                icon="calendar-outline"
-              />
+              <Badge label={t(`goals.mode.${form.mode}`)} tone="primary" />
+              <Badge label={t(`goals.period.${form.period}`)} />
+              {editing ? null : (
+                <Badge
+                  label={t('goals.startsOn', {
+                    date: formatDate(`${startsOn}T12:00:00`, i18n.language),
+                  })}
+                  icon="calendar-outline"
+                />
+              )}
             </View>
           </Card>
           <Card padding="sm">
             <ListRow
               title={t('goals.wizard.steps.categories')}
-              subtitle={[...selected]
-                .map((id) => (categories.data && findName(categories.data, id)) ?? id)
-                .join(', ')}
-              onPress={() => setStep(1)}
+              subtitle={categoriesSummary}
+              onPress={() => setStep(STEPS.indexOf('categories'))}
             />
             <Divider />
             <ListRow
               title={t('goals.wizard.steps.target')}
               subtitle={
-                mode === 'cooperation'
+                form.mode === 'cooperation'
                   ? t('goals.wizard.reviewTeamTarget', { count: targetNum })
                   : t('goals.wizard.reviewEachTarget', { count: targetNum })
               }
-              onPress={() => setStep(4)}
+              onPress={() => setStep(STEPS.indexOf('target'))}
             />
             <Divider />
+            <ListRow
+              title={t('goals.wizard.whoPlays')}
+              subtitle={
+                form.everyone
+                  ? t('goals.wizard.reviewEveryone')
+                  : t('goals.summary.players', { count: teamMembers.length })
+              }
+              onPress={() => setStep(STEPS.indexOf('target'))}
+            />
             <View style={[styles.avatars, { padding: theme.spacing.sm }]}>
-              {includedMembers.map((m) => (
+              {teamMembers.map((m) => (
                 <View key={m.id} style={styles.memberChip}>
                   <Avatar avatar={m.avatar} size={30} />
                   <Text variant="caption">
-                    {mode === 'competition' && overrides[m.id]?.trim()
-                      ? `${m.nickname} · ${overrides[m.id]}`
+                    {form.mode === 'competition' && form.overrides[m.id]?.trim()
+                      ? `${m.nickname} · ${form.overrides[m.id]}`
                       : m.nickname}
                   </Text>
                 </View>
               ))}
             </View>
           </Card>
-          {reward.trim() ? (
-            <RewardBanner reward={reward.trim()} />
+          {form.reward.trim() ? (
+            <RewardBanner reward={form.reward.trim()} />
           ) : (
             <Card variant="tinted" tint={theme.colors.accent}>
               <Text variant="caption" tone="muted">
@@ -607,11 +710,47 @@ export function GoalWizardScreen() {
               </Text>
             </Card>
           )}
+          {editing ? (
+            <Text variant="caption" tone="muted">
+              {t('goals.wizard.editNote')}
+            </Text>
+          ) : null}
           {errors.general ? <Text tone="danger">{errors.general}</Text> : null}
         </View>
       ) : null}
     </Screen>
   );
+}
+
+/** Admin: create a goal plan (`/goals/new`). */
+export function GoalWizardScreen() {
+  return <GoalWizard initial={NEW_GOAL_FORM} />;
+}
+
+/** Admin: edit a goal plan (`/goals/edit/[id]`); changes apply from the next period. */
+export function GoalEditScreen({ id }: { id: number }) {
+  const { t } = useTranslation();
+  const goal = useGoal(id);
+  const family = useFamily();
+  if (goal.isPending || family.isPending) return <Loading />;
+  if (goal.isError || family.isError || !goal.data) {
+    return (
+      <Screen title={t('goals.wizard.editTitle')} back>
+        <ErrorState
+          error={goal.error ?? family.error}
+          onRetry={() => {
+            void goal.refetch();
+            void family.refetch();
+          }}
+        />
+      </Screen>
+    );
+  }
+  const initial = formFromGoal(
+    goal.data,
+    family.data.members.map((m) => m.id),
+  );
+  return <GoalWizard initial={initial} editing={goal.data} />;
 }
 
 const styles = StyleSheet.create({

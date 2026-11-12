@@ -2,8 +2,10 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
 
-import type { ChatMessage } from '@/api/types';
+import type { ChatMessage, ChatReactionKey } from '@/api/types';
 import { MessageText } from '@/features/chat/components/MessageText';
+import { ReactionChips } from '@/features/chat/components/ReactionChips';
+import { visibleReactions } from '@/features/chat/reactions';
 import {
   authorName,
   messageTime,
@@ -74,9 +76,16 @@ interface MessageBubbleProps {
   own: boolean;
   showAuthor: boolean;
   locale: string;
-  /** What a long press offers: "Delete" (author or admin) or "Report to a parent" (others). */
+  /** The message action: "Delete" (author or admin) or "Report to a parent" (others). */
   action?: MessageAction | null;
+  /** Long press: the menu with the reactions and the message action. */
   onLongPress?: (message: ChatMessage) => void;
+  /** Screen readers' "Delete" / "Report" action (straight to its confirmation). */
+  onAction?: (message: ChatMessage) => void;
+  /** Set or remove the viewer's reaction (reaction chips; enables reacting). */
+  onToggleReaction?: (message: ChatMessage, key: ChatReactionKey) => void;
+  /** Who reacted (press and hold a reaction chip). */
+  onShowReactions?: (message: ChatMessage) => void;
   /** Admins: the message was reported; the tag opens the review actions. */
   reported?: boolean;
   onReviewReport?: (message: ChatMessage) => void;
@@ -91,6 +100,9 @@ export const MessageBubble = memo(function MessageBubble({
   locale,
   action,
   onLongPress,
+  onAction,
+  onToggleReaction,
+  onShowReactions,
   reported = false,
   onReviewReport,
   highlighted = false,
@@ -103,14 +115,21 @@ export const MessageBubble = memo(function MessageBubble({
   const filled = own && !message.deleted;
   const textColor = filled ? c.onPrimary : c.text;
   const metaColor = filled ? c.onPrimary : c.textMuted;
-  const longPress = action && onLongPress ? onLongPress : undefined;
-  const a11yActions = longPress
-    ? [
-        action === 'report'
-          ? { name: 'report', label: t('chat.report') }
-          : { name: 'delete', label: t('chat.delete') },
-      ]
-    : undefined;
+  // Reactions: never on tombstones (the server removes them too).
+  const canReact = !message.deleted && !!onToggleReaction;
+  const reactions = canReact ? visibleReactions(message) : [];
+  const longPress = onLongPress && (action || canReact) ? onLongPress : undefined;
+  const a11yList = [
+    ...(canReact && longPress ? [{ name: 'react', label: t('chat.react') }] : []),
+    ...(action && longPress
+      ? [
+          action === 'report'
+            ? { name: 'report', label: t('chat.report') }
+            : { name: 'delete', label: t('chat.delete') },
+        ]
+      : []),
+  ];
+  const a11yActions = a11yList.length > 0 ? a11yList : undefined;
 
   return (
     <View style={[styles.row, own ? styles.rowOwn : null, { marginTop: showAuthor ? 10 : 3 }]}>
@@ -128,13 +147,16 @@ export const MessageBubble = memo(function MessageBubble({
             longPress
               ? action === 'report'
                 ? t('chat.longPressReportHint')
-                : t('chat.longPressHint')
+                : action === 'delete'
+                  ? t('chat.longPressHint')
+                  : t('chat.longPressReactHint')
               : undefined
           }
           accessibilityActions={a11yActions}
           onAccessibilityAction={(e) => {
             const name = e.nativeEvent.actionName;
-            if (name === 'delete' || name === 'report') longPress?.(message);
+            if (name === 'react') longPress?.(message);
+            if (name === 'delete' || name === 'report') (onAction ?? longPress)?.(message);
           }}
           style={[styles.inner, own ? styles.columnOwn : null]}>
           {showAuthor && !own ? (
@@ -158,6 +180,14 @@ export const MessageBubble = memo(function MessageBubble({
             </Text>
           </BubbleFrame>
         </Pressable>
+        {reactions.length > 0 && onToggleReaction ? (
+          <ReactionChips
+            reactions={reactions}
+            own={own}
+            onToggle={(key) => onToggleReaction(message, key)}
+            onShowWho={() => onShowReactions?.(message)}
+          />
+        ) : null}
         {reported ? (
           <PressableScale
             onPress={onReviewReport ? () => onReviewReport(message) : undefined}

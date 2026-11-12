@@ -204,7 +204,9 @@
       "body_other": "You scored {{count}} points. Brilliant!",
       "points": "Points",
       "answered": "Answered",
-      "mistakes": "Mistakes"
+      "mistakes": "Mistakes",
+      "towardGoal_one": "+{{count}} point toward {{name}}",
+      "towardGoal_other": "+{{count}} points toward {{name}}"
     },
     "failed": {
       "title": "Out of lives",
@@ -250,7 +252,15 @@
       "lives_other": "{{count}} of {{total}} lives left",
       "outOfLives": "Out of lives: try a second chance or end the game",
       "redemption": "Second-chance round"
-    }
+    },
+    "goalCounts": "Counts for {{name}}",
+    "goalCountsMany_one": "Counts for {{count}} goal",
+    "goalCountsMany_other": "Counts for {{count}} goals",
+    "goalInside": "Topics for {{name}}",
+    "goalInsideMany_one": "Topics for {{count}} goal",
+    "goalInsideMany_other": "Topics for {{count}} goals",
+    "goalCountsA11y": "Playing this counts toward {{names}}",
+    "goalInsideA11y": "Some topics inside count toward {{names}}"
   },
   "dev": {
     "themesTitle": "Theme preview",
@@ -617,13 +627,38 @@
       "reviewTeamTarget_other": "{{count}} points together",
       "reviewEachTarget_one": "{{count}} point each",
       "reviewEachTarget_other": "{{count}} points each",
-      "noReward": "No reward set — you can still play for bragging rights."
+      "noReward": "No reward set — you can still play for bragging rights.",
+      "editTitle": "Edit goal",
+      "save": "Save changes",
+      "editNote": "Changes apply from the next period. The current period keeps its target.",
+      "allCategoriesOption": "All categories",
+      "allCategoriesHelp": "Every game counts, whatever the category.",
+      "pickCategoriesOption": "Pick categories",
+      "pickCategoriesHelp": "Only points from the categories you pick count.",
+      "everyoneOption": "Everyone in the family",
+      "everyoneHelp": "New members join automatically.",
+      "pickMembersOption": "Pick members",
+      "pickMembersHelp": "Only the members you pick play. New members are not added.",
+      "ownTargets": "Own targets (optional)",
+      "reviewEveryone": "Everyone in the family (new members join automatically)"
     },
     "gone": {
       "title": "This goal was deleted",
       "body": "An admin removed it. Its points still count in your stats.",
       "action": "Back to goals"
-    }
+    },
+    "summary": {
+      "allCategories": "All categories",
+      "categories_one": "{{count}} category",
+      "categories_other": "{{count}} categories",
+      "everyone": "Everyone",
+      "players_one": "{{count}} player",
+      "players_other": "{{count}} players",
+      "label": "What counts and who plays: {{summary}}"
+    },
+    "everyoneNote": "Everyone in the family plays. New members join automatically.",
+    "allCategoriesNote": "Points from every category count.",
+    "edit": "Edit goal"
   },
   "codeSignIn": {
     "title": "Sign in with a code",
@@ -1265,7 +1300,7 @@
     "failedRateLimited": "Too many messages · Tap to try again",
     "retry": "Try again",
     "retryHint": "Sends the message again",
-    "longPressHint": "Long press to delete",
+    "longPressHint": "Long press to react or delete",
     "delete": "Delete",
     "deleteTitle": "Delete this message?",
     "deleteBody": "Everyone will see \"Message deleted\" instead.",
@@ -1279,7 +1314,7 @@
     "emptyBody": "Messages here are only seen by your family.",
     "jumpToLatest": "Latest messages",
     "listLabel": "Messages",
-    "longPressReportHint": "Long press to report it to a parent",
+    "longPressReportHint": "Long press to react or report it to a parent",
     "report": "Report to a parent",
     "reportTitle": "Report this message to a parent?",
     "reportBody": "Your parents will be told. They can remove the message.",
@@ -1295,7 +1330,30 @@
     "reviewBody": "A family member reported this message from {{name}}. You can delete it or turn off chat for {{name}}.",
     "reviewBodyDeleteOnly": "A family member reported this message from {{name}}. You can delete it.",
     "turnOffChatFor": "Turn off chat for {{name}}",
-    "chatTurnedOff": "Chat is now off for {{name}}."
+    "chatTurnedOff": "Chat is now off for {{name}}.",
+    "reactionNames": {
+      "heart": "Heart",
+      "thumbs_up": "Thumbs up",
+      "laugh": "Laugh",
+      "wow": "Wow",
+      "party": "Party",
+      "star": "Star"
+    },
+    "react": "React",
+    "reactWith": "React with {{name}}",
+    "removeReaction": "Remove your {{name}} reaction",
+    "reactionChip_one": "{{name}}, {{count}} reaction",
+    "reactionChip_other": "{{name}}, {{count}} reactions",
+    "reactionMine": "yours included",
+    "reactionAddHint": "Reacts with {{name}}. Long press to see who reacted",
+    "reactionRemoveHint": "Removes your reaction. Long press to see who reacted",
+    "whoReacted": "Who reacted",
+    "menuTitle": "Message",
+    "reactFailed": "The reaction couldn't be saved. Try again.",
+    "reactRateLimited": "Lots of reactions! Wait a minute and try again.",
+    "reviewReport": "Review the report",
+    "longPressReactHint": "Long press to react",
+    "reactionsLabel": "Reactions"
   },
   "help": {
     "howToPlay": "How to play",

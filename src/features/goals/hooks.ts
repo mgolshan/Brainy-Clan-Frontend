@@ -1,7 +1,10 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { ApiError, api } from '@/api/client';
+import { useMe } from '@/features/auth/hooks';
+import { buildCategoryParents, type CategoryParents } from '@/features/goals/matching';
+import { useCategories } from '@/features/play/api';
 import { queryKeys } from '@/api/queryKeys';
 import type {
   CreateGoalBody,
@@ -117,4 +120,20 @@ export function isGoalGone(error: unknown): boolean {
 /** The goal to feature on Home: first active plan with an open period. */
 export function pickMainGoal(goals: GoalPlan[] | undefined): GoalPlan | undefined {
   return goals?.find((g) => g.is_active && g.current_period) ?? goals?.find((g) => g.is_active);
+}
+
+/**
+ * What the goal matching helpers need (`matching.ts`): the family's plans, the category tree as a
+ * parent index, and the signed-in member. Uses the cached `GET /goals` and `GET /categories`.
+ */
+export function useGoalMatching(): {
+  goals: GoalPlan[] | undefined;
+  parents: CategoryParents;
+  memberId: number | null;
+} {
+  const goals = useGoals();
+  const categories = useCategories();
+  const memberId = useMe().data?.member?.id ?? null;
+  const parents = useMemo(() => buildCategoryParents(categories.data), [categories.data]);
+  return { goals: goals.data, parents, memberId };
 }

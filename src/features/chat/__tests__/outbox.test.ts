@@ -28,6 +28,7 @@ const setData = queryClient.setQueryData as jest.Mock;
 
 const stored = (clientId: string, body: string, id = 100): ChatMessage => ({
   id,
+  reactions: [],
   member_id: 1,
   nickname: 'Sam',
   avatar: null,

@@ -5,6 +5,8 @@ import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import type { Category } from '@/api/types';
 import { useMeasuredWidth } from '@/challenges/useMeasuredWidth';
+import { useGoalMatching } from '@/features/goals/hooks';
+import { categoryGoalMarker, goalMarkerText } from '@/features/goals/matching';
 import { useCategories, useCurrentSession } from '@/features/play/api';
 import { findCategory, findRootSlug } from '@/features/play/categoryVisuals';
 import { CategoryTile } from '@/features/play/components/CategoryTile';
@@ -13,6 +15,7 @@ import { useStartAndOpen } from '@/features/play/useStartAndOpen';
 import { errorMessage } from '@/lib/errorMessage';
 import {
   Appear,
+  Badge,
   Button,
   Card,
   EmptyState,
@@ -38,6 +41,8 @@ interface CategoryGridProps {
 
 function CategoryGrid({ categories, onSelect, parentSlug }: CategoryGridProps) {
   const theme = useTheme();
+  const { t } = useTranslation();
+  const matching = useGoalMatching();
   const window = useWindowDimensions();
   const [measured, onLayout] = useMeasuredWidth();
   // The measured width is exact (scrollbars, safe areas); the window estimate covers the first frame.
@@ -52,6 +57,10 @@ function CategoryGrid({ categories, onSelect, parentSlug }: CategoryGridProps) {
             category={cat}
             index={i}
             parentSlug={parentSlug}
+            goalMarker={goalMarkerText(
+              categoryGoalMarker(matching.goals, matching.parents, cat.id, matching.memberId),
+              t,
+            )}
             onPress={() => onSelect(cat)}
           />
         </Appear>
@@ -150,6 +159,12 @@ export function CategoryScreen({ id }: { id: number }) {
   const categories = useCategories();
   const selection = useCategorySelection();
   const category = findCategory(categories.data, id);
+  const matching = useGoalMatching();
+  // "Play all" here counts toward a goal: say so above the button.
+  const marker = goalMarkerText(
+    categoryGoalMarker(matching.goals, matching.parents, id, matching.memberId),
+    t,
+  );
 
   if (categories.isPending) return <Loading />;
   if (!category) {
@@ -166,6 +181,11 @@ export function CategoryScreen({ id }: { id: number }) {
 
   return (
     <Screen title={category.name} subtitle={t('play.pickTopic')} back width="wide">
+      {marker?.kind === 'counts' ? (
+        <View style={styles.marker} accessible accessibilityLabel={marker.a11y}>
+          <Badge label={marker.label} icon="flag" tone="success" />
+        </View>
+      ) : null}
       <Button
         title={t('play.playAll', { name: category.name })}
         icon="play"
@@ -186,4 +206,5 @@ export function CategoryScreen({ id }: { id: number }) {
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GRID_GAP },
   cell: { flexGrow: 1 },
+  marker: { flexDirection: 'row' },
 });
