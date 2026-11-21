@@ -40,6 +40,9 @@ export type ApiErrorCode =
   | 'login_locked'
   | 'world_locked'
   | 'chat_disabled'
+  | 'chat_read_only'
+  | 'chat_off'
+  | 'plan_required'
   | 'subscription_exists'
   | 'web_checkout_unavailable'
   | 'referral_code_invalid'
@@ -122,7 +125,20 @@ export interface Family {
   member_count: number;
   /** Admin view of `GET /family` only (B10): the family's referral code, once set. */
   referral_code?: string | null;
+  /**
+   * Chat profanity filter (B12 step 2, every plan, default on). Optional until every backend
+   * serves it (absent = on).
+   */
+  chat_filter?: boolean;
+  /**
+   * The **effective** chat mode (B12 step 2): always `normal` when `policy.chat.modes_allowed`
+   * is false. Optional until served (absent = `normal`); unknown values are treated as `normal`.
+   */
+  chat_mode?: ChatMode;
 }
+
+/** Family chat mode (B12 step 2, Classroom only): `announcements` = only family admins post. */
+export type ChatMode = 'normal' | 'announcements' | 'off' | (string & {});
 
 export interface Accessibility {
   text_scale: number;
@@ -215,8 +231,11 @@ export interface Policy {
   limits: { max_members: number; max_categories: number; max_active_goals: number | null };
   accessibility_defaults: Omit<Accessibility, 'theme'>;
   feature_flags: Record<string, unknown>;
-  /** Family chat retention in days (tier settings, server data). Optional until served. */
-  chat?: { retention_days: number };
+  /**
+   * Family chat tier settings (server data). Optional until served. `modes_allowed` (B12 step 2,
+   * Classroom only): the admin may set `chat_mode`; absent = false.
+   */
+  chat?: { retention_days: number; modes_allowed?: boolean };
 }
 
 /** Policy `ad_request`: AdMob `requestNonPersonalizedAdsOnly`, `tagForUnderAgeOfConsent`, `maxAdContentRating`. */
@@ -458,6 +477,10 @@ export interface FamilyPayload {
 export interface UpdateFamilyBody {
   name?: string;
   timezone?: string;
+  /** Admin: chat profanity filter (every plan). */
+  chat_filter?: boolean;
+  /** Admin, only when `policy.chat.modes_allowed` (else 403 `plan_required`). */
+  chat_mode?: ChatMode;
 }
 
 export interface UpdateMemberBody {
@@ -1173,6 +1196,11 @@ export interface ChatMessage {
    * members always get `false`. Optional until every backend serves it (absent = not reported).
    */
   reported?: boolean;
+  /**
+   * `true` when the profanity filter masked words in `body` with `★` (B12 step 2). The app
+   * tells the author "Some words were hidden". Optional until served (absent = false).
+   */
+  filtered?: boolean;
   /**
    * Reactions (2026-11-11): fixed order, only keys with a count above 0; `[]` for deleted
    * messages. Unknown keys must be skipped.

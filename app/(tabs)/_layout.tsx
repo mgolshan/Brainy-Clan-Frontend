@@ -4,8 +4,10 @@ import type { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ColorValue } from 'react-native';
 
+import { useMe } from '@/features/auth/hooks';
 import { useChatBadge } from '@/features/chat/hooks';
 import { badgeLabel } from '@/features/chat/messages';
+import { chatTabVisible } from '@/features/chat/modes';
 import { WorldUnlockWatcher } from '@/features/worlds/WorldUnlockSheet';
 import { useTheme } from '@/ui';
 
@@ -34,6 +36,8 @@ export default function TabsLayout() {
   const tall = theme.touchTarget >= 56;
   // Family chat: unread badge (polled every 60 s) + sending queued messages while signed in.
   const chatUnread = useChatBadge();
+  // Chat mode `off` (Classroom): the Chat tab is not listed.
+  const showChat = chatTabVisible(useMe().data);
 
   return (
     <>
@@ -70,6 +74,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="chat"
           options={{
+            href: showChat ? undefined : null,
             title: t('tabs.chat'),
             tabBarIcon: tabIcon('chatbubbles', 'chatbubbles-outline'),
             tabBarBadge: badgeLabel(chatUnread),

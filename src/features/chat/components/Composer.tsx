@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Platform,
@@ -11,6 +11,7 @@ import {
   type TextInputSelectionChangeEvent,
 } from 'react-native';
 
+import { useChatDraft } from '@/features/chat/draft';
 import { COUNTER_FROM, MAX_BODY_LENGTH, insertAt, prepareBody } from '@/features/chat/messages';
 import { Icon, PressableScale, Text, useTheme, useUiSound } from '@/ui';
 
@@ -21,14 +22,20 @@ interface ComposerProps {
   onSend: (text: string) => boolean;
 }
 
-/** Multiline input + send button + quick emoji row. Enter sends on web (Shift+Enter: new line). */
+/**
+ * Multiline input + send button + quick emoji row. Enter sends on web (Shift+Enter: new line).
+ * The typed text lives in `useChatDraft` (memory only).
+ */
 export function Composer({ onSend }: ComposerProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const c = theme.colors;
   const playSound = useUiSound();
-  const [text, setText] = useState('');
-  const selection = useRef({ start: 0, end: 0 });
+  // Kept outside the composer: a mode change mid-session swaps it for a banner, not the text.
+  const text = useChatDraft((s) => s.text);
+  const setText = useChatDraft((s) => s.setText);
+  // A kept draft: the cursor starts at its end.
+  const selection = useRef({ start: text.length, end: text.length });
   const canSend = prepareBody(text) !== null;
   const remaining = MAX_BODY_LENGTH - text.length;
 

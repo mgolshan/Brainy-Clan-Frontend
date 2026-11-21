@@ -55,7 +55,9 @@
     "loginLocked": "Trop de tentatives de connexion. Patientez quelques minutes, puis réessayez.",
     "worldLocked": "Ce monde n'est pas encore débloqué. La liste a été actualisée.",
     "subscriptionExists": "Votre famille a déjà un forfait payant : rien à acheter ici.",
-    "webCheckoutUnavailable": "L’achat sur le Web n’est pas disponible pour le moment."
+    "webCheckoutUnavailable": "L’achat sur le Web n’est pas disponible pour le moment.",
+    "chatReadOnly": "Seuls les administrateurs peuvent écrire dans cette discussion pour le moment.",
+    "planRequired": "Cela nécessite une autre formule."
   },
   "update": {
     "title": "C'est l'heure de la mise à jour",
@@ -442,7 +444,22 @@
     "inviteMember": "Inviter un membre de la famille",
     "adminOnlyHint": "Seuls les admins de la famille peuvent inviter et modifier les membres.",
     "goalsHint": "Voir pour quoi la famille joue",
-    "goalsHintAdmin": "Fixer des objectifs et des récompenses pour la famille"
+    "goalsHintAdmin": "Fixer des objectifs et des récompenses pour la famille",
+    "chatSafety": {
+      "title": "Sécurité de la discussion",
+      "filterLabel": "Masquer les gros mots",
+      "filterOnHint": "Les mots bloqués sont remplacés par ★ avant que quiconque les voie",
+      "filterOffHint": "Désactivé : les messages s'affichent tels quels. Seuls les nouveaux messages sont concernés.",
+      "modeTitle": "Qui peut écrire",
+      "modeLabel": "Mode de discussion",
+      "normal": "Normal",
+      "normalBody": "Tout le monde peut discuter",
+      "announcements": "Annonces uniquement",
+      "announcementsBody": "Seuls les administrateurs écrivent ; les autres peuvent lire et réagir",
+      "announcementsBodyClassroom": "Seuls les enseignants écrivent ; les élèves peuvent lire et réagir",
+      "off": "Désactivée",
+      "offBody": "La discussion est masquée pour tout le monde"
+    }
   },
   "invite": {
     "title": "Inviter un membre",
@@ -1447,7 +1464,21 @@
     "reactRateLimited": "Beaucoup de réactions ! Attends une minute et réessaie.",
     "reviewReport": "Examiner le signalement",
     "longPressReactHint": "Appui long pour réagir",
-    "reactionsLabel": "Réactions"
+    "reactionsLabel": "Réactions",
+    "offTitle": "La discussion est désactivée",
+    "offBody": "Un administrateur a désactivé la discussion familiale pour le moment.",
+    "offBodyClassroom": "Ton enseignant a désactivé la discussion de la classe pour le moment.",
+    "offBodyAdmin": "Personne ne peut lire ni envoyer de messages. Vous pouvez la réactiver dans les réglages de la famille.",
+    "offAction": "Ouvrir les réglages de la famille",
+    "readOnlyBanner": "Seuls les administrateurs peuvent écrire ici — tu peux toujours réagir ❤️",
+    "readOnlyBannerClassroom": "Seuls les enseignants peuvent écrire ici — tu peux toujours réagir ❤️",
+    "announcementsChip": "Mode annonces",
+    "announcementsChipLabel": "Mode annonces : seuls les administrateurs peuvent écrire",
+    "announcementsChipLabelClassroom": "Mode annonces : seuls les enseignants peuvent écrire",
+    "filteredNote": "Certains mots ont été masqués",
+    "failedReadOnly": "Seuls les administrateurs peuvent écrire pour le moment · Non envoyé",
+    "failedReadOnlyClassroom": "Seuls les enseignants peuvent écrire pour le moment · Non envoyé",
+    "failedOff": "La discussion est désactivée · Non envoyé"
   },
   "help": {
     "howToPlay": "Comment jouer",

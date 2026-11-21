@@ -46,6 +46,10 @@ const MAPPED: [string, number, string][] = [
   ['web_checkout_unavailable', 503, 'errors.webCheckoutUnavailable'],
   ['referral_code_invalid', 422, 'billing.referral.invalid'],
   ['referral_code_locked', 409, 'billing.referral.locked'],
+  ['chat_disabled', 403, 'chat.disabledTitle'],
+  ['chat_off', 403, 'chat.offTitle'],
+  ['chat_read_only', 403, 'errors.chatReadOnly'],
+  ['plan_required', 403, 'errors.planRequired'],
   // Client-side codes (no HTTP answer).
   ['network_error', 0, 'errors.network'],
   ['timeout', 0, 'errors.timeout'],

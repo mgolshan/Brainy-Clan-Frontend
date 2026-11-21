@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
 import type { ChatMessage, ChatReactionKey } from '@/api/types';
 import { MessageText } from '@/features/chat/components/MessageText';
 import { ReactionChips } from '@/features/chat/components/ReactionChips';
+import { failedStatusKey } from '@/features/chat/modes';
 import { visibleReactions } from '@/features/chat/reactions';
 import {
   authorName,
@@ -90,6 +91,8 @@ interface MessageBubbleProps {
   reported?: boolean;
   onReviewReport?: (message: ChatMessage) => void;
   highlighted?: boolean;
+  /** The author's own masked message: "Some words were hidden" under the bubble. */
+  filteredNote?: boolean;
 }
 
 /** A stored message: own on the right (world primary), others on the left with their Clan avatar. */
@@ -106,6 +109,7 @@ export const MessageBubble = memo(function MessageBubble({
   reported = false,
   onReviewReport,
   highlighted = false,
+  filteredNote = false,
 }: MessageBubbleProps) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -180,6 +184,14 @@ export const MessageBubble = memo(function MessageBubble({
             </Text>
           </BubbleFrame>
         </Pressable>
+        {filteredNote ? (
+          <View style={styles.status} testID="chat-filtered-note">
+            <Icon name="eye-off-outline" size={14} color={c.textMuted} />
+            <Text variant="caption" tone="muted">
+              {t('chat.filteredNote')}
+            </Text>
+          </View>
+        ) : null}
         {reactions.length > 0 && onToggleReaction ? (
           <ReactionChips
             reactions={reactions}
@@ -208,6 +220,8 @@ interface PendingBubbleProps {
   item: OutboxItem;
   onRetry: (item: OutboxItem) => void;
   onLongPress: (item: OutboxItem) => void;
+  /** Classroom wording ("teachers") for an announcements-mode refusal. */
+  classroom?: boolean;
 }
 
 /** A message on its way: "Sending…", "Waiting for a connection…" or "Not sent · Tap to retry". */
@@ -215,17 +229,14 @@ export const PendingBubble = memo(function PendingBubble({
   item,
   onRetry,
   onLongPress,
+  classroom = false,
 }: PendingBubbleProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const c = theme.colors;
   const failed = item.status === 'failed';
   const status = failed
-    ? item.errorCode === 'rate_limited'
-      ? t('chat.failedRateLimited')
-      : item.errorCode === 'chat_disabled'
-        ? t('chat.disabledTitle')
-        : t('chat.failed')
+    ? t(failedStatusKey(item.errorCode, classroom))
     : item.status === 'sending'
       ? t('chat.sending')
       : t('chat.waiting');

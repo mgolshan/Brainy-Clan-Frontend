@@ -69,14 +69,27 @@ export function useCreateFamily() {
   });
 }
 
+/**
+ * `PATCH /family` (admin): name, timezone and the chat safety settings (`chat_filter`, and
+ * `chat_mode` when `policy.chat.modes_allowed`, else 403 `plan_required`). The returned family is
+ * put in the caches at once; `me`, the family and the chat are then re-read (the chat mode
+ * changes who may post and whether the Chat tab is shown).
+ */
 export function useUpdateFamily() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: async (body: UpdateFamilyBody) =>
       (await api.patch<Envelope<Family>>('/family', body)).data,
-    onSuccess: () => {
+    onSuccess: (family) => {
+      client.setQueryData<FamilyPayload>(queryKeys.family, (prev) =>
+        prev ? { ...prev, family: { ...prev.family, ...family } } : prev,
+      );
+      client.setQueryData<MePayload>(queryKeys.me, (prev) =>
+        prev?.family ? { ...prev, family: { ...prev.family, ...family } } : prev,
+      );
       void client.invalidateQueries({ queryKey: queryKeys.family });
       void client.invalidateQueries({ queryKey: queryKeys.me });
+      void client.invalidateQueries({ queryKey: queryKeys.chat });
     },
   });
 }

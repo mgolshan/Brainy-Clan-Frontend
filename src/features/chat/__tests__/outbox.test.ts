@@ -35,6 +35,7 @@ const stored = (clientId: string, body: string, id = 100): ChatMessage => ({
   body,
   deleted: false,
   client_id: clientId,
+  filtered: false,
   created_at: '2026-10-23T12:00:00Z',
 });
 const offline = () => new ApiError(0, 'Network request failed', 'network_error');
@@ -179,6 +180,42 @@ describe('failures and retry', () => {
     await flushChatOutbox(1);
     expect(items()).toMatchObject([{ status: 'failed', errorCode: 'chat_disabled' }]);
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ['me'] });
+  });
+
+  it.each([
+    ['chat_read_only', 'announcements'],
+    ['chat_off', 'off'],
+  ])(
+    '%s fails the message (kept, not lost), stops the run, shows the mode and refreshes `me`',
+    async (code, mode) => {
+      post.mockRejectedValue(refused(code, 403));
+      sendChatMessage(1, 'first');
+      sendChatMessage(1, 'second');
+      await flushChatOutbox(1);
+      await settle();
+      // Only the first was tried; both texts are kept (nothing discarded silently).
+      expect(post).toHaveBeenCalledTimes(1);
+      expect(items().map((q) => q.body)).toEqual(['first', 'second']);
+      expect(items()[0]).toMatchObject({ status: 'failed', errorCode: code });
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ['me'] });
+      // `me` gets the new mode at once.
+      const meUpdate = setData.mock.calls.find(([key]) => key[0] === 'me');
+      expect(meUpdate).toBeDefined();
+      const updater = meUpdate![1] as (prev: unknown) => { family: { chat_mode: string } };
+      expect(updater({ family: { chat_mode: 'normal' } }).family.chat_mode).toBe(mode);
+    },
+  );
+
+  it('never re-sends a message refused for the chat mode on its own', async () => {
+    post.mockRejectedValueOnce(refused('chat_read_only', 403));
+    sendChatMessage(1, 'hi');
+    await flushChatOutbox(1);
+    post.mockClear();
+    // Back online, app back in the foreground…: the failed message stays put.
+    await flushChatOutbox(1);
+    await flushChatOutbox(1);
+    expect(post).not.toHaveBeenCalled();
+    expect(items()).toMatchObject([{ status: 'failed', errorCode: 'chat_read_only' }]);
   });
 
   it('discards an unsent message', async () => {

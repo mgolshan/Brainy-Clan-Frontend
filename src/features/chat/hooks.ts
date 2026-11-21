@@ -6,7 +6,7 @@ import { queryClient } from '@/api/queryClient';
 import { queryKeys } from '@/api/queryKeys';
 import { ApiError } from '@/api/client';
 import type { ChatMessage, ChatMessagesMeta, ChatReactionKey, ChatUnread } from '@/api/types';
-import { useMe } from '@/features/auth/hooks';
+import { useIsAdmin, useMe } from '@/features/auth/hooks';
 import {
   deleteChatMessage,
   deleteChatReaction,
@@ -29,7 +29,13 @@ import {
   type ChatAccess,
   type ChatHistory,
 } from '@/features/chat/messages';
-import { useChatOutboxSync } from '@/features/chat/outbox';
+import {
+  canPostInMode,
+  chatModeErrorCode,
+  effectiveChatMode,
+  type KnownChatMode,
+} from '@/features/chat/modes';
+import { recoverFromChatMode, useChatOutboxSync } from '@/features/chat/outbox';
 import {
   applyOwnReaction,
   collectReactionChanges,
@@ -44,9 +50,9 @@ export const UNREAD_POLL_MS = 60_000;
 /** While polling, re-read the newest page this often (deletions by others, tombstones). */
 export const REFRESH_MS = 20_000;
 
-/** No retries for "chat is off" / not found; network and server errors retry twice. */
+/** No retries for "chat is off" (member or family); network and server errors retry twice. */
 function retryUnlessRefused(count: number, error: unknown) {
-  if (isChatDisabledError(error)) return false;
+  if (isChatDisabledError(error) || chatModeErrorCode(error) !== null) return false;
   return count < 2;
 }
 
@@ -56,6 +62,11 @@ function retryUnlessRefused(count: number, error: unknown) {
  */
 export function useChatAccess(): ChatAccess {
   return chatAccess(useMe().data);
+}
+
+/** The family's effective chat mode (B12 step 2, from `me`; absent = `normal`). */
+export function useChatMode(): KnownChatMode {
+  return effectiveChatMode(useMe().data);
 }
 
 /** `true` while the app is in the foreground (polling stops in the background). */
@@ -70,9 +81,14 @@ export function useAppActive(): boolean {
   return active;
 }
 
-/** `chat_disabled` from any chat call: refresh `me` so every screen sees the switch. */
+/**
+ * `chat_disabled` (member) or `chat_off` / `chat_read_only` (family mode changed mid-session) from
+ * any chat call: refresh `me` so every screen sees the switch.
+ */
 function onChatError(error: unknown) {
   if (isChatDisabledError(error)) void queryClient.invalidateQueries({ queryKey: queryKeys.me });
+  const modeCode = chatModeErrorCode(error);
+  if (modeCode) recoverFromChatMode(modeCode);
 }
 
 // The reactions cursor has no observer of its own: keep it until sign-out clears the cache.
@@ -247,11 +263,16 @@ export function useReactToMessage(memberId: number | null) {
 /**
  * Unread count for the Chat tab badge: `GET /family/chat/unread` every `UNREAD_POLL_MS` (paused
  * in the background by TanStack Query's focus manager) and on `family_chat` pushes. Also keeps
- * the outbox sending while the app is open.
+ * the outbox sending while the app is open (only while the member may post). Chat mode `off`:
+ * no requests, badge 0.
  */
 export function useChatBadge(): number {
-  const { memberId, enabled } = useChatAccess();
-  useChatOutboxSync(enabled ? memberId : null);
+  const access = useChatAccess();
+  const mode = useChatMode();
+  const isAdmin = useIsAdmin();
+  const { memberId } = access;
+  const enabled = access.enabled && mode !== 'off';
+  useChatOutboxSync(enabled && canPostInMode(mode, isAdmin) ? memberId : null);
   const unread = useQuery({
     queryKey: queryKeys.chatUnread,
     queryFn: async ({ signal }) => {

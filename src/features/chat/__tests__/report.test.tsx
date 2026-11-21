@@ -30,6 +30,7 @@ describe('report errors', () => {
     [422, 'validation_failed', 'chat.reportOwn'],
     [403, 'forbidden', 'errors.forbidden'],
     [403, 'chat_disabled', 'chat.disabledTitle'],
+    [403, 'chat_off', 'chat.offTitle'],
     [404, 'not_found', 'chat.reportGone'],
     [429, 'rate_limited', 'chat.reportRateLimited'],
     [500, 'server_error', 'chat.reportFailed'],
@@ -56,6 +57,7 @@ const message = (over: Partial<ChatMessage> = {}): ChatMessage => ({
   deleted: false,
   client_id: null,
   created_at: '2026-10-24T10:00:00Z',
+  filtered: false,
   ...over,
 });
 
@@ -126,6 +128,7 @@ describe('reaction errors', () => {
   it.each([
     [429, 'rate_limited', 'chat.reactRateLimited'],
     [403, 'chat_disabled', 'chat.disabledTitle'],
+    [403, 'chat_off', 'chat.offTitle'],
     [404, 'not_found', 'chat.reportGone'],
     [422, 'validation_failed', 'chat.reactFailed'],
     [0, 'network_error', 'errors.network'],
@@ -193,5 +196,24 @@ describe('MessageBubble reactions', () => {
       onToggleReaction: jest.fn(),
     });
     expect(chips(tree)).toHaveLength(0);
+  });
+});
+
+describe('filtered note (B12 step 2)', () => {
+  const notesOf = (tree: ReactTestRenderer) =>
+    tree.root.findAll((node) => node.props.testID === 'chat-filtered-note');
+
+  it('shows "Some words were hidden" under the bubble when asked', () => {
+    const tree = render({
+      message: message({ filtered: true, body: 'oh ★★★★' }),
+      own: true,
+      filteredNote: true,
+    });
+    expect(notesOf(tree).length).toBeGreaterThan(0);
+  });
+
+  it('shows nothing by default', () => {
+    const tree = render({ message: message({ filtered: true }) });
+    expect(notesOf(tree)).toHaveLength(0);
   });
 });

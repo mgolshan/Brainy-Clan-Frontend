@@ -21,6 +21,7 @@ Milestones are defined in `docs/PLAN.md`.
 | F7 Release                        | In progress: release prep done 2026-10-16; 2026-10-22 lockout UX, forgot password, iPad (all orientations, responsive column), production URLs, store audience docs | Store accounts, screenshots (iPhone 6.9" + iPad 13") and submission still to do                                                                                                                |
 | F8 Pricing, codes, web checkout   | Built 2026-10-24 (checks green; typed against the B10 contract, backend built in parallel; purchases/codes need a dev build + store accounts)                       | Three-plan paywall (saving %, trials, founding offer), web-managed plans + Manage, referral codes, offer codes, gated web link                                                                 |
 | B12 Plans (app, step 1)           | Built 2026-11-20 (checks green; typed against the B12 contract, backend built in parallel; purchases need a dev build + store accounts)                             | Plan picker (Family / Big Clan / Classroom), per-tier offerings, store plan change, tier labels, "paid plan" wording                                                                           |
+| B12 Chat safety (app, step 2)     | Built 2026-11-20 (checks green; typed against the B12 step 2 contract, backend built in parallel)                                                                   | Profanity filter switch, Classroom chat modes (normal / announcements / off), "Some words were hidden", mode 403s                                                                              |
 
 ## Next up
 
@@ -342,6 +343,26 @@ AdMob setup", `npx eas-cli@latest build --profile development`, `npm run start:d
    VoiceOver / TalkBack (each card is a radio with its full description; a too-small card is
    announced as disabled).
 
+### B12 step 2 - chat safety (backend B12 step 2)
+
+1. Admin → Family tab → **Chat safety**: "Hide bad words" is on ("Blocked words are replaced with
+   ★ before anyone sees them"); members who aren't admins don't see the section. Turn it off and
+   on (the switch shows the new value while saving; an error shows under the card).
+2. Send a message with a blocked word (filter on): the bubble shows ★ and, for the author only,
+   "Some words were hidden" under it; another member sees only the ★.
+3. Classroom family (`policy.chat.modes_allowed`): three radio cards under "Who can chat"
+   (Normal / Announcements only / Off). Other plans show no mode picker at all.
+4. **Announcements only**: a student sees the banner "Only teachers can post here — you can still
+   react ❤️" instead of the composer, and can still react and report; the teacher sees the
+   "Announcements mode" chip above the composer and posts as usual.
+5. **Off**: the Chat tab disappears for everyone (badge gone, no chat requests); if the chat was
+   open it shows "Chat is turned off" (admins: "Open family settings").
+6. Mode changed mid-session: keep the chat open on a student's phone, switch to announcements on
+   the teacher's, then send from the student → the bubble says "Only teachers can post right now
+   · Not sent" (kept, can be deleted or retried later, never re-sent on its own) and the banner
+   replaces the composer. Text typed but not sent stays in the composer when posting comes back.
+   With VoiceOver / TalkBack: mode cards are radios with their description; the banner is read.
+
 ### F8 - pricing, codes and the web link (phone, EAS dev build + backend B10)
 
 1. Offering with `MONTHLY`, `SIX_MONTH`, `ANNUAL` packages (README RevenueCat step 2): the paywall
@@ -400,6 +421,44 @@ themes (light/dark).
   splash (blue `#1D6FD8`, dark `#10233F`). `npx expo-doctor` 21/21; `npx expo config --type public`.
 
 ## Log
+
+### 2026-11-20 Chat safety: profanity filter + Classroom chat modes (B12 step 2, app)
+
+Contract: API.md "Chat safety (B12 step 2, 2026-11-20)". Built against it while the backend agent
+builds the server side.
+
+- Types: Family `chat_filter?` (absent = on) and `chat_mode?` (`ChatMode`, absent/unknown =
+  `normal`, always the effective mode); Message `filtered?`; Policy `chat.modes_allowed?`
+  (absent = false); `UpdateFamilyBody` gains `chat_filter` / `chat_mode`; error codes
+  `chat_read_only`, `chat_off`, `plan_required`.
+- `src/features/chat/modes.ts` (new, pure, tested): effective mode from `me`, `composerState`
+  (`composer` / `announcer` / `readOnly` / `off`), `canPostInMode`, `chatTabVisible`,
+  `showFilteredNote` (author only), `chatModeErrorCode`, `withChatModeFromError` (patches `me`
+  at once on a mode 403), `failedStatusKey`, `chatModeOptions` (classroom wording).
+- Family tab (admins): new **Chat safety** card (`family/components/ChatSafetySettings.tsx`):
+  "Hide bad words" switch on every plan; the mode radio cards only when `modes_allowed`
+  (no upsell elsewhere: safety is never a paid upsell). The app has no other family-settings
+  screen (name/timezone aren't editable in the app yet), so it lives on the Family tab.
+  `useUpdateFamily` puts the returned family into the `family` and `me` caches, then re-reads
+  `me`, `family` and `chat`. Pending value shown while saving; errors via `errorMessage`.
+- Chat: mode `off` hides the Chat tab (`href: null`), the screen shows "Chat is turned off"
+  (admins get "Open family settings"), no history / polling / unread requests, badge 0, outbox
+  not flushed. `announcements`: non-admins get a calm banner instead of the composer ("Only
+  teachers…" in a Classroom, "Only admins…" elsewhere); admins get an "Announcements mode" chip
+  above the composer; reactions and reports unchanged.
+- Mode 403s (`chat_read_only` / `chat_off`) from any chat call: `me` is patched with the
+  revealed mode and re-read; queries don't retry them. In the outbox the message is marked
+  failed with that code (status "Only teachers can post right now · Not sent" / "Chat is turned
+  off · Not sent"), the run stops and it is never re-sent on its own (retry / delete by the
+  member). The outbox only flushes while the member may post. The composer text now lives in a
+  memory-only `useChatDraft` store (cleared on sign-out), so swapping composer ↔ banner never
+  drops typed text.
+- `filtered: true` on the author's own message: muted "Some words were hidden" under the bubble.
+- `errorMessage`: `plan_required` → "This needs a different plan.", `chat_read_only`,
+  `chat_off`; reaction/report error keys map `chat_off`.
+- Tests: `modes.test.ts` (new), outbox (mode 403s keep the text, stop the run, patch `me`, never
+  auto-retry), report/bubble (filtered note, `chat_off` keys), `errorMessage` (new codes),
+  fixtures gain `filtered: false`. 1080 tests green; typecheck, lint, format, web export OK.
 
 ### 2026-11-20 Plans: Family, Big Clan, Classroom (B12 step 1, app)
 

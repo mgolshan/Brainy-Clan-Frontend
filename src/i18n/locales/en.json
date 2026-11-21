@@ -55,7 +55,9 @@
     "loginLocked": "Too many sign-in attempts. Please wait a few minutes and try again.",
     "worldLocked": "That world isn't unlocked yet. The list has been refreshed.",
     "subscriptionExists": "Your family already has a paid plan, so there is nothing to buy here.",
-    "webCheckoutUnavailable": "Buying on the web isn’t available right now."
+    "webCheckoutUnavailable": "Buying on the web isn’t available right now.",
+    "chatReadOnly": "Only admins can post in this chat right now.",
+    "planRequired": "This needs a different plan."
   },
   "update": {
     "title": "Time for an update",
@@ -422,7 +424,22 @@
     "inviteMember": "Invite a family member",
     "adminOnlyHint": "Only family admins can invite and edit members.",
     "goalsHint": "See what the family is playing for",
-    "goalsHintAdmin": "Set targets and rewards for the family"
+    "goalsHintAdmin": "Set targets and rewards for the family",
+    "chatSafety": {
+      "title": "Chat safety",
+      "filterLabel": "Hide bad words",
+      "filterOnHint": "Blocked words are replaced with ★ before anyone sees them",
+      "filterOffHint": "Off: messages are shown as written. Only new messages are affected.",
+      "modeTitle": "Who can chat",
+      "modeLabel": "Chat mode",
+      "normal": "Normal",
+      "normalBody": "Everyone can chat",
+      "announcements": "Announcements only",
+      "announcementsBody": "Only admins post; others can read and react",
+      "announcementsBodyClassroom": "Only teachers post; students can read and react",
+      "off": "Off",
+      "offBody": "Chat is hidden for everyone"
+    }
   },
   "invite": {
     "title": "Invite a member",
@@ -1387,7 +1404,21 @@
     "reactRateLimited": "Lots of reactions! Wait a minute and try again.",
     "reviewReport": "Review the report",
     "longPressReactHint": "Long press to react",
-    "reactionsLabel": "Reactions"
+    "reactionsLabel": "Reactions",
+    "offTitle": "Chat is turned off",
+    "offBody": "An admin turned the family chat off for now.",
+    "offBodyClassroom": "Your teacher turned the class chat off for now.",
+    "offBodyAdmin": "Nobody can read or send messages. You can turn it back on in the family settings.",
+    "offAction": "Open family settings",
+    "readOnlyBanner": "Only admins can post here — you can still react ❤️",
+    "readOnlyBannerClassroom": "Only teachers can post here — you can still react ❤️",
+    "announcementsChip": "Announcements mode",
+    "announcementsChipLabel": "Announcements mode: only admins can post",
+    "announcementsChipLabelClassroom": "Announcements mode: only teachers can post",
+    "filteredNote": "Some words were hidden",
+    "failedReadOnly": "Only admins can post right now · Not sent",
+    "failedReadOnlyClassroom": "Only teachers can post right now · Not sent",
+    "failedOff": "Chat is turned off · Not sent"
   },
   "help": {
     "howToPlay": "How to play",

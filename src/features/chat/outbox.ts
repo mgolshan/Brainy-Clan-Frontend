@@ -9,8 +9,13 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { ApiError } from '@/api/client';
 import { queryClient } from '@/api/queryClient';
 import { queryKeys } from '@/api/queryKeys';
-import type { ChatMessage } from '@/api/types';
+import type { ChatMessage, MePayload } from '@/api/types';
 import { postChatMessage } from '@/features/chat/api';
+import {
+  chatModeErrorCode,
+  withChatModeFromError,
+  type ChatModeErrorCode,
+} from '@/features/chat/modes';
 import {
   insertMessages,
   prepareBody,
@@ -70,12 +75,23 @@ function addToHistory(message: ChatMessage) {
   );
 }
 
+/**
+ * The server refused a chat call because the family's chat mode changed (403 `chat_read_only` /
+ * `chat_off`): show the new mode at once and re-read `me` (the source of truth).
+ */
+export function recoverFromChatMode(code: ChatModeErrorCode) {
+  queryClient.setQueryData<MePayload>(queryKeys.me, (prev) => withChatModeFromError(prev, code));
+  void queryClient.invalidateQueries({ queryKey: queryKeys.me });
+}
+
 const flushing = new Map<number, Promise<void>>();
 
 /**
  * Sends the member's waiting messages in order. Stops at the first network failure (still
  * offline: they stay `waiting`). A refusal marks that message `failed` (the member can retry
- * or discard it); `chat_disabled` / `rate_limited` stop the run.
+ * or discard it); `chat_disabled` / `rate_limited` / `chat_read_only` / `chat_off` stop the
+ * run. Failed messages are never re-sent automatically, so a mode refusal can't loop: the text
+ * stays as a "Not sent" bubble the member may retry later or delete.
  */
 export function flushChatOutbox(memberId: number): Promise<void> {
   const running = flushing.get(memberId);
@@ -106,6 +122,11 @@ export function flushChatOutbox(memberId: number): Promise<void> {
         if (code === 'chat_disabled') {
           // The member's chat was turned off: refresh `me` so the screen explains it.
           void queryClient.invalidateQueries({ queryKey: queryKeys.me });
+          return;
+        }
+        const modeCode = chatModeErrorCode(error);
+        if (modeCode) {
+          recoverFromChatMode(modeCode);
           return;
         }
         if (code === 'rate_limited') return;

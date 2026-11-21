@@ -39,6 +39,7 @@ const msg = (id: number, over: Partial<ChatMessage> = {}): ChatMessage => ({
   body: `message ${id}`,
   deleted: false,
   client_id: `c-${id}`,
+  filtered: false,
   created_at: `2026-10-23T12:${String(id % 60).padStart(2, '0')}:00Z`,
   ...over,
 });

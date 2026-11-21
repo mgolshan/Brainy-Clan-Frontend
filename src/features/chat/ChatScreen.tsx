@@ -32,6 +32,7 @@ import {
   useAppActive,
   useChatAccess,
   useChatHistory,
+  useChatMode,
   useChatPolling,
   useDeleteChatMessage,
   useMarkChatRead,
@@ -51,6 +52,13 @@ import {
   type ChatRow,
   type OutboxItem,
 } from '@/features/chat/messages';
+import {
+  chatModeErrorCode,
+  composerState,
+  isClassroom,
+  showFilteredNote,
+  type ComposerState,
+} from '@/features/chat/modes';
 import { myReaction, reactionIntent, visibleReactions } from '@/features/chat/reactions';
 import {
   discardChatMessage,
@@ -63,6 +71,7 @@ import { openHelp } from '@/features/help/HelpLink';
 import { canPurchasePlan } from '@/features/worlds/catalog';
 import { errorMessage } from '@/lib/errorMessage';
 import {
+  Badge,
   EmptyState,
   ErrorState,
   Icon,
@@ -179,11 +188,100 @@ function ChatDisabled() {
   );
 }
 
+/**
+ * Chat mode `off` (Classroom tool): nobody reads or posts; admins get the way back to the family
+ * settings, where they turn it on again. No chat request is made.
+ */
+function ChatOff() {
+  const { t } = useTranslation();
+  const isAdmin = useIsAdmin();
+  const classroom = isClassroom(usePolicy()?.tier);
+  return (
+    <ChatFrame>
+      <View style={[styles.flex, styles.center]}>
+        <EmptyState
+          title={t('chat.offTitle')}
+          body={
+            isAdmin
+              ? t('chat.offBodyAdmin')
+              : classroom
+                ? t('chat.offBodyClassroom')
+                : t('chat.offBody')
+          }
+          emoji="🔕"
+          icon="notifications-off-outline"
+          actionLabel={isAdmin ? t('chat.offAction') : undefined}
+          onAction={isAdmin ? () => router.push('/family') : undefined}
+        />
+      </View>
+    </ChatFrame>
+  );
+}
+
+/**
+ * Under the chat: the composer; for admins in announcements mode the composer with a small
+ * "Announcements mode" chip; for everyone else in announcements mode a calm banner instead.
+ */
+function ChatFooter({
+  state,
+  classroom,
+  onSend,
+}: {
+  state: Exclude<ComposerState, 'off'>;
+  classroom: boolean;
+  onSend: (text: string) => boolean;
+}) {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  if (state === 'readOnly') {
+    return (
+      <View
+        accessibilityRole="text"
+        accessibilityLiveRegion="polite"
+        testID="chat-read-only-banner"
+        style={[
+          styles.banner,
+          {
+            backgroundColor: theme.colors.surfaceAlt,
+            borderRadius: theme.radius.md,
+            padding: theme.spacing.md,
+            gap: theme.spacing.sm,
+            minHeight: theme.touchTarget,
+          },
+        ]}>
+        <Icon name="megaphone-outline" size={20} color={theme.colors.textMuted} />
+        <Text variant="label" tone="muted" style={styles.flexShrink}>
+          {classroom ? t('chat.readOnlyBannerClassroom') : t('chat.readOnlyBanner')}
+        </Text>
+      </View>
+    );
+  }
+  return (
+    <View style={{ gap: theme.spacing.xs }}>
+      {state === 'announcer' ? (
+        <View
+          accessible
+          accessibilityLabel={
+            classroom ? t('chat.announcementsChipLabelClassroom') : t('chat.announcementsChipLabel')
+          }
+          testID="chat-announcements-chip"
+          style={styles.chip}>
+          <Badge label={t('chat.announcementsChip')} tone="primary" icon="megaphone-outline" />
+        </View>
+      ) : null}
+      <Composer onSend={onSend} />
+    </View>
+  );
+}
+
 function ChatRoom({ memberId }: { memberId: number }) {
   const { t, i18n } = useTranslation();
   const theme = useTheme();
   const isAdmin = useIsAdmin();
   const policy = usePolicy();
+  const mode = useChatMode();
+  const footerState = composerState(mode, isAdmin);
+  const classroom = isClassroom(policy?.tier);
   const focused = useIsFocused();
   const appActive = useAppActive();
   const history = useChatHistory(true);
@@ -315,7 +413,12 @@ function ChatRoom({ memberId }: { memberId: number }) {
           return <DaySeparator label={dayLabel(item.iso, locale, t)} />;
         case 'pending':
           return (
-            <PendingBubble item={item.item} onRetry={onRetry} onLongPress={onPendingLongPress} />
+            <PendingBubble
+              item={item.item}
+              onRetry={onRetry}
+              onLongPress={onPendingLongPress}
+              classroom={classroom}
+            />
           );
         case 'message': {
           const reported = showReportedTag(item.message, isAdmin);
@@ -333,6 +436,7 @@ function ChatRoom({ memberId }: { memberId: number }) {
               reported={reported}
               onReviewReport={reported ? onReviewReport : undefined}
               highlighted={item.message.id === highlightId}
+              filteredNote={showFilteredNote(item.message, memberId)}
             />
           );
         }
@@ -351,6 +455,7 @@ function ChatRoom({ memberId }: { memberId: number }) {
       memberId,
       isAdmin,
       highlightId,
+      classroom,
     ],
   );
 
@@ -402,6 +507,9 @@ function ChatRoom({ memberId }: { memberId: number }) {
   };
 
   if (history.isError && isChatDisabledError(history.error)) return <ChatDisabled />;
+  // The family turned chat off mid-session (`me` is being re-read).
+  if (footerState === 'off' || (history.isError && chatModeErrorCode(history.error) === 'chat_off'))
+    return <ChatOff />;
 
   const retentionDays = policy?.chat?.retention_days ?? history.meta?.retention_days;
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -410,7 +518,7 @@ function ChatRoom({ memberId }: { memberId: number }) {
   };
 
   return (
-    <ChatFrame footer={<Composer onSend={send} />}>
+    <ChatFrame footer={<ChatFooter state={footerState} classroom={classroom} onSend={send} />}>
       <Header retentionDays={retentionDays} />
       {history.isPending ? (
         <Loading />
@@ -648,8 +756,10 @@ const viewability = { itemVisiblePercentThreshold: 60, minimumViewTime: 300 };
  */
 export function ChatScreen() {
   const { memberId, enabled } = useChatAccess();
+  const mode = useChatMode();
   if (memberId === null) return <Loading />;
   if (!enabled) return <ChatDisabled />;
+  if (mode === 'off') return <ChatOff />;
   return <ChatRoom memberId={memberId} />;
 }
 
@@ -665,6 +775,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 8,
   },
+  banner: { flexDirection: 'row', alignItems: 'center' },
+  chip: { alignSelf: 'flex-start' },
   retention: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' },
   jump: {
     position: 'absolute',

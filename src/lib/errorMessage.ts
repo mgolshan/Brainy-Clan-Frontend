@@ -68,6 +68,12 @@ export function errorMessage(error: unknown, t: TFunction): string {
       return t('billing.referral.locked');
     case 'chat_disabled':
       return t('chat.disabledTitle');
+    case 'chat_off':
+      return t('chat.offTitle');
+    case 'chat_read_only':
+      return t('errors.chatReadOnly');
+    case 'plan_required':
+      return t('errors.planRequired');
     case 'login_locked':
       // Screens with a sign-in form show a live countdown instead (`useLockout`).
       return t('errors.loginLocked');

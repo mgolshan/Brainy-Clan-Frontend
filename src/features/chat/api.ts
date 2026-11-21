@@ -83,6 +83,7 @@ export type ReactionErrorKey =
   | 'chat.reactRateLimited'
   | 'chat.reportGone'
   | 'chat.disabledTitle'
+  | 'chat.offTitle'
   | 'errors.network'
   | 'chat.reactFailed';
 
@@ -90,6 +91,7 @@ export function reactionErrorKey(error: unknown): ReactionErrorKey {
   if (!(error instanceof ApiError)) return 'chat.reactFailed';
   if (error.code === 'network_error' || error.code === 'timeout') return 'errors.network';
   if (error.code === 'chat_disabled') return 'chat.disabledTitle';
+  if (error.code === 'chat_off') return 'chat.offTitle';
   if (error.status === 429) return 'chat.reactRateLimited';
   if (error.status === 404) return 'chat.reportGone';
   return 'chat.reactFailed';
@@ -101,6 +103,7 @@ export type ReportErrorKey =
   | 'chat.reportGone'
   | 'chat.reportRateLimited'
   | 'chat.disabledTitle'
+  | 'chat.offTitle'
   | 'errors.forbidden'
   | 'errors.network'
   | 'chat.reportFailed';
@@ -109,6 +112,7 @@ export function reportErrorKey(error: unknown): ReportErrorKey {
   if (!(error instanceof ApiError)) return 'chat.reportFailed';
   if (error.code === 'network_error' || error.code === 'timeout') return 'errors.network';
   if (error.code === 'chat_disabled') return 'chat.disabledTitle';
+  if (error.code === 'chat_off') return 'chat.offTitle';
   switch (error.status) {
     case 422:
       return 'chat.reportOwn';

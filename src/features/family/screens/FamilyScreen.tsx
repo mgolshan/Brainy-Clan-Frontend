@@ -7,6 +7,7 @@ import { queryKeys } from '@/api/queryKeys';
 import type { Invite, Member } from '@/api/types';
 import { useIsAdmin, useMe, usePolicy } from '@/features/auth/hooks';
 import { SubscriptionCard } from '@/features/billing/SubscriptionCard';
+import { ChatSafetySettings } from '@/features/family/components/ChatSafetySettings';
 import { useDeleteInvite, useFamily, useInvites } from '@/features/family/hooks';
 import { invalidateWorlds } from '@/features/worlds/hooks';
 import { formatDate } from '@/lib/format';
@@ -87,7 +88,7 @@ function InviteRow({ invite }: { invite: Invite }) {
   );
 }
 
-/** Family tab: members, and for admins pending invites + invite / edit actions. */
+/** Family tab: members, and for admins pending invites, invite / edit actions and chat safety. */
 export function FamilyScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -203,6 +204,7 @@ export function FamilyScreen() {
             size="lg"
             onPress={() => router.push('/invite')}
           />
+          <ChatSafetySettings family={info} />
           <SubscriptionCard />
           {info.owner_user_id === me?.user.id ? (
             <Button

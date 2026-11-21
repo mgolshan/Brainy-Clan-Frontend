@@ -24,6 +24,7 @@ import { AppThemeProvider } from '@/features/app/AppThemeProvider';
 import { useMinVersionGate } from '@/features/app/useHealth';
 import { initMonitoring, setMonitoringMember, withMonitoring } from '@/features/app/sentry';
 import { useLocaleSync } from '@/features/app/useLocaleSync';
+import { useChatDraft } from '@/features/chat/draft';
 import { useChatOutbox } from '@/features/chat/outbox';
 import { useMe } from '@/features/auth/hooks';
 import { configureNotifications } from '@/features/notifications/push';
@@ -108,6 +109,7 @@ function RootNavigator() {
     useAnswerQueue.getState().clear();
     useChallengeDrafts.getState().clear();
     useChatOutbox.getState().clear();
+    useChatDraft.getState().clear();
     clearSupportDraft();
   }, [token]);
 
