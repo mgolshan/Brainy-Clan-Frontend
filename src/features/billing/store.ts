@@ -1,8 +1,9 @@
 import { Platform } from 'react-native';
 import type { CustomerInfo, PurchasesPackage } from 'react-native-purchases';
 
-import { FAMILY_ENTITLEMENT, REVENUECAT_API_KEY, purchasesSupported } from '@/config/monetization';
-import { toPaywallPackages } from '@/features/billing/packages';
+import { REVENUECAT_API_KEY, purchasesSupported } from '@/config/monetization';
+import { baseProductId, toPaywallPackages } from '@/features/billing/packages';
+import { type PaidTier, entitledTier, offeringForTier } from '@/features/billing/plans';
 import { type StoreApi, StoreError, type StoreErrorKind } from '@/features/billing/storeTypes';
 import { toAlpha3 } from '@/lib/countryCodes';
 
@@ -39,7 +40,10 @@ function loadSdk(): Promise<Purchases> {
   return sdk;
 }
 
-/** Packages of the last offering fetch, so screens only pass identifiers around. */
+/**
+ * Packages of the offering fetches, keyed `{tier}/{package identifier}` (the same `$rc_annual`
+ * identifier exists in every tier's offering), so screens only pass identifiers around.
+ */
 const packages = new Map<string, PurchasesPackage>();
 
 function errorKind(Purchases: Purchases | null, code: unknown): StoreErrorKind {
@@ -92,8 +96,12 @@ function isCancelled(Purchases: Purchases, error: unknown): boolean {
   );
 }
 
-function hasFamily(info: CustomerInfo): boolean {
-  return info.entitlements.active[FAMILY_ENTITLEMENT]?.isActive === true;
+/** Highest-ranked active plan entitlement (`family` / `big_clan` / `classroom`), or null. */
+function activeTier(info: CustomerInfo): PaidTier | null {
+  const active = Object.entries(info.entitlements.active)
+    .filter(([, entitlement]) => entitlement?.isActive === true)
+    .map(([id]) => id);
+  return entitledTier(active);
 }
 
 async function identify(appUserId: string): Promise<void> {
@@ -128,21 +136,21 @@ export const store: StoreApi = {
 
   identify,
 
-  async getPackages(appUserId) {
+  async getPackages(appUserId, tier) {
     await identify(appUserId);
     const Purchases = await loadSdk();
+    const key = (pkg: PurchasesPackage) => `${tier}/${pkg.identifier}`;
     try {
       const offerings = await Purchases.getOfferings();
-      const available = offerings.current?.availablePackages ?? [];
-      packages.clear();
-      for (const pkg of available) packages.set(pkg.identifier, pkg);
+      const available = offeringForTier(offerings, tier)?.availablePackages ?? [];
+      for (const pkg of available) packages.set(key(pkg), pkg);
       const ineligible = await ineligibleProducts(
         Purchases,
         available.filter((pkg) => pkg.product.introPrice).map((pkg) => pkg.product.identifier),
       );
       return toPaywallPackages(
         available.map((pkg) => ({
-          identifier: pkg.identifier,
+          identifier: key(pkg),
           packageType: String(pkg.packageType),
           product: pkg.product,
         })),
@@ -153,12 +161,18 @@ export const store: StoreApi = {
     }
   },
 
-  async purchase(packageId) {
+  async purchase(packageId, change) {
     const Purchases = await loadSdk();
     const pkg = packages.get(packageId);
     if (!pkg) throw new StoreError('unavailable');
+    // Google Play needs the old product to replace it (else the family would pay twice); the
+    // App Store switches inside the subscription group by itself.
+    const productChange =
+      change && Platform.OS === 'android'
+        ? { oldProductIdentifier: baseProductId(change.oldProductId) }
+        : null;
     try {
-      await Purchases.purchasePackage(pkg);
+      await Purchases.purchasePackage(pkg, null, productChange);
       return 'purchased';
     } catch (error) {
       if (isCancelled(Purchases, error)) return 'cancelled';
@@ -170,7 +184,7 @@ export const store: StoreApi = {
     await identify(appUserId);
     const Purchases = await loadSdk();
     try {
-      return hasFamily(await Purchases.restorePurchases());
+      return activeTier(await Purchases.restorePurchases());
     } catch (error) {
       throw toStoreError(error);
     }

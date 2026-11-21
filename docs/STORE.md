@@ -122,7 +122,7 @@ every age — with family goals, a leaderboard and a private family chat.
 >
 > **Play your way**
 > • Quizzes and games in 20 categories, with wisdom cards that teach something new (the free plan includes
-> 3 categories; the Family plan unlocks all of them)
+> 3 categories; every paid plan unlocks all of them)
 > • Brain games: memory match, pattern sequences, nonograms and spot the difference
 > • Level-up puzzles that grow from age 4 to adult: Cross Math (number crosswords), Mazes with
 > stars to collect, and Code Breaker (crack the secret line of Clan friends)
@@ -136,7 +136,7 @@ every age — with family goals, a leaderboard and a private family chat.
 > • A private family chat: only members of your family, text and emoji only — no strangers.
 > Parents can turn chat off for a child and delete any message
 > • 16 worlds to play in, from Jungle and Space to Under the Sea — unlock new ones with points and
-> streaks (some come with the Family plan)
+> streaks (some come with a paid plan)
 > • A look for every age: playful for kids, sleek for teens, calm and clear for adults, extra
 > readable for seniors — with adjustable text size and reduced motion
 >
@@ -150,11 +150,12 @@ every age — with family goals, a leaderboard and a private family chat.
 > • No ads for children; adults on the free plan may see optional rewarded videos (never
 > personalized)
 > • Chat messages are encrypted on our servers and deleted automatically after 7 days (1 year on
-> the Family plan)
+> a paid plan)
 > • Download your data or delete your account at any time in the app
 >
-> Brainy Clan Family plan: unlock more members, categories and goals for the whole family with
-> one subscription. Payment is charged to your App Store / Google Play account and renews
+> Brainy Clan plans: Family (parents and kids, up to 6), Big Clan (grandparents, cousins and
+> homeschool groups, up to 12) and Classroom (teachers, tutors and coaches: 2 adults + 35
+> students) unlock more members, categories and goals for everyone with one subscription. Payment is charged to your App Store / Google Play account and renews
 > automatically unless cancelled at least 24 hours before the end of the period. Manage or cancel
 > in your account settings.
 >
@@ -182,7 +183,7 @@ pour tous les âges — avec objectifs, classement et chat familial privé.
 >
 > **Jouez à votre façon**
 > • Des quiz et des jeux en 20 catégories, avec des cartes « sagesse » pour apprendre (3 catégories avec le
-> forfait gratuit, toutes avec le forfait Famille)
+> forfait gratuit, toutes avec un forfait payant)
 > • Jeux cérébraux : paires de mémoire, suites logiques, nonogrammes et jeu des différences
 > • Des casse-têtes qui grandissent avec vous, de 4 ans à l'âge adulte : Maths croisés, Labyrinthes
 > avec des étoiles à ramasser et Casse-code (retrouvez la ligne secrète d'amis du Clan)
@@ -198,7 +199,7 @@ pour tous les âges — avec objectifs, classement et chat familial privé.
 > • Un chat familial privé : seulement les membres de votre famille, texte et émojis uniquement —
 > aucun inconnu. Les parents peuvent désactiver le chat d'un enfant et supprimer tout message
 > • 16 mondes à explorer, de la Jungle à l'Espace en passant par les fonds marins — débloquez-en
-> de nouveaux avec vos points et vos séries (certains avec le forfait Famille)
+> de nouveaux avec vos points et vos séries (certains avec un forfait payant)
 > • Un style pour chaque âge : ludique pour les enfants, épuré pour les ados, clair pour les
 > adultes, très lisible pour les aînés — taille du texte et animations réglables
 >
@@ -212,11 +213,13 @@ pour tous les âges — avec objectifs, classement et chat familial privé.
 > • Aucune publicité pour les enfants ; les adultes du forfait gratuit peuvent voir des vidéos
 > récompensées facultatives (jamais personnalisées)
 > • Les messages du chat sont chiffrés sur nos serveurs et supprimés automatiquement après 7 jours
-> (1 an avec le forfait Famille)
+> (1 an avec un forfait payant)
 > • Téléchargez vos données ou supprimez votre compte à tout moment dans l'app
 >
-> Forfait Famille Brainy Clan : plus de membres, de catégories et d'objectifs pour toute la
-> famille avec un seul abonnement. Le paiement est débité de votre compte App Store / Google Play
+> Forfaits Brainy Clan : Famille (parents et enfants, jusqu'à 6), Grand Clan (grands-parents,
+> cousins et groupes d'école à la maison, jusqu'à 12) et Classe (enseignants, tuteurs et
+> entraîneurs : 2 adultes + 35 élèves) — plus de membres, de catégories et d'objectifs pour tous
+> avec un seul abonnement. Le paiement est débité de votre compte App Store / Google Play
 > et se renouvelle automatiquement sauf annulation au moins 24 heures avant la fin de la période.
 > Gérez ou annulez l'abonnement dans les réglages de votre compte.
 >
@@ -303,7 +306,7 @@ rewarded ads; children never see ads.
     in-app "report/block" button because only family members can write. If the reviewer asks
     for one, it has to be built (not built yet).
   - Advertising: **Yes** (rewarded videos, teens/adults on the free plan, non-personalized, rated
-    G). In-app purchases: **Yes** (Family plan subscription).
+    G). In-app purchases: **Yes** (Family, Big Clan and Classroom subscriptions).
   - Age assurance: parents create child profiles; birth year/month is asked at sign-up; age
     rules come from the backend policy.
 
@@ -341,7 +344,7 @@ Sentry runs with `sendDefaultPii: false` and scrubs events; traces are off.
 Family chat messages: stored on our backend only (encrypted at rest, HTTPS in transit), linked to
 the author's family membership, never used for tracking or advertising, never sent to Sentry, logs
 or push payloads, not visible to staff in the admin panel, deleted automatically after 7 days (free)
-or 1 year (Family plan), and erased with the author's account. Declared as "Other User Content";
+or 1 year (paid plans), and erased with the author's account. Declared as "Other User Content";
 **verify in App Store Connect** whether Apple's "Emails or Text Messages" type is the better fit
 for in-app messages and use that one if so (same answers).
 
@@ -362,7 +365,7 @@ for in-app messages and use that one if so (same answers).
   (analytics: crash reporting); Device or other IDs → **Device or other IDs** (advertising, fraud
   prevention — AdMob; push token for notifications); Messages → **Other in-app messages** (family
   chat; app functionality; optional — members choose whether to write; not shared with third
-  parties; not processed ephemerally: kept 7 days on the free plan, 1 year on the Family plan, then
+  parties; not processed ephemerally: kept 7 days on the free plan, 1 year on a paid plan, then
   deleted automatically; encrypted in transit and at rest; users can delete their own messages,
   parents any message in their family, and account deletion erases the user's messages).
 - Not collected: location, contacts, photos/videos, audio, files, calendar, health, emails, SMS,
@@ -420,9 +423,9 @@ manager, a child "Sam" (9) and a teen "Alex" (14), a few completed sessions and 
 > **Family chat:** Chat tab — a private group chat for members of this family only (text and
 > emoji; no strangers). A parent can turn chat off for a member (Family tab → member → Family
 > chat) and delete any message (long-press). Messages are deleted automatically after 7 days on
-> the free plan (1 year on the Family plan).
+> the free plan (1 year on a paid plan).
 >
-> **Subscriptions:** Profile → Family plan (sandbox). **Ads:** only rewarded videos the adult
+> **Subscriptions:** Family tab → Plan → See the plans (sandbox; Family, Big Clan, Classroom). **Ads:** only rewarded videos the adult
 > chooses to watch for a second chance on the free plan; non-personalized; no App Tracking
 > Transparency prompt because the app does not track.
 
@@ -467,9 +470,9 @@ and instructions.
 4. App Store Connect → the version: screenshots (iPhone 6.9" and iPad 13", §8), texts from
    §4/§5, keywords, support URL `https://brainyclan.com/support`, marketing URL
    `https://brainyclan.com`, privacy policy URL `https://brainyclan.com/privacy`, App Privacy (§7), age rating (§6), category, in-app
-   purchases/subscriptions (`brainyclan_family_monthly`, `brainyclan_family_6months`,
-   `brainyclan_family_annual`; entitlement `family`; README "Family plan purchases") attached to the version (first subscription must be submitted with
-   the app), review notes + demo account (§9), "Sign in with Apple" capability enabled.
+   purchases/subscriptions (§11: nine products `brainyclan_{family|big_clan|classroom}_{monthly|6months|annual}`
+   in **one** subscription group; entitlements `family`, `big_clan`, `classroom`; README "Plan
+   purchases") attached to the version (first subscriptions must be submitted with the app), review notes + demo account (§9), "Sign in with Apple" capability enabled.
 5. Submit for review. Apple will look closely at: account deletion in the app (yes), Sign in with
    Apple offered alongside Google (yes), subscription terms in the description and paywall
    (auto-renew text, links to terms/privacy), children's data and ads (not Kids Category; no ads
@@ -501,3 +504,34 @@ and instructions.
 - JS-only fix: `eas update --channel production` (fingerprint keeps it to compatible builds).
 - Native change or new SDK: bump `expo.version` (e.g. 1.0.1 / 1.1.0), `eas build` + `eas submit`
   both platforms, update "What's new", re-check §7 if data collection changed.
+
+## 11. Subscriptions: plans, products and offerings (B12, 2026-11-20)
+
+Four plans (backend PLAN B12): Free, **Family** (6 members), **Big Clan** (12) and **Classroom**
+(37: 2 adults + 35 students). Every paid plan has the same features; they differ in size.
+Prices are set in the stores (and Paddle) only — the app shows the store prices of the offering.
+
+| Tier        | Products (App Store + Google Play, same ids)                                                  | Entitlement | Offering           |
+| ----------- | --------------------------------------------------------------------------------------------- | ----------- | ------------------ |
+| `family`    | `brainyclan_family_monthly`, `brainyclan_family_6months`, `brainyclan_family_annual`          | `family`    | `family` (current) |
+| `big_clan`  | `brainyclan_big_clan_monthly`, `brainyclan_big_clan_6months`, `brainyclan_big_clan_annual`    | `big_clan`  | `big_clan`         |
+| `classroom` | `brainyclan_classroom_monthly`, `brainyclan_classroom_6months`, `brainyclan_classroom_annual` | `classroom` | `classroom`        |
+
+- **App Store:** all nine products in **one subscription group** ("Brainy Clan plans"), so a
+  family holds one at a time and Apple handles up- and downgrades. Order the group levels from
+  the top: Classroom, Big Clan, Family (Apple upgrades at once to a higher level; downgrades and
+  same-level period changes start at the next renewal — the app then says "Plan change
+  confirmed … may start with your next billing period"). 7-day free trial on the 6-month and
+  annual products of every tier.
+- **Google Play:** one subscription per product id above, each with its base plan. The app passes
+  the running product (`oldProductIdentifier`) when a family switches plans, so Play replaces the
+  subscription instead of adding a second one.
+- **RevenueCat:** one entitlement per tier (ids exactly `family`, `big_clan`, `classroom`, the
+  backend's entitlement → tier map), each with its three products; one offering per tier with
+  the same identifier and the `MONTHLY`, `SIX_MONTH`, `ANNUAL` packages. Mark `family` as
+  **Current** (older app builds read the current offering). With several active entitlements
+  the family gets the highest tier.
+- **Paddle (web):** prices per tier and period on the backend (`PADDLE_PRICE_{TIER}_{PERIOD}`);
+  a web plan changes tier by cancelling and subscribing again (for now).
+- Review notes: the reviewer's demo family can open Family tab → Plan → See the plans; all three
+  plans list sandbox prices.

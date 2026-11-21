@@ -44,7 +44,7 @@
     "validation": "Please check the highlighted fields.",
     "rateLimited": "Too many attempts. Please wait a minute.",
     "server": "The server had a problem. Please try again later.",
-    "goalLimitReached": "Your plan's limit of active goals is reached. Pause a goal or upgrade to the Family plan.",
+    "goalLimitReached": "Your plan's limit of active goals is reached. Pause a goal or upgrade to a paid plan.",
     "signInCodeInvalid": "This sign-in code is unknown, already used or expired. Ask your parent for a new one.",
     "socialTokenInvalid": "We couldn't verify your Apple, Google or Facebook account. Please try again.",
     "socialSignupIncomplete": "Please tell us your birth year and month to finish creating your account.",
@@ -54,7 +54,7 @@
     "adRewardPending": "We couldn't confirm your reward yet. Please try again in a moment.",
     "loginLocked": "Too many sign-in attempts. Please wait a few minutes and try again.",
     "worldLocked": "That world isn't unlocked yet. The list has been refreshed.",
-    "subscriptionExists": "Your family already has a Family plan, so there is nothing to buy here.",
+    "subscriptionExists": "Your family already has a paid plan, so there is nothing to buy here.",
     "webCheckoutUnavailable": "Buying on the web isn’t available right now."
   },
   "update": {
@@ -161,8 +161,8 @@
     "soundAutoOff": "Automatic is off for your profile."
   },
   "play": {
-    "locked": "Family plan",
-    "lockedHint": "This category comes with the Family plan.",
+    "locked": "Paid plan",
+    "lockedHint": "This category comes with every paid plan.",
     "subCategories_one": "{{count}} topic",
     "subCategories_other": "{{count}} topics",
     "livesLeft_one": "{{count}} of {{total}} lives left",
@@ -183,7 +183,7 @@
     "playAll": "Play all of {{name}}",
     "noCategories": "No categories available yet",
     "starting": "Getting your questions ready…",
-    "lockedTitle": "{{name}} is part of the Family plan",
+    "lockedTitle": "{{name}} comes with a paid plan",
     "close": "Leave the game",
     "progress_one": "{{count}} of {{target}} points",
     "progress_other": "{{count}} of {{target}} points",
@@ -397,8 +397,10 @@
     "senior": "Senior"
   },
   "tiers": {
-    "free": "Free plan",
-    "family": "Family plan"
+    "free": "Free",
+    "family": "Family",
+    "big_clan": "Big Clan",
+    "classroom": "Classroom"
   },
   "family": {
     "members": "Members",
@@ -416,7 +418,7 @@
     "noInvites": "No pending invites",
     "noInvitesBody": "Invite your family so you can play together.",
     "limitTitle": "Member limit reached",
-    "limitBody": "Your plan allows {{max}} members, including pending invites. Upgrade to the Family plan to add more.",
+    "limitBody": "Your plan allows {{max}} members, including pending invites. Choose a bigger plan to add more.",
     "inviteMember": "Invite a family member",
     "adminOnlyHint": "Only family admins can invite and edit members.",
     "goalsHint": "See what the family is playing for",
@@ -514,8 +516,8 @@
     "emptyMember": "Ask a family admin to set a goal with a reward.",
     "pausedSection": "Paused goals",
     "limitTitle": "Goal limit reached",
-    "limitBody_one": "Your plan allows {{count}} active goal. Pause one, or upgrade to the Family plan for more.",
-    "limitBody_other": "Your plan allows {{count}} active goals. Pause one, or upgrade to the Family plan for more.",
+    "limitBody_one": "Your plan allows {{count}} active goal. Pause one, or upgrade to a paid plan for more.",
+    "limitBody_other": "Your plan allows {{count}} active goals. Pause one, or upgrade to a paid plan for more.",
     "noOpenPeriod": "Starts soon",
     "teamProgress_one": "Team: {{count}} of {{target}} points",
     "teamProgress_other": "Team: {{count}} of {{target}} points",
@@ -1012,7 +1014,7 @@
   },
   "billing": {
     "title": "Plan",
-    "unlocksTitle": "The Family plan unlocks",
+    "unlocksTitle": "Every paid plan unlocks",
     "unlockMembers_one": "More than {{count}} family member",
     "unlockMembers_other": "More than {{count}} family members",
     "unlockCategories_one": "More than {{count}} category",
@@ -1036,21 +1038,21 @@
       "stripe": "Web",
       "paddle": "Web (brainyclan.com)"
     },
-    "seePlan": "See the Family plan",
+    "seePlan": "See the plans",
     "errors": {
       "network": "Couldn't reach the store. Check your connection and try again.",
       "notAllowed": "Purchases aren't allowed on this device (check Screen Time or Google Play restrictions).",
-      "pending": "Your payment is pending. The Family plan starts as soon as the store confirms it.",
+      "pending": "Your payment is pending. Your plan starts as soon as the store confirms it.",
       "alreadyOwned": "This store account already has a Brainy Clan subscription, possibly for another family. Try “Restore purchases”, or use the account that bought it.",
-      "unavailable": "The Family plan isn't available right now. Please try again later.",
+      "unavailable": "This plan isn't available right now. Please try again later.",
       "store": "The store had a problem. Please try again in a moment.",
       "unknown": "Something went wrong with the purchase. Please try again."
     },
     "paywall": {
-      "title": "Family plan",
-      "subtitle": "One subscription for the whole family",
-      "wholeFamily": "Everyone in your family gets the Family plan, children included. Cancel any time in the App Store or Google Play.",
-      "choose": "Choose a plan",
+      "title": "Plans",
+      "subtitle": "One subscription for the whole clan",
+      "wholeFamily": "Everyone in your family or group gets the plan, children included. Cancel any time in the App Store or Google Play.",
+      "choose": "Choose how to pay",
       "annual": "Yearly",
       "monthly": "Monthly",
       "perYear": "{{price}} / year",
@@ -1059,17 +1061,17 @@
       "bestValue": "Best value",
       "subscribe": "Subscribe",
       "restore": "Restore purchases",
-      "activating": "Activating the Family plan for your family…",
+      "activating": "Activating your plan…",
       "cancelled": "Purchase cancelled — nothing was charged.",
-      "nothingToRestore": "No active Family plan was found for this store account.",
+      "nothingToRestore": "No active plan was found for this store account.",
       "noPackages": "No plans are available yet. Please try again later.",
-      "alreadyFamily": "Your family already has the Family plan.",
+      "alreadyFamily": "Your family already has a paid plan.",
       "notAllowed": "Only a family admin can manage the plan.",
       "notInBuild": "Purchases are only available in the Brainy Clan app for iPhone and Android.",
-      "welcomeTitle": "Welcome to the Family plan!",
-      "welcomeBody": "Everyone in your family now has the Family plan.",
+      "welcomeTitle": "Welcome to the {{plan}} plan!",
+      "welcomeBody": "Everyone in your family or group now has the {{plan}} plan.",
       "delayedTitle": "Almost there",
-      "delayedBody": "Your purchase went through. It can take a few minutes until the Family plan shows in the app — no need to buy again.",
+      "delayedBody": "Your purchase went through. It can take a few minutes until the {{plan}} plan shows in the app — no need to buy again.",
       "legal": "Payment is charged to your App Store or Google Play account. The subscription renews automatically unless cancelled at least 24 hours before the end of the period; manage or cancel it in your store account settings.",
       "terms": "Terms of use",
       "privacy": "Privacy policy",
@@ -1080,10 +1082,20 @@
       "foundingTitle": "Founding families offer",
       "introOnce": "{{price}} for {{duration}}",
       "introRecurring": "{{price}} per {{unit}} for {{duration}}",
-      "alreadyFamilyStore": "Your family already has the Family plan. Change or cancel it in your store account."
+      "alreadyFamilyStore": "Your family already has a paid plan. Change or cancel it in your store account.",
+      "subscribeTo": "Subscribe to {{plan}}",
+      "switchTo": "Switch to {{plan}}",
+      "changeTitle": "Change your plan",
+      "changeBody": "Your family has the {{plan}} plan. Pick another plan or way to pay; the store handles the switch and any credit for the time already paid.",
+      "currentPeriod": "Current",
+      "scheduledTitle": "Plan change confirmed",
+      "scheduledBody": "The store confirmed your switch to the {{plan}} plan. It may start with your next billing period; until then nothing changes for your family.",
+      "otherStoreTitle": "Change it where you bought it",
+      "otherStoreBody": "Your plan is billed through {{store}}. To switch plans, open Brainy Clan on a device that uses that store.",
+      "webChange": "Want a different plan? Cancel this one on the website, then subscribe to the new plan there once it has ended."
     },
     "manage": "Manage subscription",
-    "managedOnWebTitle": "Your Family plan is managed on the web",
+    "managedOnWebTitle": "Your plan is managed on the web",
     "managedOnWebBody": "You subscribed on brainyclan.com. Change or cancel the plan there — nothing to buy in the app.",
     "period": {
       "day_one": "{{count}} day",
@@ -1119,6 +1131,28 @@
     },
     "web": {
       "button": "Also available on the web"
+    },
+    "changePlan": "Change plan",
+    "memberLimit": "Members",
+    "plans": {
+      "choose": "Choose a plan",
+      "yourPlan": "Your plan",
+      "recommended": "Recommended",
+      "sameFeatures": "Every paid plan has the same features. Pick the one that fits the size of your group.",
+      "bestFor": {
+        "family": "Parents and kids, up to {{max}}",
+        "big_clan": "Grandparents, cousins and homeschool groups, up to {{max}}",
+        "classroom": "Teachers, tutors and coaches: {{adults}} adults + {{students}} students"
+      },
+      "highlight": {
+        "family": "Everyone plays at their own level",
+        "big_clan": "Room for more adults, each with their own account",
+        "classroom": "Made for a class, a tutoring group or a team"
+      },
+      "members_one": "Up to {{count}} member",
+      "members_other": "Up to {{count}} members",
+      "tooSmall_one": "Too small for your {{count}} member",
+      "tooSmall_other": "Too small for your {{count}} members"
     }
   },
   "notifications": {
@@ -1174,8 +1208,8 @@
     "pointFamilyToo": "You're the only member of your family, so the family is deleted too.",
     "cannotUndo": "This can't be undone.",
     "subscriptionTitle": "Cancel your subscription first",
-    "cancelAppStore": "Your family plan is billed through the App Store. Cancel it in your Apple ID subscriptions first — deleting your account doesn't stop billing.",
-    "cancelPlayStore": "Your family plan is billed through Google Play. Cancel it in Google Play → Subscriptions first — deleting your account doesn't stop billing.",
+    "cancelAppStore": "Your plan is billed through the App Store. Cancel it in your Apple ID subscriptions first — deleting your account doesn't stop billing.",
+    "cancelPlayStore": "Your plan is billed through Google Play. Cancel it in Google Play → Subscriptions first — deleting your account doesn't stop billing.",
     "cancelStoreGeneric": "Your family has an active subscription. Cancel it where you bought it (App Store / Google Play) first — deleting your account doesn't stop billing.",
     "ownerTitle": "You own a family with other members",
     "ownerBody": "The owner can't leave the family behind. Delete the family first (you can delete your account in the same step).",
@@ -1259,7 +1293,7 @@
       "points_other": "{{progress}} / {{required}} points",
       "streak_one": "{{progress}} / {{required}}-day streak",
       "streak_other": "{{progress}} / {{required}}-day streak",
-      "familyPlan": "Family plan",
+      "paidPlan": "Paid plan",
       "locked": "Locked"
     },
     "howTo": {
@@ -1269,7 +1303,7 @@
       "streak_other": "Play {{count}} days in a row to unlock {{name}}. Your best streak so far: {{progress}}.",
       "other": "{{name}} isn't unlocked yet. Every challenge you finish brings it closer."
     },
-    "askParent": "Comes with the Family plan",
+    "askParent": "Comes with a paid plan",
     "storedLocked": "{{name}} is locked right now, so you see your automatic world. Your pick comes back when it unlocks again.",
     "unlockedTitle": "New world unlocked!",
     "unlockedBody": "{{name}} is ready for you.",
@@ -1282,7 +1316,7 @@
     "retentionDays_other": "Messages are kept for {{count}} days",
     "retentionYears_one": "Messages are kept for {{count}} year",
     "retentionYears_other": "Messages are kept for {{count}} years",
-    "upsell": "Keep messages for a year with the Family plan",
+    "upsell": "Keep messages for a year with a paid plan",
     "today": "Today",
     "yesterday": "Yesterday",
     "formerMember": "Former member",

@@ -2,9 +2,9 @@ import { router } from 'expo-router';
 import type { TFunction } from 'i18next';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 
-import type { Subscription } from '@/api/types';
+import type { FamilyTier, Subscription } from '@/api/types';
 import { useIsAdmin, usePolicy } from '@/features/auth/hooks';
 import {
   OfferCodeButton,
@@ -19,14 +19,30 @@ import {
   useSubscription,
   useWebCheckoutLink,
 } from '@/features/billing/hooks';
-import { defaultPackage } from '@/features/billing/packages';
-import { planSource } from '@/features/billing/source';
+import { isSameProduct, selectedPackage } from '@/features/billing/packages';
+import {
+  PLAN_CATALOG,
+  type PaidTier,
+  RECOMMENDED_TIER,
+  defaultTier,
+  isTooSmall,
+  planMembers,
+  planStudents,
+} from '@/features/billing/plans';
+import { canChangePlanHere, planSource } from '@/features/billing/source';
 import { store } from '@/features/billing/store';
-import { type OfferPeriod, type PaywallPackage, StoreError } from '@/features/billing/storeTypes';
+import {
+  type OfferPeriod,
+  type PaywallPackage,
+  type PlanChange,
+  StoreError,
+} from '@/features/billing/storeTypes';
 import { Unlocks } from '@/features/billing/SubscriptionCard';
 import { PRIVACY_URL, TERMS_URL } from '@/config/monetization';
+import { useFamily } from '@/features/family/hooks';
 import { openInAppBrowser, openLegalPage, useLegal } from '@/features/legal/hooks';
 import { errorMessage } from '@/lib/errorMessage';
+import { tierLabel } from '@/lib/labels';
 import {
   Badge,
   Button,
@@ -112,10 +128,13 @@ function useIntroText() {
 function PackageOption({
   pkg,
   selected,
+  current,
   onSelect,
 }: {
   pkg: PaywallPackage;
   selected: boolean;
+  /** The family's running product: shown, but not buyable again. */
+  current: boolean;
   onSelect: () => void;
 }) {
   const { t } = useTranslation();
@@ -135,16 +154,21 @@ function PackageOption({
   const perMonth = pkg.pricePerMonthString
     ? t('billing.paywall.perMonthEquivalent', { price: pkg.pricePerMonthString })
     : null;
-  const label = [name, price, perMonth, save, trial, introLine].filter(Boolean).join(', ');
+  const currentText = current ? t('billing.paywall.currentPeriod') : null;
+  const label = [name, currentText, price, perMonth, save, trial, introLine]
+    .filter(Boolean)
+    .join(', ');
 
   return (
     <PressableScale
       onPress={onSelect}
       haptic
+      disabled={current}
       accessibilityRole="radio"
       accessibilityLabel={label}
-      accessibilityState={{ checked: selected }}
+      accessibilityState={{ checked: selected, disabled: current }}
       style={{
+        opacity: current ? 0.7 : 1,
         flexDirection: 'row',
         alignItems: 'center',
         gap: theme.spacing.md,
@@ -168,6 +192,7 @@ function PackageOption({
             gap: theme.spacing.sm,
           }}>
           <Text weight="bold">{name}</Text>
+          {currentText ? <Badge label={currentText} tone="neutral" /> : null}
           {pkg.highlighted ? <Badge label={t('billing.paywall.bestValue')} tone="success" /> : null}
           {save ? <Badge label={save} tone="primary" /> : null}
         </View>
@@ -194,18 +219,171 @@ function PackageOption({
   );
 }
 
-/** A running plan: managed on the web (Paddle) or in the store; "Manage subscription" for both. */
+interface TierChoice {
+  tier: PaidTier;
+  members: number;
+  /** Adult seats + students for a tier with an adult cap (Classroom), else null. */
+  seats: { adults: number; students: number } | null;
+  current: boolean;
+  recommended: boolean;
+  /** The family already has more members than this tier allows (not selectable). */
+  tooSmall: boolean;
+}
+
+/** The plan cards: name, who it's for, member limit, one highlight (display catalog). */
+function TierOption({
+  choice,
+  memberCount,
+  selected,
+  onSelect,
+}: {
+  choice: TierChoice;
+  memberCount: number;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const c = theme.colors;
+  const { tier, members, seats, current, recommended, tooSmall } = choice;
+  const name = tierLabel(t, tier);
+  const bestFor = seats
+    ? t('billing.plans.bestFor.classroom', seats)
+    : t(`billing.plans.bestFor.${tier === 'big_clan' ? 'big_clan' : 'family'}`, { max: members });
+  const membersLine = t('billing.plans.members', { count: members });
+  const highlight = t(`billing.plans.highlight.${tier}`);
+  const status = current
+    ? t('billing.plans.yourPlan')
+    : recommended
+      ? t('billing.plans.recommended')
+      : null;
+  const tooSmallText = tooSmall ? t('billing.plans.tooSmall', { count: memberCount }) : null;
+  const label = [name, status, bestFor, membersLine, highlight, tooSmallText]
+    .filter(Boolean)
+    .join(', ');
+
+  return (
+    <PressableScale
+      onPress={onSelect}
+      haptic
+      disabled={tooSmall}
+      accessibilityRole="radio"
+      accessibilityLabel={label}
+      accessibilityState={{ checked: selected, disabled: tooSmall }}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: theme.spacing.md,
+        minHeight: theme.touchTarget,
+        padding: theme.spacing.md,
+        borderRadius: theme.radius.md,
+        borderWidth: selected ? 2 : theme.borderWidth,
+        borderColor: selected ? c.primary : c.border,
+        backgroundColor: selected ? c.primarySoft : c.surface,
+        opacity: tooSmall ? 0.6 : 1,
+      }}>
+      <Icon
+        name={selected ? 'radio-button-on' : 'radio-button-off'}
+        color={selected ? c.primary : c.textMuted}
+      />
+      <View style={{ flex: 1, gap: theme.spacing.xs }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: theme.spacing.sm,
+          }}>
+          <Text variant="title">{name}</Text>
+          {status ? (
+            <Badge
+              label={status}
+              tone={current ? 'accent' : 'success'}
+              icon={current ? 'star' : undefined}
+            />
+          ) : null}
+        </View>
+        <Text>{bestFor}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm }}>
+          <Icon name="people-outline" size={18} color={c.textMuted} />
+          <Text variant="caption" tone="muted" style={{ flex: 1 }}>
+            {membersLine}
+          </Text>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm }}>
+          <Icon name="checkmark-circle" size={18} color={c.success} />
+          <Text variant="caption" tone="muted" style={{ flex: 1 }}>
+            {highlight}
+          </Text>
+        </View>
+        {tooSmallText ? (
+          <Text variant="caption" weight="bold" tone="warning">
+            {tooSmallText}
+          </Text>
+        ) : null}
+      </View>
+    </PressableScale>
+  );
+}
+
+/** The three paid plans for the picker (sizes: the server's limit for the current tier). */
+function tierChoices(
+  currentTier: FamilyTier,
+  currentMaxMembers: number | undefined,
+  memberCount: number,
+  hasPaidPlan: boolean,
+): TierChoice[] {
+  const current =
+    currentMaxMembers !== undefined ? { tier: currentTier, maxMembers: currentMaxMembers } : null;
+  return PLAN_CATALOG.map((plan) => {
+    const members = planMembers(plan.tier, current);
+    const students = planStudents({ members, adults: plan.adults });
+    const isCurrent = plan.tier === currentTier;
+    return {
+      tier: plan.tier,
+      members,
+      seats: plan.adults !== null && students !== null ? { adults: plan.adults, students } : null,
+      current: isCurrent,
+      recommended: !hasPaidPlan && plan.tier === RECOMMENDED_TIER,
+      // The family's own plan stays selectable (another billing period) even when over its size.
+      tooSmall: !isCurrent && isTooSmall(members, memberCount),
+    };
+  });
+}
+
+/**
+ * A running plan that can't be changed in this app: managed on the web (Paddle: cancel and
+ * subscribe again on the website), bought in the other store, or from an unknown source.
+ * "Manage subscription" opens the right place.
+ */
 function ManagedPlan({ sub }: { sub: Subscription }) {
   const { t } = useTranslation();
   const manage = useManageSubscription();
   const storeErrorText = useStoreErrorText();
   const web = planSource(sub) === 'web';
+  const otherStore = sub.store === 'app_store' || sub.store === 'play_store';
   return (
     <>
       <Card>
         <EmptyState
-          title={web ? t('billing.managedOnWebTitle') : t('billing.paywall.alreadyFamily')}
-          body={web ? t('billing.managedOnWebBody') : t('billing.paywall.alreadyFamilyStore')}
+          title={
+            web
+              ? t('billing.managedOnWebTitle')
+              : otherStore
+                ? t('billing.paywall.otherStoreTitle')
+                : t('billing.paywall.alreadyFamily')
+          }
+          body={
+            web
+              ? `${t('billing.managedOnWebBody')} ${t('billing.paywall.webChange')}`
+              : otherStore
+                ? t('billing.paywall.otherStoreBody', {
+                    store: t(
+                      `billing.stores.${sub.store === 'app_store' ? 'app_store' : 'play_store'}`,
+                    ),
+                  })
+                : t('billing.paywall.alreadyFamilyStore')
+          }
           icon={web ? 'globe-outline' : 'star'}
         />
       </Card>
@@ -223,22 +401,61 @@ function ManagedPlan({ sub }: { sub: Subscription }) {
   );
 }
 
-function ResultView({ result }: { result: PaywallResult }) {
+type FinalResult = Extract<PaywallResult, { kind: 'activated' | 'delayed' | 'scheduled' }>;
+
+/** "Manage subscription" (server-given link: store page or Paddle portal) with its error line. */
+function ManageButton({ sub }: { sub: Subscription }) {
+  const { t } = useTranslation();
+  const manage = useManageSubscription();
+  const storeErrorText = useStoreErrorText();
+  if (!sub.store) return null;
+  return (
+    <>
+      <Button
+        title={t('billing.manage')}
+        icon="settings-outline"
+        variant="outline"
+        onPress={() => manage.mutate(sub)}
+        loading={manage.isPending}
+      />
+      {manage.isError ? <Text tone="danger">{storeErrorText(manage.error)}</Text> : null}
+    </>
+  );
+}
+
+function ResultView({ result }: { result: FinalResult }) {
   const { t } = useTranslation();
   const theme = useTheme();
+  const plan = tierLabel(t, result.tier);
   const activated = result.kind === 'activated';
+  const title =
+    result.kind === 'activated'
+      ? t('billing.paywall.welcomeTitle', { plan })
+      : result.kind === 'scheduled'
+        ? t('billing.paywall.scheduledTitle')
+        : t('billing.paywall.delayedTitle');
+  const body =
+    result.kind === 'activated'
+      ? t('billing.paywall.welcomeBody', { plan })
+      : result.kind === 'scheduled'
+        ? t('billing.paywall.scheduledBody', { plan })
+        : t('billing.paywall.delayedBody', { plan });
   return (
     <View style={{ alignItems: 'center', gap: theme.spacing.md }}>
       {activated ? (
         <Celebration />
       ) : (
-        <Icon name="hourglass-outline" size={56} color={theme.colors.primary} />
+        <Icon
+          name={result.kind === 'scheduled' ? 'calendar-outline' : 'hourglass-outline'}
+          size={56}
+          color={theme.colors.primary}
+        />
       )}
       <Text variant="heading" align="center">
-        {activated ? t('billing.paywall.welcomeTitle') : t('billing.paywall.delayedTitle')}
+        {title}
       </Text>
       <Text tone="muted" align="center">
-        {activated ? t('billing.paywall.welcomeBody') : t('billing.paywall.delayedBody')}
+        {body}
       </Text>
       <Button title={t('common.done')} onPress={done} fullWidth />
     </View>
@@ -246,9 +463,12 @@ function ResultView({ result }: { result: PaywallResult }) {
 }
 
 /**
- * The Family plan paywall (F6). Only for adult admins whose policy allows purchases, and only in
+ * The paywall (F6, plans B12). Only for adult admins whose policy allows purchases, and only in
  * a native build with RevenueCat configured (`store.available`); the entry is hidden otherwise.
- * Prices come from the store; after paying, the server confirms the tier (webhook / sync).
+ * A plan picker first (Family / Big Clan / Classroom, sizes from the display catalog), then the
+ * billing periods of that tier's offering with store prices. A running store plan is changed
+ * through the store (upgrade / downgrade); a web plan is changed on the website. After paying,
+ * the server confirms the tier (webhook / sync).
  */
 export function PaywallScreen() {
   const { t } = useTranslation();
@@ -256,13 +476,19 @@ export function PaywallScreen() {
   const policy = usePolicy();
   const isAdmin = useIsAdmin();
   const subscription = useSubscription();
-  const appUserId = subscription.data?.revenuecat_app_user_id;
-  const packages = usePaywallPackages(appUserId);
+  const family = useFamily();
+  const sub = subscription.data;
+  const appUserId = sub?.revenuecat_app_user_id;
+  const currentTier: FamilyTier = sub?.tier ?? policy?.tier ?? 'free';
+  const memberCount = family.data?.family.member_count ?? family.data?.members.length ?? 0;
+  const [chosenTier, setChosenTier] = useState<PaidTier | null>(null);
+  const tier = chosenTier ?? defaultTier(currentTier, memberCount);
+  const packages = usePaywallPackages(appUserId, tier);
   const { run, step } = usePaywallActions(appUserId);
-  const source = subscription.data ? planSource(subscription.data) : 'none';
+  const source = sub ? planSource(sub) : 'none';
   const allowed = !!policy && policy.purchases_allowed && !policy.is_child && isAdmin;
   // Only asks the server when this family could buy (no running plan); `link_allowed` decides.
-  const webLink = useWebCheckoutLink(allowed && !!subscription.data && source === 'none');
+  const webLink = useWebCheckoutLink(allowed && !!sub && source === 'none', tier);
   const storeErrorText = useStoreErrorText();
   const [chosen, setChosen] = useState<string | null>(null);
   const legal = useLegal().data;
@@ -282,7 +508,7 @@ export function PaywallScreen() {
     );
   }
   if (subscription.isPending) return <Loading />;
-  if (subscription.isError || !subscription.data) {
+  if (subscription.isError || !sub) {
     return (
       <Screen title={title} back>
         <ErrorState error={subscription.error} onRetry={() => void subscription.refetch()} />
@@ -291,7 +517,10 @@ export function PaywallScreen() {
   }
 
   const result = run.data;
-  if (result && (result.kind === 'activated' || result.kind === 'delayed')) {
+  if (
+    result &&
+    (result.kind === 'activated' || result.kind === 'delayed' || result.kind === 'scheduled')
+  ) {
     return (
       <Screen title={title} back contentStyle={{ flexGrow: 1, justifyContent: 'center' }}>
         <ResultView result={result} />
@@ -299,12 +528,13 @@ export function PaywallScreen() {
     );
   }
 
-  // One plan per family from one source: a running web (Paddle) or store plan hides the
-  // purchase options; "Manage subscription" opens the right place (server-given link).
-  if (source !== 'none') {
+  // One plan per family from one source. A store plan bought in this store can change tier
+  // here (the store handles the switch); web plans and plans from the other store can't.
+  const changing = source === 'store' && canChangePlanHere(sub.store, Platform.OS);
+  if (source !== 'none' && !changing) {
     return (
       <Screen title={title} back>
-        <ManagedPlan sub={subscription.data} />
+        <ManagedPlan sub={sub} />
       </Screen>
     );
   }
@@ -313,9 +543,14 @@ export function PaywallScreen() {
   // (`EXPO_PUBLIC_TERMS_URL` / `EXPO_PUBLIC_PRIVACY_URL`, default https://brainyclan.com/…).
   const openTerms = () => openLegalPage(legal?.terms ? legal.terms.url : TERMS_URL);
   const openPrivacy = () => openLegalPage(legal?.privacy ? legal.privacy.url : PRIVACY_URL);
+  const choices = tierChoices(currentTier, policy.limits.max_members, memberCount, changing);
   const list = packages.data ?? [];
-  const selected = list.find((p) => p.id === chosen) ?? defaultPackage(list);
+  const currentProduct = changing ? sub.product_id : null;
+  const selected = selectedPackage(list, chosen, currentProduct);
+  const change: PlanChange | null =
+    changing && sub.product_id ? { oldProductId: sub.product_id } : null;
   const busy = run.isPending;
+  const planName = tierLabel(t, tier);
   const notice =
     result?.kind === 'cancelled'
       ? t('billing.paywall.cancelled')
@@ -324,13 +559,41 @@ export function PaywallScreen() {
         : null;
 
   return (
-    <Screen title={title} subtitle={t('billing.paywall.subtitle')} back>
-      <Card padding="lg" style={{ gap: theme.spacing.md }}>
-        <Unlocks policy={policy} />
-        <Text variant="caption" tone="muted">
-          {t('billing.paywall.wholeFamily')}
-        </Text>
-      </Card>
+    <Screen
+      title={changing ? t('billing.paywall.changeTitle') : title}
+      subtitle={changing ? undefined : t('billing.paywall.subtitle')}
+      back>
+      {changing ? (
+        <Card style={{ gap: theme.spacing.sm }}>
+          <Text>{t('billing.paywall.changeBody', { plan: tierLabel(t, currentTier) })}</Text>
+          <ManageButton sub={sub} />
+        </Card>
+      ) : (
+        <Card padding="lg" style={{ gap: theme.spacing.md }}>
+          <Unlocks policy={policy} />
+          <Text variant="caption" tone="muted">
+            {t('billing.paywall.wholeFamily')}
+          </Text>
+        </Card>
+      )}
+
+      <Text variant="caption" tone="muted">
+        {t('billing.plans.sameFeatures')}
+      </Text>
+      <View
+        style={{ gap: theme.spacing.sm }}
+        accessibilityRole="radiogroup"
+        accessibilityLabel={t('billing.plans.choose')}>
+        {choices.map((choice) => (
+          <TierOption
+            key={choice.tier}
+            choice={choice}
+            memberCount={memberCount}
+            selected={choice.tier === tier}
+            onSelect={() => setChosenTier(choice.tier)}
+          />
+        ))}
+      </View>
 
       {packages.isPending ? (
         <Loading fill={false} />
@@ -357,6 +620,7 @@ export function PaywallScreen() {
               key={pkg.id}
               pkg={pkg}
               selected={pkg.id === selected?.id}
+              current={isSameProduct(pkg.productId, currentProduct)}
               onSelect={() => setChosen(pkg.id)}
             />
           ))}
@@ -373,21 +637,29 @@ export function PaywallScreen() {
       {notice ? <Text tone="muted">{notice}</Text> : null}
 
       <Button
-        title={t('billing.paywall.subscribe')}
+        title={
+          changing
+            ? t('billing.paywall.switchTo', { plan: planName })
+            : t('billing.paywall.subscribeTo', { plan: planName })
+        }
         icon="star"
         size="lg"
-        onPress={() => selected && run.mutate({ type: 'buy', packageId: selected.id })}
+        onPress={() =>
+          selected && run.mutate({ type: 'buy', packageId: selected.id, tier, currentTier, change })
+        }
         loading={step === 'buying' || step === 'activating'}
         disabled={!selected || busy}
       />
-      <Button
-        title={t('billing.paywall.restore')}
-        variant="ghost"
-        onPress={() => run.mutate({ type: 'restore' })}
-        loading={step === 'restoring'}
-        disabled={busy}
-      />
-      {webLink.data ? (
+      {changing ? null : (
+        <Button
+          title={t('billing.paywall.restore')}
+          variant="ghost"
+          onPress={() => run.mutate({ type: 'restore' })}
+          loading={step === 'restoring'}
+          disabled={busy}
+        />
+      )}
+      {webLink.data && !changing ? (
         <Button
           title={t('billing.web.button')}
           icon="open-outline"
@@ -396,8 +668,12 @@ export function PaywallScreen() {
         />
       ) : null}
 
-      <ReferralCodeSection />
-      <OfferCodeButton />
+      {changing ? null : (
+        <>
+          <ReferralCodeSection />
+          <OfferCodeButton />
+        </>
+      )}
 
       <Text variant="caption" tone="muted" align="center">
         {t('billing.paywall.legal')}

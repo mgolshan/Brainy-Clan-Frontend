@@ -60,7 +60,7 @@ import {
 } from '@/features/chat/outbox';
 import { useFamily, useUpdateMember } from '@/features/family/hooks';
 import { openHelp } from '@/features/help/HelpLink';
-import { canPurchaseFamilyPlan } from '@/features/worlds/catalog';
+import { canPurchasePlan } from '@/features/worlds/catalog';
 import { errorMessage } from '@/lib/errorMessage';
 import {
   EmptyState,
@@ -132,7 +132,7 @@ function Header({ retentionDays }: { retentionDays: number | null | undefined })
   const isAdmin = useIsAdmin();
   const retention = retentionText(retentionDays, t);
   // Admins on the free plan who may buy: a small way to keep messages longer.
-  const upsell = canPurchaseFamilyPlan(policy, isAdmin) && policy?.tier === 'free';
+  const upsell = canPurchasePlan(policy, isAdmin) && policy?.tier === 'free';
   return (
     <View style={{ paddingHorizontal: theme.spacing.lg, paddingTop: theme.spacing.md, gap: 4 }}>
       <Text variant={theme.key === 'classic' ? 'heading' : 'display'} accessibilityRole="header">

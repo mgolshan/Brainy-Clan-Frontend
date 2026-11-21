@@ -1,8 +1,12 @@
 import {
   type RawPackage,
   defaultPackage,
+  isSameProduct,
   packageKind,
+  parseProductId,
+  productId,
   savingPercent,
+  selectedPackage,
   toPaywallPackages,
 } from '@/features/billing/packages';
 
@@ -61,6 +65,12 @@ describe('packageKind', () => {
     ['CUSTOM', 'brainyclan_family_annual:annual-base', 'annual'],
     ['UNKNOWN', 'brainyclan_family_monthly', 'monthly'],
     ['CUSTOM', 'something_else', 'other'],
+    // B12: every tier's product ids `brainyclan_{tier}_{period}`.
+    ['CUSTOM', 'brainyclan_big_clan_monthly', 'monthly'],
+    ['CUSTOM', 'brainyclan_big_clan_6months:six-month', 'sixMonth'],
+    ['CUSTOM', 'brainyclan_classroom_annual', 'annual'],
+    ['CUSTOM', 'brainyclan_classroom_weekly', 'other'],
+    ['CUSTOM', 'brainyclan_school_annual', 'other'],
   ])('%s / %s → %s', (type, productId, kind) => {
     expect(packageKind(type, productId)).toBe(kind);
   });
@@ -175,5 +185,63 @@ describe('toPaywallPackages', () => {
   it('is empty for an empty offering', () => {
     expect(toPaywallPackages([])).toEqual([]);
     expect(defaultPackage([])).toBeUndefined();
+  });
+});
+
+describe('product ids (B12)', () => {
+  it('builds `brainyclan_{tier}_{period}`', () => {
+    expect(productId('family', 'monthly')).toBe('brainyclan_family_monthly');
+    expect(productId('big_clan', 'sixMonth')).toBe('brainyclan_big_clan_6months');
+    expect(productId('classroom', 'annual')).toBe('brainyclan_classroom_annual');
+  });
+
+  it('parses tier and period, ignoring the Google base plan', () => {
+    expect(parseProductId('brainyclan_big_clan_annual')).toEqual({
+      tier: 'big_clan',
+      kind: 'annual',
+    });
+    expect(parseProductId('brainyclan_classroom_6months:base')).toEqual({
+      tier: 'classroom',
+      kind: 'sixMonth',
+    });
+    expect(parseProductId('brainyclan_family_monthly')).toEqual({
+      tier: 'family',
+      kind: 'monthly',
+    });
+    expect(parseProductId('brainyclan_free_monthly')).toBeNull();
+    expect(parseProductId('')).toBeNull();
+  });
+
+  it('keeps the product id on each paywall package', () => {
+    const list = toPaywallPackages([MONTHLY, ANNUAL]);
+    expect(list.map((p) => p.productId)).toEqual([
+      'brainyclan_family_annual',
+      'brainyclan_family_monthly',
+    ]);
+  });
+});
+
+describe('selectedPackage (plan change)', () => {
+  const list = toPaywallPackages([MONTHLY, SIX, ANNUAL]);
+
+  it('defaults to the annual plan and keeps a valid choice', () => {
+    expect(selectedPackage(list, null, null)?.kind).toBe('annual');
+    expect(selectedPackage(list, '$rc_monthly', null)?.kind).toBe('monthly');
+    // A choice from another tier's offering isn't in this list: back to the default.
+    expect(selectedPackage(list, 'big_clan/$rc_monthly', null)?.kind).toBe('annual');
+  });
+
+  it("never selects the family's current product", () => {
+    expect(selectedPackage(list, null, 'brainyclan_family_annual')?.kind).toBe('sixMonth');
+    expect(selectedPackage(list, '$rc_annual', 'brainyclan_family_annual:yearly')?.kind).toBe(
+      'sixMonth',
+    );
+    expect(selectedPackage(list, '$rc_monthly', 'brainyclan_family_annual')?.kind).toBe('monthly');
+  });
+
+  it('compares products without the Google base plan', () => {
+    expect(isSameProduct('brainyclan_family_annual:yearly', 'brainyclan_family_annual')).toBe(true);
+    expect(isSameProduct('brainyclan_family_annual', 'brainyclan_big_clan_annual')).toBe(false);
+    expect(isSameProduct('brainyclan_family_annual', null)).toBe(false);
   });
 });

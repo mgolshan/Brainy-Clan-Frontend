@@ -49,7 +49,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-/** What the Family plan unlocks, read from the current (free) policy limits. */
+/** What every paid plan unlocks, read from the current (free) policy limits. */
 export function Unlocks({ policy }: { policy: Policy }) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -95,28 +95,30 @@ function SubscriptionDetails({ sub, policy }: { sub: Subscription; policy: Polic
         ) : null}
       </View>
 
-      {date || sub.store ? (
-        <View style={{ gap: theme.spacing.xs }}>
-          {date ? (
-            <DetailRow
-              label={
-                status === 'expired'
-                  ? t('billing.expiredOn')
-                  : sub.will_renew
-                    ? t('billing.renewsOn')
-                    : t('billing.expiresOn')
-              }
-              value={date}
-            />
-          ) : null}
-          {sub.store ? (
-            <DetailRow
-              label={t('billing.store')}
-              value={store ? t(`billing.stores.${store}`) : sub.store}
-            />
-          ) : null}
-        </View>
-      ) : null}
+      <View style={{ gap: theme.spacing.xs }}>
+        <DetailRow
+          label={t('billing.memberLimit')}
+          value={t('billing.plans.members', { count: policy.limits.max_members })}
+        />
+        {date ? (
+          <DetailRow
+            label={
+              status === 'expired'
+                ? t('billing.expiredOn')
+                : sub.will_renew
+                  ? t('billing.renewsOn')
+                  : t('billing.expiresOn')
+            }
+            value={date}
+          />
+        ) : null}
+        {sub.store ? (
+          <DetailRow
+            label={t('billing.store')}
+            value={store ? t(`billing.stores.${store}`) : sub.store}
+          />
+        ) : null}
+      </View>
 
       {source === 'web' ? (
         <Text variant="caption" tone="muted">
@@ -133,6 +135,16 @@ function SubscriptionDetails({ sub, policy }: { sub: Subscription; policy: Polic
             loading={manage.isPending}
           />
           {manage.isError ? <Text tone="danger">{errorMessage(manage.error, t)}</Text> : null}
+          {policy.purchases_allowed && billingStore.available ? (
+            // Another tier or billing period: store plans switch in the store, web plans get
+            // the "cancel and subscribe again on the website" explanation.
+            <Button
+              title={t('billing.changePlan')}
+              icon="swap-horizontal"
+              variant="ghost"
+              onPress={() => router.push('/family-plan')}
+            />
+          ) : null}
         </>
       ) : null}
 

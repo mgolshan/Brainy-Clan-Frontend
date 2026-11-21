@@ -1,3 +1,5 @@
+import type { PaidTier } from '@/features/billing/plans';
+
 /**
  * Shared shapes for the RevenueCat wrapper (`store.ts` on iOS/Android, `store.web.ts` stub).
  * Screens only see these, never RevenueCat's own types.
@@ -23,10 +25,12 @@ export interface IntroOffer {
   cycles: number;
 }
 
-/** One purchasable option of the current offering, priced by the store (see `packages.ts`). */
+/** One purchasable option of a tier's offering, priced by the store (see `packages.ts`). */
 export interface PaywallPackage {
-  /** RevenueCat package identifier (`$rc_annual`, `$rc_monthly`, ...). */
+  /** Unique within the fetched offerings (the store wrapper prefixes the tier). */
   id: string;
+  /** Store product id (`brainyclan_family_annual`; Google may add `:base-plan`). */
+  productId: string;
   kind: PackageKind;
   /** Localized price from the store, e.g. "$39.99". */
   priceString: string;
@@ -45,6 +49,12 @@ export interface PaywallPackage {
 }
 
 export type PurchaseOutcome = 'purchased' | 'cancelled';
+
+/** Switching from a running store plan to another product (upgrade / downgrade / period). */
+export interface PlanChange {
+  /** Store product id of the running plan (`Subscription.product_id`). */
+  oldProductId: string;
+}
 
 export type StoreErrorKind =
   'network' | 'notAllowed' | 'pending' | 'alreadyOwned' | 'unavailable' | 'store' | 'unknown';
@@ -65,12 +75,22 @@ export interface StoreApi {
   readonly available: boolean;
   /** Configures the SDK once and logs in as the family's RevenueCat app user. */
   identify(appUserId: string): Promise<void>;
-  /** Packages of the current offering, annual first. Empty when none is set up. */
-  getPackages(appUserId: string): Promise<PaywallPackage[]>;
-  /** Buys a package returned by `getPackages`. */
-  purchase(packageId: string): Promise<PurchaseOutcome>;
-  /** Restores store purchases; true when the `family` entitlement is active afterwards. */
-  restore(appUserId: string): Promise<boolean>;
+  /**
+   * Packages of a tier's offering (`offerings.all[tier]`, the current offering as the Family
+   * fallback), annual first. Empty when none is set up.
+   */
+  getPackages(appUserId: string, tier: PaidTier): Promise<PaywallPackage[]>;
+  /**
+   * Buys a package returned by `getPackages`. `change` (a running store plan) makes it a plan
+   * change: Google Play replaces the old product; the App Store does it by itself (all products
+   * are in one subscription group).
+   */
+  purchase(packageId: string, change?: PlanChange | null): Promise<PurchaseOutcome>;
+  /**
+   * Restores store purchases; the highest-ranked tier whose entitlement is active afterwards
+   * (`family`, `big_clan`, `classroom`), or null.
+   */
+  restore(appUserId: string): Promise<PaidTier | null>;
   /** Back to an anonymous RevenueCat user (sign-out). Never throws. */
   reset(): Promise<void>;
   /**

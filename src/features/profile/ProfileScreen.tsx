@@ -19,7 +19,7 @@ import { AvatarPicker } from '@/features/profile/AvatarPicker';
 import { PasswordForm } from '@/features/profile/PasswordForm';
 import { useUpdateAccessibility, useUpdateMe } from '@/features/profile/hooks';
 import { SupportEntry } from '@/features/support/SupportEntry';
-import { canPurchaseFamilyPlan } from '@/features/worlds/catalog';
+import { canPurchasePlan } from '@/features/worlds/catalog';
 import { useMyWorlds } from '@/features/worlds/hooks';
 import i18n, { supportedLanguages, type AppLanguage } from '@/i18n';
 import { errorMessage } from '@/lib/errorMessage';
@@ -170,7 +170,7 @@ export function ProfileScreen() {
             autoTheme={policy.ui_theme}
             autoSound={policy.accessibility_defaults?.sound_effects ?? false}
             worlds={worlds.data}
-            canPurchase={canPurchaseFamilyPlan(policy, member.role === 'admin')}
+            canPurchase={canPurchasePlan(policy, member.role === 'admin')}
             onChange={(patch) => updateA11y.mutate(patch)}
           />
         ) : (

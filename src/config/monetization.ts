@@ -31,8 +31,8 @@ export const REVENUECAT_API_KEY: string | null =
 /** The paywall can work in this build (RevenueCat key set, native build). */
 export const purchasesSupported = isNativeBuild && REVENUECAT_API_KEY !== null;
 
-/** RevenueCat entitlement that unlocks the Family plan (contract: entitlement id `family`). */
-export const FAMILY_ENTITLEMENT = 'family';
+// RevenueCat entitlements and offerings are named like the paid tiers (`family`, `big_clan`,
+// `classroom`, contract B12): see `src/features/billing/plans.ts`.
 
 /**
  * Google's official sample rewarded ad units (always fill, never pay). Used in development

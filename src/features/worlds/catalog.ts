@@ -89,7 +89,7 @@ export type WorldHint =
       required: number;
       ratio: number;
     }
-  | { kind: 'familyPlan' }
+  | { kind: 'paidPlan' }
   | { kind: 'locked' };
 
 export function worldHint(world: World): WorldHint | null {
@@ -103,13 +103,13 @@ export function worldHint(world: World): WorldHint | null {
       return { kind: 'progress', type: unlock.type, progress, required: unlock.required, ratio };
     }
     case 'family_plan':
-      return { kind: 'familyPlan' };
+      return { kind: 'paidPlan' };
     default:
       return { kind: 'locked' };
   }
 }
 
-/** "23 / 50 points", "2 / 3-day streak", "Family plan", "Locked". */
+/** "23 / 50 points", "2 / 3-day streak", "Paid plan", "Locked". */
 export function formatWorldHint(hint: WorldHint, t: TFunction): string {
   switch (hint.kind) {
     case 'progress':
@@ -124,21 +124,21 @@ export function formatWorldHint(hint: WorldHint, t: TFunction): string {
             progress: hint.progress,
             required: hint.required,
           });
-    case 'familyPlan':
-      return t('worlds.hint.familyPlan');
+    case 'paidPlan':
+      return t('worlds.hint.paidPlan');
     default:
       return t('worlds.hint.locked');
   }
 }
 
 /** Same rule as the paywall screen: adult admins whose policy allows purchases. */
-export function canPurchaseFamilyPlan(policy: Policy | null | undefined, isAdmin: boolean) {
+export function canPurchasePlan(policy: Policy | null | undefined, isAdmin: boolean) {
   return !!policy && policy.purchases_allowed && !policy.is_child && isAdmin;
 }
 
 /**
- * What tapping a world in the picker does: select it (unlocked), open the paywall (Family plan
- * world, member may buy), ask a parent (Family plan world, may not buy), or explain how to
+ * What tapping a world in the picker does: select it (unlocked), open the paywall (paid-plan
+ * world, member may buy), ask a parent (paid-plan world, may not buy), or explain how to
  * unlock it (points / streak / unknown).
  */
 export type WorldTapAction = 'select' | 'paywall' | 'askParent' | 'howTo';

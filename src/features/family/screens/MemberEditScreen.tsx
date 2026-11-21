@@ -11,7 +11,7 @@ import { MemberEmailLogin } from '@/features/family/components/MemberEmailLogin'
 import { useFamily, useRemoveMember, useUpdateMember } from '@/features/family/hooks';
 import { AccessibilityEditor } from '@/features/profile/AccessibilityEditor';
 import { AvatarPicker } from '@/features/profile/AvatarPicker';
-import { canPurchaseFamilyPlan } from '@/features/worlds/catalog';
+import { canPurchasePlan } from '@/features/worlds/catalog';
 import { useMemberWorlds } from '@/features/worlds/hooks';
 import { goBack } from '@/lib/navigation';
 import { formErrors } from '@/lib/formErrors';
@@ -139,7 +139,7 @@ function Editor({ member, ownerUserId }: { member: Member; ownerUserId: number }
           value={a11y}
           autoTheme={autoTheme}
           worlds={worlds.data}
-          canPurchase={canPurchaseFamilyPlan(policy, isAdmin)}
+          canPurchase={canPurchasePlan(policy, isAdmin)}
           onChange={(patch) => setA11y((prev) => ({ ...prev, ...patch }))}
         />
       </Card>

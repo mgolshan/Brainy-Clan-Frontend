@@ -2,7 +2,7 @@ import type { TFunction } from 'i18next';
 
 import type { Policy } from '@/api/types';
 import {
-  canPurchaseFamilyPlan,
+  canPurchasePlan,
   formatWorldHint,
   howToUnlockText,
   isWorldSelectable,
@@ -141,11 +141,11 @@ describe('gating', () => {
   it('lets only adult admins whose policy allows purchases buy the plan', () => {
     const policy = (p: Partial<Policy>) =>
       ({ purchases_allowed: true, is_child: false, ...p }) as Policy;
-    expect(canPurchaseFamilyPlan(policy({}), true)).toBe(true);
-    expect(canPurchaseFamilyPlan(policy({}), false)).toBe(false);
-    expect(canPurchaseFamilyPlan(policy({ purchases_allowed: false }), true)).toBe(false);
-    expect(canPurchaseFamilyPlan(policy({ is_child: true }), true)).toBe(false);
-    expect(canPurchaseFamilyPlan(null, true)).toBe(false);
+    expect(canPurchasePlan(policy({}), true)).toBe(true);
+    expect(canPurchasePlan(policy({}), false)).toBe(false);
+    expect(canPurchasePlan(policy({ purchases_allowed: false }), true)).toBe(false);
+    expect(canPurchasePlan(policy({ is_child: true }), true)).toBe(false);
+    expect(canPurchasePlan(null, true)).toBe(false);
   });
 });
 
@@ -154,7 +154,7 @@ describe('hints', () => {
     expect(worldHint(world({ unlocked: true }))).toBeNull();
   });
 
-  it('formats points, streak and family plan hints', () => {
+  it('formats points, streak and paid plan hints', () => {
     const [, points, streak, plan] = parseWorldCatalog(contractExample) as [
       World,
       World,
@@ -166,8 +166,8 @@ describe('hints', () => {
     expect(pointsHint.kind === 'progress' ? pointsHint.ratio : 0).toBeCloseTo(0.46);
     expect(formatWorldHint(pointsHint, en)).toBe('23 / 50 points');
     expect(formatWorldHint(worldHint(streak)!, en)).toBe('2 / 3-day streak');
-    expect(formatWorldHint(worldHint(plan)!, en)).toBe('Family plan');
-    expect(formatWorldHint(worldHint(plan)!, fr)).toBe('Forfait Famille');
+    expect(formatWorldHint(worldHint(plan)!, en)).toBe('Paid plan');
+    expect(formatWorldHint(worldHint(plan)!, fr)).toBe('Forfait payant');
     expect(formatWorldHint(pointsHint, fr)).toBe('23 / 50 points');
   });
 
@@ -202,6 +202,6 @@ describe('hints', () => {
       'Play 3 days in a row to unlock Under the Sea. Your best streak so far: 2.',
     );
     const plan = world({ unlock: { type: 'family_plan' }, unlocked: false });
-    expect(howToUnlockText(plan, 'Dino Valley', en)).toBe('Comes with the Family plan');
+    expect(howToUnlockText(plan, 'Dino Valley', en)).toBe('Comes with a paid plan');
   });
 });

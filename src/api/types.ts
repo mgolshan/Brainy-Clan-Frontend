@@ -106,7 +106,11 @@ export interface User {
   birth_month?: number | null;
 }
 
-export type FamilyTier = 'free' | 'family' | (string & {});
+/**
+ * Family plan tier (B12). Paid tiers rank `family` < `big_clan` < `classroom`; an unknown value
+ * is treated like a paid plan named by `tier` (never crash on it).
+ */
+export type FamilyTier = 'free' | 'family' | 'big_clan' | 'classroom' | (string & {});
 
 export interface Family {
   id: number;
@@ -1047,6 +1051,11 @@ export interface Subscription {
   will_renew: boolean;
   /** Passed to `Purchases.logIn()` (RevenueCat app user id, `family-{id}`). */
   revenuecat_app_user_id: string;
+  /**
+   * RevenueCat entitlement behind `tier` (B12: `family` | `big_clan` | `classroom`), or null.
+   * Optional until every backend serves it.
+   */
+  entitlement?: string | null;
 }
 
 /**
@@ -1058,7 +1067,8 @@ export interface ManageLink {
 }
 
 /**
- * `GET /family/web-checkout/availability?storefront=USA` (admin, B10). `url` is set only when
+ * `GET /family/web-checkout/availability?storefront=USA&tier=big_clan` (admin, B10; `tier` B12,
+ * default `family`). `url` is set only when
  * `link_allowed`; the app shows no web prices or links otherwise.
  */
 export interface WebCheckoutAvailability {
@@ -1122,7 +1132,8 @@ export interface WorldProgressUnlock {
 
 /**
  * How a world unlocks: `free` (always), `points` (lifetime points ≥ required), `streak`
- * (longest streak days ≥ required), `family_plan` (paid Family plan). Thresholds are server data.
+ * (longest streak days ≥ required), `family_plan` (any paid plan: `family`, `big_clan` or
+ * `classroom`, B12). Thresholds are server data.
  */
 export type WorldUnlock = { type: 'free' } | WorldProgressUnlock | { type: 'family_plan' };
 

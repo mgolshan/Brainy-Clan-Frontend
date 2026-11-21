@@ -1,5 +1,10 @@
 import type { Subscription } from '@/api/types';
-import { planSource, webCheckoutUrl } from '@/features/billing/source';
+import {
+  canChangePlanHere,
+  hasRunningPlan,
+  planSource,
+  webCheckoutUrl,
+} from '@/features/billing/source';
 import { toAlpha3 } from '@/lib/countryCodes';
 
 const sub = (over: Partial<Subscription>): Subscription => ({
@@ -31,6 +36,37 @@ describe('planSource', () => {
     expect(planSource(sub({}))).toBe('none');
     expect(planSource(sub({ status: 'expired', store: 'paddle' }))).toBe('none');
     expect(planSource(sub({ status: 'expired', store: 'app_store' }))).toBe('none');
+  });
+});
+
+describe('hasRunningPlan (B12 tiers)', () => {
+  it.each(['family', 'big_clan', 'classroom', 'some_future_tier'])(
+    'counts the %s tier as a running plan, even without an active status',
+    (tier) => {
+      expect(hasRunningPlan(sub({ tier, status: 'none' }))).toBe(true);
+      expect(hasRunningPlan(sub({ tier, status: 'expired' }))).toBe(true);
+      expect(planSource(sub({ tier, status: 'active', store: 'paddle' }))).toBe('web');
+      expect(planSource(sub({ tier, status: 'active', store: 'app_store' }))).toBe('store');
+    },
+  );
+
+  it('is false for the free tier unless the status is still running', () => {
+    expect(hasRunningPlan(sub({}))).toBe(false);
+    expect(hasRunningPlan(sub({ status: 'expired' }))).toBe(false);
+    expect(hasRunningPlan(sub({ status: 'active' }))).toBe(true);
+    expect(hasRunningPlan(sub({ status: 'grace' }))).toBe(true);
+  });
+});
+
+describe('canChangePlanHere', () => {
+  it('only in the store the plan was bought in', () => {
+    expect(canChangePlanHere('app_store', 'ios')).toBe(true);
+    expect(canChangePlanHere('play_store', 'android')).toBe(true);
+    expect(canChangePlanHere('app_store', 'android')).toBe(false);
+    expect(canChangePlanHere('play_store', 'ios')).toBe(false);
+    expect(canChangePlanHere('paddle', 'ios')).toBe(false);
+    expect(canChangePlanHere(null, 'android')).toBe(false);
+    expect(canChangePlanHere('app_store', 'web')).toBe(false);
   });
 });
 

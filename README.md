@@ -431,23 +431,37 @@ token plus the raw `nonce` (and `display_name` on the first sign-in) to
 **Web (later, optional)**: needs a Services ID with the web domain and return URL, and the Apple
 JS redirect flow; not built yet.
 
-## Family plan purchases — RevenueCat setup
+## Plan purchases — RevenueCat setup
 
-The Family plan is an auto-renewing subscription sold through the App Store and Google Play via
+The paid plans — **Family** (6 members), **Big Clan** (12) and **Classroom** (2 adults + 35
+students) — are auto-renewing subscriptions with the same features, sold through the App Store
+and Google Play via
 **RevenueCat** (`react-native-purchases`). The app user in RevenueCat is the **family**
 (`family-{id}`, sent by the server as `revenuecat_app_user_id`), so one adult's purchase upgrades
 everyone. The app never sets the tier: RevenueCat calls the backend webhook, and the app polls
 `GET /family/subscription` (plus `POST /family/subscription/sync`) for up to ~30 s after buying.
 
-Where it shows: Family tab → **Plan** card → **See the Family plan** — only for adult admins whose
+Where it shows: Family tab → **Plan** card → **See the plans** (or **Change plan** for a running
+plan) — only for adult admins whose
 policy allows purchases, only in an iOS/Android **development or store build** with the RevenueCat
 keys set. On web, in Expo Go, or without keys the card keeps the disabled "Upgrade — coming soon"
 button (store billing needs the native app; web billing is a later milestone).
 
+The paywall starts with a **plan picker** (one card per plan: who it's for, member size, "Your
+plan" / "Recommended"; a plan smaller than the family's member count is disabled with "Too small
+for your N members"), then the billing periods of the selected plan's offering. The member sizes
+of the other plans come from a small display-only catalog (`src/features/billing/plans.ts`,
+mirrors the backend tier table; the server only sends the current tier's limits and stays the
+referee). A running store plan is changed in the store (upgrade / downgrade; on Android the app
+passes the old product); a web (Paddle) plan is changed by cancelling and subscribing again on
+the website. Full product / offering table: `docs/STORE.md` §11.
+
 1. **Store products** (needs the paid Apple Developer Program and a Google Play Console account):
-   - App Store Connect → your app (`app.brainyclan`) → Subscriptions → a subscription group
-     "Family plan" with three auto-renewable products (the B10 plans; same IDs on both stores):
-     `brainyclan_family_monthly`, `brainyclan_family_6months` and `brainyclan_family_annual`.
+   - App Store Connect → your app (`app.brainyclan`) → Subscriptions → **one** subscription
+     group "Brainy Clan plans" with nine auto-renewable products (same IDs on both stores):
+     `brainyclan_{tier}_{monthly|6months|annual}` for `family`, `big_clan` and `classroom`, e.g.
+     `brainyclan_big_clan_annual`. Rank the group levels Classroom > Big Clan > Family so Apple
+     treats a bigger plan as an upgrade.
      Fill in prices, display names and the review screenshot. Also sign the Paid Apps agreement
      (Business section), or products never load. **Introductory offers**: a 7-day free trial on
      the 6-month and annual products (Subscription → Subscription Prices → Introductory Offers →
@@ -469,13 +483,16 @@ button (store billing needs the native app; web billing is a later milestone).
      **Play Store app** (package `app.brainyclan`, plus a Google Cloud service-account JSON with
      access in Play Console — RevenueCat's guide walks through it).
    - Products: import the store products in both apps.
-   - **Entitlement** with identifier exactly **`family`** (the backend's `REVENUECAT_ENTITLEMENT`)
-     and attach all Family-plan products to it.
-   - **Offering** (e.g. `default`), mark it **Current**, and add the packages **Monthly**
-     (`$rc_monthly`), **Six month** (`$rc_six_month`) and **Annual** (`$rc_annual`) with the
-     matching iOS and Android products (`brainyclan_family_monthly`, `brainyclan_family_6months`,
-     `brainyclan_family_annual`). Use these package types: the app maps `MONTHLY`, `SIX_MONTH`
-     and `ANNUAL` to its three plans (custom packages fall back to the product ID). The paywall
+   - **Entitlements** with identifiers exactly **`family`**, **`big_clan`** and **`classroom`**
+     (the backend's entitlement → tier map); attach each tier's three products to its own
+     entitlement. With several active ones the family gets the highest tier.
+   - **Offerings** with identifiers **`family`** (mark it **Current**), **`big_clan`** and
+     **`classroom`** (the app reads `offerings.all[tier]`; only Family falls back to the current
+     offering). Each gets the packages **Monthly** (`$rc_monthly`), **Six month**
+     (`$rc_six_month`) and **Annual** (`$rc_annual`) with that tier's iOS and Android products
+     (e.g. `brainyclan_big_clan_monthly`, `brainyclan_big_clan_6months`,
+     `brainyclan_big_clan_annual`). Use these package types: the app maps `MONTHLY`, `SIX_MONTH`
+     and `ANNUAL` to its three periods (custom packages fall back to the product ID of any tier). The paywall
      shows annual first and highlighted, with the store's per-month price and the saving against
      the monthly plan computed from the store prices of the same offering (rounded down; nothing
      is hard-coded), then 6 months, then monthly.
@@ -508,21 +525,23 @@ button (store billing needs the native app; web billing is a later milestone).
      the build from the internal testing track (or the dev build signed with the same key) and use
      that account in the Play Store. Test cards never charge.
 8. **Check on the phone**: sign in as an adult admin of a free family → Family → Plan → **See the
-   Family plan** → three plans with store prices, Yearly highlighted with "Save N%" and the
+   plans** → pick a plan card (Family is recommended) → three periods with store prices, Yearly highlighted with "Save N%" and the
    per-month price, trial badges → pick Yearly → **Subscribe** → store sheet → after paying,
-   "Activating the Family plan…" then the celebration; the Plan card shows **Family** and the
-   limits are gone. Also try: cancel the store sheet ("Purchase cancelled — nothing was charged"),
+   "Activating your plan…" then the celebration; the Plan card shows the plan name (e.g. **Big
+   Clan**) and its member limit. Then **Change plan** → another plan → the store's upgrade /
+   downgrade sheet. Also try: cancel the store sheet ("Purchase cancelled — nothing was charged"),
    **Restore purchases** on a second device, and a teen/child (no paywall entry).
 9. **Plans bought on the web, codes and the web link (F8 / backend B10)**:
    - A family whose plan was bought on the website (`GET /family/subscription` → `store: "paddle"`)
-     sees "Your Family plan is managed on the web" instead of the plans; **Manage subscription**
+     sees "Your plan is managed on the web" (change it by cancelling and subscribing again on the
+     website) instead of the plans; **Manage subscription**
      (paywall and Plan card) opens the link from `POST /family/subscription/manage-link` (Paddle
      portal in the in-app browser, store subscription pages in the store app).
    - **Referral codes**: "Have a code?" at parent sign-up (kept on the device until the family is
      created, then sent with `POST /family/referral-code`) and on the paywall. Refused codes show
      a friendly message (`referral_code_invalid` / `referral_code_locked`).
    - **Web checkout link**: the app reads the store country (RevenueCat `getStorefront()`) and
-     asks `GET /family/web-checkout/availability?storefront=…`; only when the server answers
+     asks `GET /family/web-checkout/availability?storefront=…&tier=…` (the selected plan); only when the server answers
      `link_allowed: true` does the paywall show "Also available on the web". The server list is
      empty by default, so the app shows no web prices or links anywhere until Moe enables a
      storefront (e.g. `USA`) after re-checking the store rules.

@@ -20,6 +20,7 @@ Milestones are defined in `docs/PLAN.md`.
 | F6 Monetization and notifications | Built (paywall + rewarded ads code done; web checks green; purchases/ads need a dev build + store/AdMob accounts)                                                   | Family plan card, Notifications, push, account/family deletion (verified on web); RevenueCat paywall and AdMob rewarded ads built 2026-10-16, UMP ad consent 2026-10-17, unverified on a phone |
 | F7 Release                        | In progress: release prep done 2026-10-16; 2026-10-22 lockout UX, forgot password, iPad (all orientations, responsive column), production URLs, store audience docs | Store accounts, screenshots (iPhone 6.9" + iPad 13") and submission still to do                                                                                                                |
 | F8 Pricing, codes, web checkout   | Built 2026-10-24 (checks green; typed against the B10 contract, backend built in parallel; purchases/codes need a dev build + store accounts)                       | Three-plan paywall (saving %, trials, founding offer), web-managed plans + Manage, referral codes, offer codes, gated web link                                                                 |
+| B12 Plans (app, step 1)           | Built 2026-11-20 (checks green; typed against the B12 contract, backend built in parallel; purchases need a dev build + store accounts)                             | Plan picker (Family / Big Clan / Classroom), per-tier offerings, store plan change, tier labels, "paid plan" wording                                                                           |
 
 ## Next up
 
@@ -69,7 +70,7 @@ Milestones are defined in `docs/PLAN.md`.
    needs an APNs key in EAS credentials, Android an FCM V1 key.
    (c) Done 2026-10-15 (admin per-member notification settings).
    (d) RevenueCat paywall + AdMob rewarded ads built 2026-10-16 (see log). To verify on phones:
-   Moe follows README "Family plan purchases — RevenueCat setup" and "Rewarded ads — AdMob setup"
+   Moe follows README "Plan purchases — RevenueCat setup" and "Rewarded ads — AdMob setup"
    (store products, RevenueCat entitlement `family` + current offering, webhook, keys in EAS env;
    AdMob apps + rewarded unit with SSV to `/api/v1/webhooks/admob-ssv`, test device), makes a dev
    build, then runs the phone checklist in "How to test → F6". Google UMP ad consent **built
@@ -284,7 +285,7 @@ disabled "Upgrade — coming soon"; `http://localhost:8081/family-plan` shows "P
 available in the Brainy Clan app for iPhone and Android". The play screen never offers "Watch a
 short video" on web.
 
-Phone checklist (after README "Family plan purchases — RevenueCat setup" and "Rewarded ads —
+Phone checklist (after README "Plan purchases — RevenueCat setup" and "Rewarded ads —
 AdMob setup", `npx eas-cli@latest build --profile development`, `npm run start:dev-client`):
 
 1. Free family, adult admin: Family → Plan → **See the Family plan** → what the plan unlocks,
@@ -313,6 +314,33 @@ AdMob setup", `npx eas-cli@latest build --profile development`, `npm run start:d
    needed). With `NOT_EEA`: no message, no row. Child / family tier / web: never a row.
 10. Consent dismissed or unavailable (e.g. airplane mode on the very first ad) → "No video is
     available right now", other second-chance options still work; next tap asks again.
+
+### B12 step 1 - plans Family, Big Clan, Classroom (phone, EAS dev build + backend B12)
+
+1. RevenueCat offerings `family` (current), `big_clan` and `classroom`, each with `MONTHLY`,
+   `SIX_MONTH` and `ANNUAL` packages (`brainyclan_{tier}_{monthly|6months|annual}`), entitlements
+   named like the tiers (README "Plan purchases — RevenueCat setup").
+2. Free family (2 members) → Family → Plan → **See the plans**: three plan cards (Family
+   "Recommended" and preselected, Big Clan, Classroom "2 adults + 35 students"); tapping a card
+   loads that offering's periods with store prices; the button reads "Subscribe to Big Clan".
+   Buy → "Activating your plan…" → "Welcome to the Big Clan plan!"; the Plan card shows **Big
+   Clan** and "Members: Up to 12 members", the Family tab badge says Big Clan.
+3. A family with 8 members: Family is greyed out with "Too small for your 8 members" and Big Clan
+   is preselected.
+4. Store plan on the same platform → Plan card **Change plan** → "Change your plan", the current
+   plan marked "Your plan", the current period marked "Current" (not selectable). Upgrade
+   (Family → Big Clan): Android passes the old product (Play shows the replacement sheet), iOS
+   switches inside the subscription group; the app waits for the server tier. Downgrade or another
+   period: "Plan change confirmed … may start with your next billing period".
+5. Plan bought on iOS, opened on Android (or the other way round): "Change it where you bought
+   it". Paddle plan: "Your plan is managed on the web" + "cancel this one on the website, then
+   subscribe to the new plan there".
+6. Web link (storefront enabled on the server): the availability call carries `&tier=` of the
+   selected card.
+7. Locked categories / worlds / chat / goals limit now say "paid plan"; "Choose a bigger plan" at
+   the member limit. Check the cards in several worlds (light + dark), at 200 % text, with
+   VoiceOver / TalkBack (each card is a radio with its full description; a too-small card is
+   announced as disabled).
 
 ### F8 - pricing, codes and the web link (phone, EAS dev build + backend B10)
 
@@ -372,6 +400,50 @@ themes (light/dark).
   splash (blue `#1D6FD8`, dark `#10233F`). `npx expo-doctor` 21/21; `npx expo config --type public`.
 
 ## Log
+
+### 2026-11-20 Plans: Family, Big Clan, Classroom (B12 step 1, app)
+
+Moe's decision (backend PLAN B12): four plans before launch. Contract: API.md "Plans and tiers
+(B12, 2026-11-20)". Built against it while the backend agent builds the server side.
+
+- Types: `FamilyTier` = `free | family | big_clan | classroom` (unknown values are treated as a
+  paid plan named by `tier`); `Subscription.entitlement` (optional until served).
+- `src/features/billing/plans.ts` (new, pure, tested): the **display-only plan catalog** (Family
+  6, Big Clan 12, Classroom 37 = 2 adults + 35 students). The server only sends the limits of the
+  family's current tier, so the picker needs the other sizes; the current tier uses the server's
+  `limits.max_members`. The server stays the referee. Also: tier rank, highest active
+  entitlement → tier, too-small rule (members > plan size), default tier (current paid tier, else
+  Family, else the smallest that fits), new / upgrade / downgrade / period change, and
+  `offerings.all[tier]` with the current offering as the Family-only fallback.
+- Store wrapper: `getPackages(appUserId, tier)` reads that tier's offering (package ids prefixed
+  with the tier, since `$rc_annual` exists in every offering); `purchase(id, change)` passes
+  `StoreProductChangeInfo { oldProductIdentifier }` (react-native-purchases 10.14, third argument
+  of `purchasePackage`) on Android, nothing on iOS (one subscription group); `restore` returns
+  the highest entitled tier. `FAMILY_ENTITLEMENT` is gone.
+- Product ids `brainyclan_{tier}_{monthly|6months|annual}` (`productId`, `parseProductId`); the
+  custom-package fallback recognises every tier. `PaywallPackage.productId` added.
+- `hasRunningPlan`: any non-free tier; `canChangePlanHere(store, os)`. `waitForTier(target)`
+  replaces `waitForFamilyTier` (waits for the purchased / restored tier). After a downgrade or a
+  period change the app syncs once and shows "Plan change confirmed" instead of waiting (the App
+  Store only switches at the next renewal).
+- Paywall (`/family-plan`): plan picker first (radio cards: name, best-for line, member size,
+  one highlight, "Your plan" / "Recommended", too-small cards disabled with "Too small for your N
+  members"), then the periods of the selected tier (store prices only), trial / founding offer,
+  "Subscribe to {plan}", restore, codes, web link (availability with `tier`). A running store plan
+  from this platform gets "Change your plan" (current product marked "Current", "Switch to
+  {plan}", Manage subscription); a plan from the other store or the web explains where to change
+  it (web: cancel and subscribe again on the website).
+- Plan card: tier name + "Members: Up to N" (policy limit), **Change plan** for running plans.
+- Labels: `tiers.*` = Free / Family / Big Clan / Classroom (fr Gratuit / Famille / Grand Clan /
+  Classe). "Paid plan" wording where any paid tier is meant: world hint (`worlds.hint.paidPlan`,
+  was `familyPlan`), ask-a-parent, chat upsell, member limit ("Choose a bigger plan"), goals
+  limit, locked categories, `errors.subscriptionExists`, account-deletion billing lines.
+  `canPurchaseFamilyPlan` → `canPurchasePlan`, world hint kind `familyPlan` → `paidPlan`.
+- Tests: `plans.test.ts` (new), `packages.test.ts` (tier product ids, `selectedPackage`),
+  `source.test.ts` (`hasRunningPlan` per tier, `canChangePlanHere`), `webCheckout.test.ts`
+  (`tier` param), `catalog.test.ts`. 1043 tests green; typecheck, lint, format, web export OK.
+- Not verifiable without store accounts: real offerings, the Play replacement sheet and the App
+  Store group switch (How to test "B12 step 1").
 
 ### 2026-11-11 Goals that explain themselves + chat reactions
 

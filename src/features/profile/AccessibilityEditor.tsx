@@ -127,7 +127,7 @@ function WorldOption({
         </Text>
         {hintText ? (
           <View style={styles.hintRow}>
-            {hint?.kind === 'familyPlan' ? (
+            {hint?.kind === 'paidPlan' ? (
               <Icon name="star" size={12} color={theme.colors.accent} />
             ) : null}
             <Text variant="caption" tone="muted" numberOfLines={1} style={styles.flex}>
@@ -175,7 +175,7 @@ interface AccessibilityEditorProps {
    * `null`/`undefined` (loading, or a backend without it) = every app world, unlocked.
    */
   worlds?: readonly World[] | null;
-  /** The signed-in member may buy the Family plan (tapping a Family-plan world opens the paywall). */
+  /** The signed-in member may buy a paid plan (tapping a paid-plan world opens the paywall). */
   canPurchase?: boolean;
 }
 
@@ -196,7 +196,7 @@ export function AccessibilityEditor({
   const theme = useTheme();
   const schemePreference = usePreferences((s) => s.colorScheme);
   const [gridWidth, setGridWidth] = useState(0);
-  // Explanation for the last tapped locked world ("Earn 27 more points…", "Comes with the Family plan").
+  // Explanation for the last tapped locked world ("Earn 27 more points…", "Comes with a paid plan").
   const [lockInfo, setLockInfo] = useState<{ key: ThemeKey; text: string } | null>(null);
   const list = pickerWorlds(worlds, WORLD_ORDER);
   const storedLocked =

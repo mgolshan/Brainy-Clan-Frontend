@@ -18,7 +18,7 @@ export const queryKeys = {
     ['invite-preview', birthYear, birthMonth] as const,
   subscription: ['family', 'subscription'] as const,
   /** Storefront + `GET /family/web-checkout/availability` (admin): the in-app web link, if any. */
-  webCheckout: ['family', 'web-checkout'] as const,
+  webCheckout: (tier: string) => ['family', 'web-checkout', tier] as const,
   /** `GET /family/members/{member}/worlds` (admin): that member's world catalog. */
   memberWorlds: (memberId: number) => ['family', 'members', memberId, 'worlds'] as const,
   memberDevices: (memberId: number) => ['family', 'members', memberId, 'devices'] as const,
@@ -48,7 +48,8 @@ export const queryKeys = {
   /** `GET /play/sessions/current` ("Continue your game"). */
   currentSession: ['play', 'current'] as const,
   /** Store data (RevenueCat), not our API: offering packages with store prices. */
-  paywallPackages: (appUserId: string) => ['revenuecat', 'packages', appUserId] as const,
+  paywallPackages: (appUserId: string, tier: string) =>
+    ['revenuecat', 'packages', appUserId, tier] as const,
 };
 
 /** Roots of queries that don't depend on who is signed in (kept across sign-in/sign-out). */

@@ -7,9 +7,21 @@ import type { Subscription, WebCheckoutAvailability } from '@/api/types';
  */
 export type PlanSource = 'none' | 'store' | 'web';
 
-/** A plan that is running (active or in the grace period / past due). */
+/**
+ * A plan that is running (active or in the grace period / past due), or any paid tier
+ * (`family`, `big_clan`, `classroom` or a newer one: unknown tiers count as paid).
+ */
 export function hasRunningPlan(sub: Pick<Subscription, 'status' | 'tier'>): boolean {
-  return sub.status === 'active' || sub.status === 'grace' || sub.tier === 'family';
+  return sub.status === 'active' || sub.status === 'grace' || sub.tier !== 'free';
+}
+
+/**
+ * Whether a running store plan can be changed (other tier / period) from this device: only in
+ * the store it was bought in (App Store on iOS, Google Play on Android). Buying in the other
+ * store would start a second subscription.
+ */
+export function canChangePlanHere(store: Subscription['store'], os: string): boolean {
+  return (store === 'app_store' && os === 'ios') || (store === 'play_store' && os === 'android');
 }
 
 export function planSource(
