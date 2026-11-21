@@ -538,6 +538,24 @@ themes (light/dark).
 
 ## Log
 
+### 2026-11-21 FTUE: server flow / steps and "show the checklist again" (app)
+
+`docs/FTUE-CONTRACT.md` updated to what the backend built: the onboarding object also carries
+`flow`, `required_steps`, `optional_steps` (a user without a family gets `owner`), and
+`POST /me/onboarding/restore` (200, `dismissed_at: null`, progress kept).
+
+- `state.ts`: lenient parsing of the new fields (unknown flow ignored with its lists, unknown /
+  duplicate step keys dropped, optional keys that are also required dropped), `withRestored`.
+- `flows.ts`: `resolveFlow` / `resolveFlowSteps` prefer the server's flow and lists; the app's
+  own derivation from `/me` stays the fallback for older servers (also used by the upgrade sheet).
+- `hooks.ts`: `useFtue` uses them; `useRestoreOnboarding` (optimistic; 404 puts the dismissed
+  state back and sets the per-run `restoreMissing` flag, FTUE stays on).
+- Profile → About: `RestoreChecklistRow` "Show the getting started checklist" (teachers: class
+  setup wording), only when FTUE is available and the checklist is dismissed; restores, then
+  navigates Home. i18n en + fr.
+- Tests: state, flows, hooks (restore) and `restoreChecklistRow.test.tsx`; 22 new, 1273 green;
+  typecheck, lint, format, web export OK.
+
 ### 2026-11-21 One sign-up, two doors (parent / teacher, app)
 
 Moe approved "one sign-up, two doors" on the welcome screen. App-only; the server contract is

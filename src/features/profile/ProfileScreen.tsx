@@ -14,6 +14,7 @@ import { openHelp } from '@/features/help/HelpLink';
 import { openLegalPage } from '@/features/legal/hooks';
 import { PrivacySection } from '@/features/legal/PrivacySection';
 import { useNotificationPreferences } from '@/features/notifications/hooks';
+import { RestoreChecklistRow } from '@/features/onboarding/components/RestoreChecklistRow';
 import { AccessibilityEditor } from '@/features/profile/AccessibilityEditor';
 import { AvatarPicker } from '@/features/profile/AvatarPicker';
 import { PasswordForm } from '@/features/profile/PasswordForm';
@@ -224,6 +225,8 @@ export function ProfileScreen() {
 
       <SectionHeader title={t('profile.about')} />
       <Card padding="sm">
+        {/* Hidden unless the getting started checklist was dismissed (and the server has FTUE). */}
+        <RestoreChecklistRow />
         <ListRow
           title={t('help.howToPlay')}
           subtitle={t('help.howToPlaySubtitle')}

@@ -5,10 +5,15 @@ backend builds exactly this; the app (`src/features/onboarding/`) codes against 
 and the plan disagree, this file wins (it fixes what the plan left open). Copy it into `API.md`
 ("Onboarding (FTUE)") when the backend is built and add a changelog line there.
 
+**Updated 2026-11-21 to match what the backend built:** the server also returns `flow`,
+`required_steps` and `optional_steps` (the app prefers them and keeps its own derivation as the
+fallback for older servers), a user without a family gets flow `owner`, and
+`POST /me/onboarding/restore` shows a dismissed checklist again.
+
 ## Endpoints
 
-All three: auth (Bearer), **no family needed** (a user without a family gets the same shape; the
-family-derived steps are then `null`). Progress is stored **per user** (so a second device never
+All four: auth (Bearer), **no family needed** (a user without a family gets the same shape with
+flow `owner`; the family-derived steps are then `null`). Progress is stored **per user** (so a second device never
 repeats it). Normal rate limit (120/min per token). Envelope `{ "data": … }` as everywhere.
 
 | Method + path                 | Body                | Success                                                           |
@@ -16,8 +21,10 @@ repeats it). Normal rate limit (120/min per token). Envelope `{ "data": … }` a
 | `GET /me/onboarding`          | –                   | 200 `{ "data": Onboarding }`                                      |
 | `POST /me/onboarding/{step}`  | none (empty / `{}`) | 200 `{ "data": Onboarding }` (the whole object, after the change) |
 | `POST /me/onboarding/dismiss` | none                | 200 `{ "data": Onboarding }`                                      |
+| `POST /me/onboarding/restore` | none                | 200 `{ "data": Onboarding }` with `dismissed_at: null`            |
 
-`dismiss` is a reserved path segment, never a step key.
+`dismiss` and `restore` are reserved path segments, never step keys. `restore` clears
+`dismissed_at` only (step progress is kept) and is idempotent.
 
 ### Onboarding object
 
@@ -49,7 +56,18 @@ repeats it). Normal rate limit (120/min per token). Envelope `{ "data": … }` a
     "upgrade_big_clan": null,
     "upgrade_classroom": null
   },
-  "dismissed_at": null
+  "dismissed_at": null,
+  "flow": "owner",
+  "required_steps": [
+    "welcome",
+    "create_family",
+    "pick_world",
+    "add_member",
+    "first_game",
+    "first_goal",
+    "say_hi"
+  ],
+  "optional_steps": []
 }
 ```
 
@@ -57,8 +75,15 @@ repeats it). Normal rate limit (120/min per token). Envelope `{ "data": … }` a
   `null`. (The app treats a missing key as `null`, so adding keys later is safe.)
 - `dismissed_at`: when the user hid the "Getting started" checklist (`null` = shown). Dismissing
   hides the checklist and the welcome sheet only; tips and the upgrade sheet keep working.
-- The server does **not** pick the flow: the app chooses it from `GET /me` (tier + role + age band,
-  see "Flows"). The server only stores and derives step times.
+- `flow`: `owner` | `member` | `teacher` | `student`, picked by the server with the rules of
+  "Flows" (a user without a family gets `owner`).
+- `required_steps`: the flow's ordered required steps (count toward "n / m" and the
+  celebration); `optional_steps`: the flow's optional steps, shown after them.
+- The app **prefers** the server's `flow` and step lists. It parses them leniently: an unknown
+  `flow` is ignored (with its lists), unknown or duplicate step keys are dropped, an optional key
+  that is also required is dropped, a missing `optional_steps` reads as `[]`. When the server sends
+  no `flow` (older servers) the app derives the flow and its steps from `GET /me` (see "Flows");
+  with a `flow` but no `required_steps` it derives the steps for the server's flow.
 
 ### Step keys
 
@@ -108,10 +133,13 @@ are cheap `exists` queries on the user's current family / member.
 - `POST /me/onboarding/{step}` is **idempotent**: a step already done keeps its first `done_at`
   (still 200 with the object).
 - `POST /me/onboarding/dismiss` is idempotent too (keeps the first `dismissed_at`).
-- **Older servers** answer 404 on all three routes: the app then hides the checklist, coach marks,
+- **Older servers** answer 404 on all the routes: the app then hides the checklist, coach marks,
   welcome and upgrade sheets (nothing else changes). No new error codes.
+- A server with FTUE but without `restore` answers 404 there only: the app puts the dismissed
+  state back and hides Profile's "Show the getting started checklist" for the rest of the run
+  (everything else keeps working).
 
-## Flows (chosen by the app from `GET /me`)
+## Flows (chosen by the server; the app's own derivation from `GET /me` is the fallback)
 
 | flow      | who (from `/me`)                                                                                                               | ordered steps (required)                                                                                                      | optional                         |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
@@ -131,4 +159,7 @@ are cheap `exists` queries on the user's current family / member.
   is done (`family` < `big_clan` < `classroom`), so a downgrade never shows it.
 - Celebration: when every required step of the flow is done, the card celebrates; closing it
   calls `POST /me/onboarding/dismiss`.
+- Profile → About: "Show the getting started checklist" ("Show the class setup checklist" for
+  teachers), only when FTUE is available and the checklist is dismissed. Tapping it restores the
+  checklist optimistically (`POST /me/onboarding/restore`) and goes to Home.
 - Measurement: the server's own timestamps are the counters (no third-party SDK).

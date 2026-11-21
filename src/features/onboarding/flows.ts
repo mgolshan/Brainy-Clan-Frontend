@@ -1,18 +1,26 @@
 import type { Href } from 'expo-router';
 
-import type { FamilyTier, MePayload, Onboarding, OnboardingStepKey, Policy } from '@/api/types';
+import type {
+  FamilyTier,
+  MePayload,
+  Onboarding,
+  OnboardingFlow,
+  OnboardingStepKey,
+  Policy,
+} from '@/api/types';
 import { isPaidTier, tierRank, type PaidTier } from '@/features/billing/plans';
 import { chatTabVisible, effectiveChatMode } from '@/features/chat/modes';
 
 /**
  * FTUE (B12 step 4, `docs/FTUE-CONTRACT.md`), pure logic: which flow a signed-in member gets
- * (from `GET /me` alone: tier + role + age band), the ordered steps of that flow, where each step
+ * (the server's `flow` / `required_steps` / `optional_steps` when it sends them, else derived from
+ * `GET /me`: tier + role + age band), the ordered steps of that flow, where each step
  * leads, the checklist progress and when the welcome / upgrade sheets and coach marks show. The
  * server stores and derives the step times; the app only reads them (derived steps such as
  * "first game" are never posted by the app).
  */
 
-export type FlowKey = 'owner' | 'member' | 'teacher' | 'student';
+export type FlowKey = OnboardingFlow;
 
 /**
  * How the copy is worded, from the member's (server) age band: `kid` = fewer words and emoji,
@@ -47,9 +55,23 @@ export interface FlowStep {
 
 const req = (key: OnboardingStepKey): FlowStep => ({ key, required: true });
 
-/** The ordered steps of the member's flow (empty without a flow). */
-export function flowSteps(me: MePayload | undefined): FlowStep[] {
-  const flow = selectFlow(me);
+/**
+ * The member's flow: the server's when it sends one, else the app's own derivation (older
+ * servers).
+ */
+export function resolveFlow(
+  onboarding: Onboarding | null | undefined,
+  me: MePayload | undefined,
+): FlowKey | null {
+  return onboarding?.flow ?? selectFlow(me);
+}
+
+/**
+ * The ordered steps of the member's flow, derived by the app (empty without a flow). `flow`
+ * overrides the derived one (e.g. the server's).
+ */
+export function flowSteps(me: MePayload | undefined, flowOverride?: FlowKey | null): FlowStep[] {
+  const flow = flowOverride ?? selectFlow(me);
   if (!me || !flow) return [];
   const tier = me.policy.tier ?? me.family?.tier;
   switch (flow) {
@@ -87,6 +109,23 @@ export function flowSteps(me: MePayload | undefined): FlowStep[] {
         ...(effectiveChatMode(me) === 'normal' && canChat(me) ? [req('say_hi')] : []),
       ];
   }
+}
+
+/**
+ * The checklist steps: the server's `required_steps` then `optional_steps` when it sends them,
+ * else the app's derivation for the resolved flow.
+ */
+export function resolveFlowSteps(
+  onboarding: Onboarding | null | undefined,
+  me: MePayload | undefined,
+): FlowStep[] {
+  if (onboarding?.flow && onboarding.required_steps) {
+    return [
+      ...onboarding.required_steps.map(req),
+      ...(onboarding.optional_steps ?? []).map((key) => ({ key, required: false })),
+    ];
+  }
+  return flowSteps(me, resolveFlow(onboarding, me));
 }
 
 /** The flow's welcome step (shown as a sheet the first time), or null (students have none). */
@@ -278,7 +317,7 @@ export function upgradeSheetTier(
   if (!onboarding || !me?.member || me.member.role !== 'admin') return null;
   const tier = me.policy.tier;
   if (!isPaidTier(tier)) return null;
-  const flow = selectFlow(me);
+  const flow = resolveFlow(onboarding, me);
   const welcome = welcomeStep(flow);
   const welcomed =
     !!onboarding.dismissed_at || (welcome !== null && isStepDone(onboarding, welcome));

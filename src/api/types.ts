@@ -493,7 +493,7 @@ export interface UpdateAccessibilityBody {
 
 /**
  * FTUE onboarding progress (B12 step 4, `docs/FTUE-CONTRACT.md`): `GET /me/onboarding`,
- * `POST /me/onboarding/{step}`, `POST /me/onboarding/dismiss`. Older servers answer 404 (the app
+ * `POST /me/onboarding/{step}`, `POST /me/onboarding/dismiss`, `POST /me/onboarding/restore`. Older servers answer 404 (the app
  * then hides the checklist, coach marks and sheets).
  */
 export type OnboardingStepKey =
@@ -522,11 +522,20 @@ export type OnboardingStepKey =
   | 'upgrade_big_clan'
   | 'upgrade_classroom';
 
+/** The FTUE flow the server picked (owner, other member, teacher, student). */
+export type OnboardingFlow = 'owner' | 'member' | 'teacher' | 'student';
+
 export interface Onboarding {
   /** Every known key → `done_at` (ISO UTC) or `null`; a missing key reads as `null`. */
   steps: Partial<Record<OnboardingStepKey, string | null>>;
   /** When the user hid the "Getting started" checklist (`null` = shown). */
   dismissed_at: string | null;
+  /** The server's flow (absent on older servers: the app derives it from `GET /me`). */
+  flow?: OnboardingFlow;
+  /** The flow's ordered required steps from the server (absent: the app derives them). */
+  required_steps?: OnboardingStepKey[];
+  /** The flow's optional steps from the server (shown after the required ones). */
+  optional_steps?: OnboardingStepKey[];
 }
 
 export interface MeStats {

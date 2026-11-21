@@ -8,8 +8,8 @@ import { useMe } from '@/features/auth/hooks';
 import {
   checklist,
   copyVariant,
-  flowSteps,
-  selectFlow,
+  resolveFlow,
+  resolveFlowSteps,
   type Checklist,
   type CopyVariant,
   type FlowKey,
@@ -19,6 +19,7 @@ import {
   parseOnboarding,
   pendingKeys,
   withDismissed,
+  withRestored,
   withStepDone,
 } from '@/features/onboarding/state';
 import { useSession } from '@/store/session';
@@ -61,11 +62,16 @@ export function useOnboarding() {
 interface FtueRunState {
   shown: string[];
   markShown: (id: string) => void;
+  /** `POST /me/onboarding/restore` answered 404 (older server): hide the "show again" action. */
+  restoreMissing: boolean;
+  setRestoreMissing: () => void;
 }
 
 export const useFtueRun = create<FtueRunState>()((set) => ({
   shown: [],
   markShown: (id) => set((s) => (s.shown.includes(id) ? s : { shown: [...s.shown, id] })),
+  restoreMissing: false,
+  setRestoreMissing: () => set({ restoreMissing: true }),
 }));
 
 export const runId = (userId: number | undefined, key: string) => `${userId ?? 0}:${key}`;
@@ -136,6 +142,35 @@ export function useDismissOnboarding() {
   });
 }
 
+/**
+ * `POST /me/onboarding/restore`: shows the checklist again (optimistic, step progress kept). A 404
+ * (older server without the route) puts the dismissed state back and hides the action for this
+ * run; FTUE itself stays on.
+ */
+export function useRestoreOnboarding() {
+  const client = useQueryClient();
+  const setRestoreMissing = useFtueRun((s) => s.setRestoreMissing);
+  return useMutation({
+    mutationFn: async () =>
+      parseOnboarding((await api.post<Envelope<unknown>>('/me/onboarding/restore')).data),
+    onMutate: async () => {
+      await client.cancelQueries({ queryKey: queryKeys.onboarding });
+      const previous = client.getQueryData<Onboarding | null>(queryKeys.onboarding);
+      client.setQueryData<Onboarding | null>(queryKeys.onboarding, (prev) => withRestored(prev));
+      return { previous };
+    },
+    onSuccess: (data) => client.setQueryData(queryKeys.onboarding, data),
+    onError: (error, _vars, context) => {
+      if (isOnboardingMissing(error)) {
+        setRestoreMissing();
+        if (context) client.setQueryData(queryKeys.onboarding, context.previous);
+      } else {
+        void client.invalidateQueries({ queryKey: queryKeys.onboarding });
+      }
+    },
+  });
+}
+
 export interface FtueModel {
   /** `null` while loading, on an older server or without a flow: hide every FTUE surface. */
   onboarding: Onboarding | null;
@@ -149,14 +184,16 @@ export interface FtueModel {
 export function useFtue(): FtueModel & { query: ReturnType<typeof useOnboarding> } {
   const me = useMe().data;
   const query = useOnboarding();
-  const flow = selectFlow(me);
-  const onboarding = flow ? (query.data ?? null) : null;
+  const data = query.data ?? null;
+  // The server's flow / steps when it sends them; the app's own derivation on older servers.
+  const flow = resolveFlow(data, me);
+  const onboarding = flow ? data : null;
   return {
     query,
     onboarding,
     flow,
     variant: copyVariant(me?.policy),
-    checklist: onboarding ? checklist(onboarding, flowSteps(me)) : null,
+    checklist: onboarding ? checklist(onboarding, resolveFlowSteps(onboarding, me)) : null,
     userId: me?.user.id,
   };
 }

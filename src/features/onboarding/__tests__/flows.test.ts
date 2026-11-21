@@ -7,6 +7,8 @@ import {
   DERIVED_STEPS,
   flowSteps,
   isDerivedStep,
+  resolveFlow,
+  resolveFlowSteps,
   selectFlow,
   shouldShowWelcome,
   stepAction,
@@ -94,6 +96,73 @@ describe('selectFlow', () => {
     expect(selectFlow(undefined)).toBeNull();
     expect(selectFlow(me({ family: false }))).toBeNull();
     expect(selectFlow(me({ member: false }))).toBeNull();
+  });
+});
+
+describe('server flow and steps (preferred over the app derivation)', () => {
+  const server = (o: Partial<Onboarding>): Onboarding => ({ ...onb(), ...o });
+
+  it("prefers the server's flow", () => {
+    expect(resolveFlow(server({ flow: 'member' }), me())).toBe('member');
+    expect(resolveFlow(server({ flow: 'teacher' }), me({ tier: 'free' }))).toBe('teacher');
+  });
+
+  it('falls back to the app derivation on older servers', () => {
+    expect(resolveFlow(onb(), me())).toBe('owner');
+    expect(resolveFlow(null, me({ owner: false }))).toBe('member');
+    expect(resolveFlow(undefined, undefined)).toBeNull();
+  });
+
+  it('gives a user without a family the owner flow when the server says so', () => {
+    const noFamily = me({ family: false, member: false });
+    expect(selectFlow(noFamily)).toBeNull();
+    expect(resolveFlow(server({ flow: 'owner' }), noFamily)).toBe('owner');
+  });
+
+  it("uses the server's required then optional steps", () => {
+    const steps = resolveFlowSteps(
+      server({
+        flow: 'teacher',
+        required_steps: ['roster', 'first_goal'],
+        optional_steps: ['co_admin'],
+      }),
+      me(),
+    );
+    expect(steps).toEqual([
+      { key: 'roster', required: true },
+      { key: 'first_goal', required: true },
+      { key: 'co_admin', required: false },
+    ]);
+  });
+
+  it('derives the steps for the server flow when it sends no lists', () => {
+    const steps = resolveFlowSteps(server({ flow: 'member' }), me()).map((s) => s.key);
+    expect(steps).toEqual(['welcome_family', 'avatar_world', 'first_game', 'family_goal']);
+  });
+
+  it('derives everything on older servers', () => {
+    expect(resolveFlowSteps(onb(), me())).toEqual(flowSteps(me()));
+  });
+
+  it('counts only required server steps in the checklist', () => {
+    const o = server({
+      flow: 'owner',
+      required_steps: ['welcome', 'first_game'],
+      optional_steps: ['co_admin'],
+      steps: { welcome: 'x', co_admin: 'y' },
+    });
+    const c = checklist(o, resolveFlowSteps(o, me()));
+    expect([c.done, c.total, c.next, c.complete]).toEqual([1, 2, 'first_game', false]);
+  });
+
+  it("follows the server's flow for the upgrade sheet's welcome", () => {
+    // The app would say "owner"; the server says "member", so `welcome_family` counts.
+    expect(
+      upgradeSheetTier(
+        server({ flow: 'member', steps: { welcome_family: 'x' } }),
+        me({ tier: 'family' }),
+      ),
+    ).toBe('family');
   });
 });
 

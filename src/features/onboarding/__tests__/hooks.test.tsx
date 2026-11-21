@@ -10,6 +10,7 @@ import {
   useDismissOnboarding,
   useFtueRun,
   useMarkSteps,
+  useRestoreOnboarding,
 } from '@/features/onboarding/hooks';
 
 const mockPost = jest.fn();
@@ -28,21 +29,23 @@ let mounted: { renderer: ReactTestRenderer; client: QueryClient } | null = null;
 
 const start: Onboarding = { steps: { welcome: null, tip_play: null }, dismissed_at: null };
 
-function setup() {
+function setup(initial: Onboarding = start) {
   const client = new QueryClient({
     defaultOptions: {
       mutations: { retry: false, gcTime: Infinity },
       queries: { gcTime: Infinity },
     },
   });
-  client.setQueryData(queryKeys.onboarding, start);
+  client.setQueryData(queryKeys.onboarding, initial);
   const hooks: {
     mark?: ReturnType<typeof useMarkSteps>;
     dismiss?: ReturnType<typeof useDismissOnboarding>;
+    restore?: ReturnType<typeof useRestoreOnboarding>;
   } = {};
   function Probe() {
     hooks.mark = useMarkSteps();
     hooks.dismiss = useDismissOnboarding();
+    hooks.restore = useRestoreOnboarding();
     return null;
   }
   let renderer!: ReactTestRenderer;
@@ -69,7 +72,7 @@ afterEach(() => {
 
 beforeEach(() => {
   mockPost.mockReset();
-  useFtueRun.setState({ shown: [] });
+  useFtueRun.setState({ shown: [], restoreMissing: false });
 });
 
 describe('loadOnboarding', () => {
@@ -160,5 +163,55 @@ describe('useDismissOnboarding', () => {
       resolve({ data: { steps: {}, dismissed_at: 'server-time' } });
     });
     expect(data()?.dismissed_at).toBe('server-time');
+  });
+});
+
+describe('useRestoreOnboarding', () => {
+  const dismissed: Onboarding = {
+    steps: { welcome: 'done-earlier', tip_play: null },
+    dismissed_at: '2026-11-21T10:00:00Z',
+  };
+
+  it('shows the checklist again at once, keeping the progress, then takes the server object', async () => {
+    let resolve!: (v: unknown) => void;
+    mockPost.mockReturnValue(new Promise((r) => (resolve = r)));
+    const { hooks, data } = setup(dismissed);
+    await act(async () => {
+      hooks.restore!.mutate();
+    });
+    expect(mockPost).toHaveBeenCalledWith('/me/onboarding/restore');
+    expect(data()).toEqual({ ...dismissed, dismissed_at: null }); // optimistic
+    await act(async () => {
+      resolve({
+        data: { steps: { welcome: 'done-earlier' }, dismissed_at: null, flow: 'owner' },
+      });
+    });
+    expect(data()).toEqual({
+      steps: { welcome: 'done-earlier' },
+      dismissed_at: null,
+      flow: 'owner',
+    });
+    expect(useFtueRun.getState().restoreMissing).toBe(false);
+  });
+
+  it('on an older server (404) puts the dismissed state back and hides the action, FTUE stays', async () => {
+    mockPost.mockRejectedValue(new ApiError(404, 'Not found', 'not_found'));
+    const { hooks, data } = setup(dismissed);
+    await act(async () => {
+      hooks.restore!.mutate();
+    });
+    expect(data()).toEqual(dismissed);
+    expect(useFtueRun.getState().restoreMissing).toBe(true);
+  });
+
+  it('on another failure re-reads the server', async () => {
+    mockPost.mockRejectedValue(new ApiError(0, 'offline', 'network_error'));
+    const { client, hooks } = setup(dismissed);
+    const invalidate = jest.spyOn(client, 'invalidateQueries');
+    await act(async () => {
+      hooks.restore!.mutate();
+    });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.onboarding });
+    expect(useFtueRun.getState().restoreMissing).toBe(false);
   });
 });

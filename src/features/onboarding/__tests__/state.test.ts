@@ -5,6 +5,7 @@ import {
   parseOnboarding,
   pendingKeys,
   withDismissed,
+  withRestored,
   withStepDone,
 } from '@/features/onboarding/state';
 
@@ -31,6 +32,60 @@ describe('parseOnboarding', () => {
     expect(
       parseOnboarding({ steps: { welcome: true, roster: 3, tip_play: '' }, dismissed_at: 7 }),
     ).toEqual({ steps: { welcome: null, roster: null, tip_play: null }, dismissed_at: null });
+  });
+});
+
+describe('parseOnboarding (server flow and steps)', () => {
+  it('keeps the server flow and step lists', () => {
+    expect(
+      parseOnboarding({
+        steps: {},
+        dismissed_at: null,
+        flow: 'teacher',
+        required_steps: ['classroom_welcome', 'roster'],
+        optional_steps: ['co_admin'],
+      }),
+    ).toEqual({
+      steps: {},
+      dismissed_at: null,
+      flow: 'teacher',
+      required_steps: ['classroom_welcome', 'roster'],
+      optional_steps: ['co_admin'],
+    });
+  });
+
+  it('drops unknown step keys, duplicates and optional steps that are also required', () => {
+    const parsed = parseOnboarding({
+      steps: {},
+      flow: 'owner',
+      required_steps: ['welcome', 'teleport', 'welcome', 7, 'first_game'],
+      optional_steps: ['first_game', 'co_admin', 'mystery'],
+    });
+    expect(parsed.required_steps).toEqual(['welcome', 'first_game']);
+    expect(parsed.optional_steps).toEqual(['co_admin']);
+  });
+
+  it('defaults a missing optional list to empty', () => {
+    expect(
+      parseOnboarding({ steps: {}, flow: 'member', required_steps: ['welcome_family'] })
+        .optional_steps,
+    ).toEqual([]);
+  });
+
+  it('ignores an unknown flow (and its lists): the app derives them', () => {
+    const parsed = parseOnboarding({
+      steps: {},
+      flow: 'astronaut',
+      required_steps: ['welcome'],
+    });
+    expect(parsed).toEqual({ steps: {}, dismissed_at: null });
+    expect('flow' in parsed).toBe(false);
+  });
+
+  it('keeps a known flow without lists (older lists absent)', () => {
+    const parsed = parseOnboarding({ steps: {}, flow: 'student', required_steps: 'nope' });
+    expect(parsed.flow).toBe('student');
+    expect(parsed.required_steps).toBeUndefined();
   });
 });
 
@@ -77,5 +132,14 @@ describe('optimistic updates', () => {
       'tip_play',
     ]);
     expect(pendingKeys(null, ['welcome'])).toEqual(['welcome']);
+  });
+
+  it('restores a dismissed checklist and keeps the progress', () => {
+    const dismissed = { ...base, dismissed_at: NOW };
+    const next = withRestored(dismissed);
+    expect(next).toEqual({ ...base, dismissed_at: null });
+    expect(dismissed.dismissed_at).toBe(NOW); // not mutated
+    expect(withRestored(base)).toBe(base);
+    expect(withRestored(null)).toBeNull();
   });
 });
