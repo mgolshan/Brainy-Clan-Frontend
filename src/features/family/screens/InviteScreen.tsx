@@ -6,7 +6,14 @@ import { Platform, Share, StyleSheet, View } from 'react-native';
 
 import type { AvatarKey, Invite } from '@/api/types';
 import { BirthDateFields } from '@/features/auth/components/BirthDateFields';
-import { useCreateInvite, useInvitePreview } from '@/features/family/hooks';
+import { useMe, usePolicy } from '@/features/auth/hooks';
+import {
+  adultInviteBlocked,
+  adultLimitMessage,
+  inviteErrorMessage,
+  maxAdults,
+} from '@/features/family/adults';
+import { useCachedRoster, useCreateInvite, useInvitePreview } from '@/features/family/hooks';
 import { HelpLink } from '@/features/help/HelpLink';
 import { LegalLinks } from '@/features/legal/components';
 import { useLegal } from '@/features/legal/hooks';
@@ -91,6 +98,10 @@ type ConsentMode = 'hidden' | 'required' | 'optional';
  * `parental_consent_required` (then Create waits for the tick). If the backend doesn't serve the
  * preview (404) or it fails, the form falls back to an optional checkbox worded "if this is a
  * child"; the server's 422 on `parental_consent` always decides and shows the checkbox.
+ *
+ * Adult seats (B12 step 3): once the preview says the band is adult and the members + pending
+ * invites already in the cache fill `policy.limits.max_adults`, the form explains it and Create
+ * stays disabled; otherwise the server's 403 `adult_limit_reached` shows the same text.
  */
 export function InviteScreen() {
   const { t } = useTranslation();
@@ -101,6 +112,9 @@ export function InviteScreen() {
   const [avatar, setAvatar] = useState<AvatarKey | null>(null);
   const [consent, setConsent] = useState(false);
   const legal = useLegal().data;
+  const tier = useMe().data?.family?.tier;
+  const maxAdultSeats = maxAdults(usePolicy());
+  const roster = useCachedRoster();
   const errors = formErrors(create.error, t, [
     'nickname',
     'birth_year',
@@ -125,6 +139,10 @@ export function InviteScreen() {
   }
   if (errors.field('parental_consent') && consentMode === 'hidden') consentMode = 'required';
   const previewBand = !checking && preview.data ? preview.data.age_band : null;
+  const adultsFull = adultInviteBlocked({ band: previewBand, max: maxAdultSeats, ...roster });
+  const generalError = errors.general
+    ? inviteErrorMessage(create.error, t, tier, maxAdultSeats)
+    : undefined;
 
   if (create.data) {
     return (
@@ -135,7 +153,11 @@ export function InviteScreen() {
   }
 
   const ready =
-    !!nickname.trim() && birthKey !== null && !checking && (consentMode !== 'required' || consent);
+    !!nickname.trim() &&
+    birthKey !== null &&
+    !checking &&
+    !adultsFull &&
+    (consentMode !== 'required' || consent);
 
   return (
     <Screen title={t('invite.title')} subtitle={t('invite.subtitle')} back>
@@ -163,6 +185,11 @@ export function InviteScreen() {
             {t('invite.ageGroup', { band: ageBandLabel(t, previewBand) })}
           </Text>
         ) : null}
+        {adultsFull ? (
+          <Text tone="danger" accessibilityLiveRegion="polite">
+            {adultLimitMessage(t, tier, maxAdultSeats)}
+          </Text>
+        ) : null}
         {consentMode !== 'hidden' ? (
           <View>
             <Checkbox
@@ -183,7 +210,7 @@ export function InviteScreen() {
             <LegalLinks legal={legal} />
           </View>
         ) : null}
-        {errors.general ? <Text tone="danger">{errors.general}</Text> : null}
+        {generalError ? <Text tone="danger">{generalError}</Text> : null}
         <Button
           title={t('invite.create')}
           icon="key-outline"

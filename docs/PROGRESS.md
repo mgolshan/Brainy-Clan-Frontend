@@ -22,6 +22,7 @@ Milestones are defined in `docs/PLAN.md`.
 | F8 Pricing, codes, web checkout   | Built 2026-10-24 (checks green; typed against the B10 contract, backend built in parallel; purchases/codes need a dev build + store accounts)                       | Three-plan paywall (saving %, trials, founding offer), web-managed plans + Manage, referral codes, offer codes, gated web link                                                                 |
 | B12 Plans (app, step 1)           | Built 2026-11-20 (checks green; typed against the B12 contract, backend built in parallel; purchases need a dev build + store accounts)                             | Plan picker (Family / Big Clan / Classroom), per-tier offerings, store plan change, tier labels, "paid plan" wording                                                                           |
 | B12 Chat safety (app, step 2)     | Built 2026-11-20 (checks green; typed against the B12 step 2 contract, backend built in parallel)                                                                   | Profanity filter switch, Classroom chat modes (normal / announcements / off), "Some words were hidden", mode 403s                                                                              |
+| B12 Adult seats (app, step 3a)    | Built 2026-11-20 (checks green; typed against the B12 step 3 "Adult seats" contract, backend built in parallel)                                                     | `max_adults`, `adult_limit_reached` on invites, admin role switch (adults only)                                                                                                                |
 
 ## Next up
 
@@ -343,6 +344,20 @@ AdMob setup", `npx eas-cli@latest build --profile development`, `npm run start:d
    VoiceOver / TalkBack (each card is a radio with its full description; a too-small card is
    announced as disabled).
 
+### B12 step 3a - adult seats and admin roles (backend B12 step 3)
+
+1. Classroom family (`policy.limits.max_adults: 2`) with the teacher + one adult (or one pending
+   adult invite): Family → Invite, type an adult birth date → after the preview, "This plan has
+   room for 2 adults (a teacher and a co-teacher). You can still invite students." and Create
+   stays disabled; a child / teen date still works. Opened without the Family tab loaded (deep
+   link), the form lets you try and the server's 403 `adult_limit_reached` shows the same text.
+   Free / Family / Big Clan (`max_adults: null`) never show it.
+2. Member editor → **Role** → "Admin" switch: adults can be made admin and back (pending value
+   while saving); a child or teen shows the switch off and disabled with "Only adults can be
+   admins."; an existing child admin can be turned back into a member. The owner's switch is on
+   and disabled ("The family owner is always an admin."), your own is disabled. A 422 on `role`
+   (e.g. an old app state) shows "Only adults can be admins." under the card.
+
 ### B12 step 2 - chat safety (backend B12 step 2)
 
 1. Admin → Family tab → **Chat safety**: "Hide bad words" is on ("Blocked words are replaced with
@@ -421,6 +436,33 @@ themes (light/dark).
   splash (blue `#1D6FD8`, dark `#10233F`). `npx expo-doctor` 21/21; `npx expo config --type public`.
 
 ## Log
+
+### 2026-11-20 Adult seats and admin roles (B12 step 3 "Adult seats", app)
+
+Contract: API.md "Classroom tools (B12 step 3)" → "Adult seats (every tier)". Built against it
+while the backend agent builds the server side. Only this part of step 3 (consent, setup state,
+codes etc. are later).
+
+- Types: Policy `limits.max_adults?: number | null` (absent/null = unlimited); error code
+  `adult_limit_reached`; `UpdateMemberBody.role` documented (422 for a child / teen).
+- `src/features/family/adults.ts` (new, pure, tested): `isAdultBand` (contract bands `adult` /
+  `senior`, i.e. bands with `purchases_allowed`; members and invites carry no
+  `purchases_allowed`, so the two band codes are read, never an age), `canBeAdmin` (not child /
+  teen; unknown future bands go to the server), `maxAdults`, `adultSeatsUsed` (active adult
+  members + pending adult invites, like the server), `adultInviteBlocked`, `adultLimitMessage`
+  (Classroom: "a teacher and a co-teacher … students"; other tiers: plural "N adults … children
+  and teens"), `inviteErrorMessage`, `roleErrorMessage`.
+- Invite form: once the preview says adult and the cached members + invites (`useCachedRoster`,
+  no extra request) fill the seats, the seat message shows and Create is disabled; otherwise a
+  403 `adult_limit_reached` shows the same text with the number. `errorMessage` maps the code to
+  a generic "no room for more adults" text elsewhere.
+- Member editor: new **Role** card (`MemberRoleSwitch`): the app had no way to make someone admin
+  yet, and the co-teacher needs one. Saved at once like the chat switch; disabled for child /
+  teen ("Only adults can be admins."), the owner (always admin) and yourself; a child admin can
+  still be demoted. A 422 on `role` → "Only adults can be admins.".
+- No in-app help text describes roles (help lives on the website), so nothing to update there.
+- Tests: `family/__tests__/adults.test.ts` (new), `errorMessage` (new code). 1097 tests green;
+  typecheck, lint, format, web export OK.
 
 ### 2026-11-20 Chat safety: profanity filter + Classroom chat modes (B12 step 2, app)
 

@@ -44,6 +44,21 @@ export function useInvites() {
 }
 
 /** `GET /family/leaderboard?period=` */
+/**
+ * Members and pending invites already in the cache (the invite form opens from the Family tab),
+ * without starting a request: `undefined` when not loaded.
+ */
+export function useCachedRoster(): {
+  members: Member[] | undefined;
+  invites: Invite[] | undefined;
+} {
+  const client = useQueryClient();
+  return {
+    members: client.getQueryData<FamilyPayload>(queryKeys.family)?.members,
+    invites: client.getQueryData<Invite[]>(queryKeys.invites),
+  };
+}
+
 export function useLeaderboard(period: LeaderboardPeriod = 'week') {
   return useQuery({
     queryKey: queryKeys.leaderboard(period),

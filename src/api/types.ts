@@ -20,6 +20,7 @@ export type ApiErrorCode =
   | 'invalid_credentials'
   | 'forbidden'
   | 'member_limit_reached'
+  | 'adult_limit_reached'
   | 'category_not_allowed'
   | 'no_family'
   | 'already_in_family'
@@ -227,8 +228,17 @@ export interface Policy {
    * (non-personalized, rating G).
    */
   ad_request?: AdRequestPolicy;
-  /** `max_active_goals`: `null` = unlimited. */
-  limits: { max_members: number; max_categories: number; max_active_goals: number | null };
+  /**
+   * `max_active_goals`: `null` = unlimited. `max_adults` (B12 step 3, every tier): seats for
+   * adults (age bands with `purchases_allowed`, i.e. adult / senior); `null` = unlimited (2 on
+   * classroom). Optional until every backend serves it (absent = unlimited).
+   */
+  limits: {
+    max_members: number;
+    max_categories: number;
+    max_active_goals: number | null;
+    max_adults?: number | null;
+  };
   accessibility_defaults: Omit<Accessibility, 'theme'>;
   feature_flags: Record<string, unknown>;
   /**
@@ -489,6 +499,7 @@ export interface UpdateMemberBody {
   difficulty_override?: number | null;
   birth_year?: number;
   birth_month?: number;
+  /** `admin` only for adults (adult / senior band): a child or teen gets 422 on `role`. */
   role?: MemberRole;
   accessibility?: Partial<Accessibility>;
   /** Adds, changes or removes (`null`) the member's email login. */

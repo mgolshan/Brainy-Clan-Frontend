@@ -33,6 +33,7 @@
     "invalidCredentials": "That email and password don't match.",
     "forbidden": "You're not allowed to do that.",
     "memberLimitReached": "Your family has reached its member limit for this plan.",
+    "adultLimitReached": "This plan has no room for more adults. You can still invite children and teens.",
     "categoryNotAllowed": "This category isn't available for you.",
     "noFamily": "You need to join or create a family first.",
     "alreadyInFamily": "You already belong to a family.",
@@ -457,7 +458,10 @@
     "copy": "Copy code",
     "copied": "Copied!",
     "shareMessage": "Join our family on Brainy Clan! Open the app, tap “Join with invite code” and enter {{code}} (for {{name}}).",
-    "ageGroup": "Age group: {{band}}"
+    "ageGroup": "Age group: {{band}}",
+    "adultLimit_one": "This plan has room for {{count}} adult. You can still invite children and teens.",
+    "adultLimit_other": "This plan has room for {{count}} adults. You can still invite children and teens.",
+    "adultLimitClassroom": "This plan has room for {{max}} adults (a teacher and a co-teacher). You can still invite students."
   },
   "member": {
     "difficulty": "Difficulty",
@@ -470,7 +474,14 @@
     "removeHint": "They will lose access on all their devices. Their points stay in the history.",
     "chatLabel": "Family chat",
     "chatOnHint": "Can read and write in the family chat",
-    "chatOffHint": "Chat is off: they can't read or write messages"
+    "chatOffHint": "Chat is off: they can't read or write messages",
+    "roleTitle": "Role",
+    "adminLabel": "Admin",
+    "adminOnHint": "Can invite, edit and remove members and change family settings",
+    "adminOffHint": "Plays and chats, but can't manage the family",
+    "adminOwnerHint": "The family owner is always an admin.",
+    "adminSelfHint": "Another admin can change your role.",
+    "adminAdultsOnly": "Only adults can be admins."
   },
   "profile": {
     "avatar": "Avatar",

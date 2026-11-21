@@ -24,6 +24,7 @@ const MAPPED: [string, number, string][] = [
   ['invalid_credentials', 401, 'errors.invalidCredentials'],
   ['forbidden', 403, 'errors.forbidden'],
   ['member_limit_reached', 403, 'errors.memberLimitReached'],
+  ['adult_limit_reached', 403, 'errors.adultLimitReached'],
   ['category_not_allowed', 403, 'errors.categoryNotAllowed'],
   ['no_family', 409, 'errors.noFamily'],
   ['already_in_family', 409, 'errors.alreadyInFamily'],

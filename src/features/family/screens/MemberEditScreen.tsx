@@ -8,6 +8,7 @@ import { useIsAdmin, useMe, usePolicy } from '@/features/auth/hooks';
 import { DevicesList } from '@/features/family/components/DevicesList';
 import { MemberChatSwitch } from '@/features/family/components/MemberChatSwitch';
 import { MemberEmailLogin } from '@/features/family/components/MemberEmailLogin';
+import { MemberRoleSwitch } from '@/features/family/components/MemberRoleSwitch';
 import { useFamily, useRemoveMember, useUpdateMember } from '@/features/family/hooks';
 import { AccessibilityEditor } from '@/features/profile/AccessibilityEditor';
 import { AvatarPicker } from '@/features/profile/AvatarPicker';
@@ -158,6 +159,8 @@ function Editor({ member, ownerUserId }: { member: Member; ownerUserId: number }
       </Card>
       <MemberEmailLogin member={member} />
       <DevicesList memberId={member.id} />
+
+      <MemberRoleSwitch member={member} isOwner={isOwner} isSelf={member.id === me?.member?.id} />
 
       <MemberChatSwitch member={member} />
 

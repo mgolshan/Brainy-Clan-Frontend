@@ -33,6 +33,7 @@
     "invalidCredentials": "Ce courriel et ce mot de passe ne correspondent pas.",
     "forbidden": "Vous n'avez pas la permission de faire cela.",
     "memberLimitReached": "Votre famille a atteint la limite de membres de ce forfait.",
+    "adultLimitReached": "Ce forfait n'a plus de place pour d'autres adultes. Vous pouvez toujours inviter des enfants et des ados.",
     "categoryNotAllowed": "Cette catégorie n'est pas disponible pour vous.",
     "noFamily": "Vous devez d'abord rejoindre ou créer une famille.",
     "alreadyInFamily": "Vous faites déjà partie d'une famille.",
@@ -477,7 +478,11 @@
     "copy": "Copier le code",
     "copied": "Copié !",
     "shareMessage": "Rejoins notre famille sur Brainy Clan ! Ouvre l'application, touche « Rejoindre avec un code » et entre {{code}} (pour {{name}}).",
-    "ageGroup": "Tranche d'âge : {{band}}"
+    "ageGroup": "Tranche d'âge : {{band}}",
+    "adultLimit_one": "Ce forfait a de la place pour {{count}} adulte. Vous pouvez toujours inviter des enfants et des ados.",
+    "adultLimit_many": "Ce forfait a de la place pour {{count}} adultes. Vous pouvez toujours inviter des enfants et des ados.",
+    "adultLimit_other": "Ce forfait a de la place pour {{count}} adultes. Vous pouvez toujours inviter des enfants et des ados.",
+    "adultLimitClassroom": "Ce forfait a de la place pour {{max}} adultes (un enseignant et un co-enseignant). Vous pouvez toujours inviter des élèves."
   },
   "member": {
     "difficulty": "Difficulté",
@@ -490,7 +495,14 @@
     "removeHint": "Le membre perdra l'accès sur tous ses appareils. Ses points restent dans l'historique.",
     "chatLabel": "Discussion familiale",
     "chatOnHint": "Peut lire et écrire dans la discussion familiale",
-    "chatOffHint": "Discussion désactivée : ne peut ni lire ni écrire de messages"
+    "chatOffHint": "Discussion désactivée : ne peut ni lire ni écrire de messages",
+    "roleTitle": "Rôle",
+    "adminLabel": "Admin",
+    "adminOnHint": "Peut inviter, modifier et retirer des membres et changer les réglages de la famille",
+    "adminOffHint": "Joue et discute, mais ne gère pas la famille",
+    "adminOwnerHint": "Le propriétaire de la famille est toujours admin.",
+    "adminSelfHint": "Un autre admin peut changer votre rôle.",
+    "adminAdultsOnly": "Seuls les adultes peuvent être admins."
   },
   "profile": {
     "avatar": "Avatar",

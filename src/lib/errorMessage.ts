@@ -22,6 +22,9 @@ export function errorMessage(error: unknown, t: TFunction): string {
       return t('errors.forbidden');
     case 'member_limit_reached':
       return t('errors.memberLimitReached');
+    case 'adult_limit_reached':
+      // The invite form names the seat count instead (`inviteErrorMessage`).
+      return t('errors.adultLimitReached');
     case 'category_not_allowed':
       return t('errors.categoryNotAllowed');
     case 'no_family':
