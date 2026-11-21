@@ -1,4 +1,4 @@
-import type { LeaderboardPeriod } from '@/api/types';
+import type { ClassroomSummaryPeriod, LeaderboardPeriod } from '@/api/types';
 
 /** All TanStack Query keys in one place. */
 export const queryKeys = {
@@ -9,6 +9,8 @@ export const queryKeys = {
   meStats: ['me', 'stats'] as const,
   /** `GET /me/worlds`: the signed-in member's world unlock catalog. */
   myWorlds: ['me', 'worlds'] as const,
+  /** `GET /me/onboarding` (FTUE progress; `null` data = older server without it). */
+  onboarding: ['me', 'onboarding'] as const,
   deletionCheck: ['me', 'deletion-check'] as const,
   socialAccounts: ['me', 'social-accounts'] as const,
   notificationPreferences: ['me', 'notification-preferences'] as const,
@@ -27,6 +29,14 @@ export const queryKeys = {
   memberNotificationPreferences: (memberId: number) =>
     ['family', 'members', memberId, 'notification-preferences'] as const,
   leaderboard: (period: LeaderboardPeriod) => ['family', 'leaderboard', period] as const,
+  /**
+   * Classroom tools (B12 step 3, admin). Under `family`, so refreshing the family refreshes them
+   * too. The setup state itself is the family's `classroom` object (`family` / `me`).
+   */
+  classroom: ['family', 'classroom'] as const,
+  /** `GET /family/classroom/summary?period=` */
+  classroomSummary: (period: ClassroomSummaryPeriod) =>
+    ['family', 'classroom', 'summary', period] as const,
   /** Family chat (own root: refreshing `family` must not refetch every chat page). */
   chat: ['chat'] as const,
   /** `GET /family/chat/messages?before=` pages (infinite query, newest first). */

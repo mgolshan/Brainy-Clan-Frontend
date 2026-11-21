@@ -81,6 +81,9 @@ export function errorMessage(error: unknown, t: TFunction): string {
       return t('errors.chatReadOnly');
     case 'plan_required':
       return t('errors.planRequired');
+    case 'classroom_consent_required':
+      // Classroom hooks also open the consent screen (`features/classroom/errors.ts`).
+      return t('errors.classroomConsentRequired');
     case 'owner_too_young': {
       // 16 to create a family, 18 for a Classroom plan (`min_age` in the body).
       const age = ownerTooYoungMinAge(error) ?? MIN_FAMILY_OWNER_AGE;

@@ -206,6 +206,12 @@ function RootNavigator() {
             <Stack.Screen name="delete-family" />
             <Stack.Screen name="family-plan" />
             <Stack.Screen name="support" />
+            <Stack.Screen name="classroom/index" />
+            <Stack.Screen name="classroom/consent" />
+            <Stack.Screen name="classroom/roster" />
+            <Stack.Screen name="classroom/codes" />
+            <Stack.Screen name="classroom/summary" />
+            <Stack.Screen name="classroom/new-year" />
           </Stack.Protected>
           <Stack.Screen name="oauth-callback" />
           <Stack.Protected guard={__DEV__} redirectTo={landing}>

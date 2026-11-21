@@ -425,6 +425,16 @@ manager, a child "Sam" (9) and a teen "Alex" (14), a few completed sessions and 
 > chat) and delete any message (long-press). Messages are deleted automatically after 7 days on
 > the free plan (1 year on a paid plan).
 >
+> **Classroom (teachers):** on a Classroom plan the teacher (family admin) sees Family tab →
+> Classroom tools: a consent statement (the teacher confirms they are authorised by the school or
+> have the parents' consent), a class list (nicknames and a birth year only, no email), printable
+> one-time sign-in cards, a class summary (CSV) and "New school year". Students sign in with a
+> card code; they never see purchases or ads.
+>
+> **Getting started:** new accounts see a short, skippable "Getting started" checklist on Home
+> and one-time tips on Play, Goals and Chat. Progress is stored on our own server; no analytics
+> or third-party SDK is involved.
+>
 > **Subscriptions:** Family tab → Plan → See the plans (sandbox; Family, Big Clan, Classroom). **Ads:** only rewarded videos the adult
 > chooses to watch for a second chance on the free plan; non-personalized; no App Tracking
 > Transparency prompt because the app does not track.

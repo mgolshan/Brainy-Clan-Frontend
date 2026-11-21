@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text as RNText, View } from 'react-native';
@@ -13,7 +13,9 @@ import {
   buildUpdateBody,
   categoriesValid,
   formFromGoal,
+  isGoalTemplate,
   parseTarget,
+  templateForm,
   targetStepValid,
   teamMemberIds,
   type GoalFormState,
@@ -724,7 +726,16 @@ function GoalWizard({ initial, editing }: GoalWizardProps) {
 
 /** Admin: create a goal plan (`/goals/new`). */
 export function GoalWizardScreen() {
-  return <GoalWizard initial={NEW_GOAL_FORM} />;
+  const { t } = useTranslation();
+  // FTUE "first goal" opens a ready-made goal (Pizza Friday / class challenge), still editable.
+  const { template } = useLocalSearchParams<{ template?: string }>();
+  const initial = isGoalTemplate(template)
+    ? templateForm(template, {
+        name: template === 'class' ? t('onboarding.classGoalName') : t('goals.ideas.name1'),
+        reward: template === 'class' ? t('onboarding.classGoalReward') : t('goals.ideas.reward1'),
+      })
+    : NEW_GOAL_FORM;
+  return <GoalWizard initial={initial} />;
 }
 
 /** Admin: edit a goal plan (`/goals/edit/[id]`); changes apply from the next period. */

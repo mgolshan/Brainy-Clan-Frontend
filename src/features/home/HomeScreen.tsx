@@ -9,6 +9,7 @@ import { useLeaderboard } from '@/features/family/hooks';
 import { GoalCard } from '@/features/goals/components/GoalCard';
 import { pickMainGoal, useGoals } from '@/features/goals/hooks';
 import { useCurrentSession } from '@/features/play/api';
+import { GettingStartedCard } from '@/features/onboarding/components/GettingStartedCard';
 import { ResumeGameCard } from '@/features/play/components/ResumeGameCard';
 import { useMeStats } from '@/features/profile/hooks';
 import { formatNumber } from '@/lib/format';
@@ -105,6 +106,9 @@ export function HomeScreen() {
           ) : null}
         </View>
       </View>
+
+      {/* FTUE "Getting started" (hidden on older servers, while loading, and once dismissed). */}
+      <GettingStartedCard />
 
       {stats.isPending ? (
         <Loading fill={false} />

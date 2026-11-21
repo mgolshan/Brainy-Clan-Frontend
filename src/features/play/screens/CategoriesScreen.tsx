@@ -6,6 +6,7 @@ import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import type { Category } from '@/api/types';
 import { useMeasuredWidth } from '@/challenges/useMeasuredWidth';
 import { useGoalMatching } from '@/features/goals/hooks';
+import { CoachMark } from '@/features/onboarding/components/CoachMark';
 import { categoryGoalMarker, goalMarkerText } from '@/features/goals/matching';
 import { useCategories, useCurrentSession } from '@/features/play/api';
 import { findCategory, findRootSlug } from '@/features/play/categoryVisuals';
@@ -132,6 +133,7 @@ export function CategoriesScreen() {
         void current.refetch();
       }}
       refreshing={categories.isRefetching}>
+      <CoachMark tip="tip_play" />
       <ResumeGameCard />
       {categories.isPending ? (
         <Loading fill={false} />

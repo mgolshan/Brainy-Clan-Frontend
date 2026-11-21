@@ -51,6 +51,7 @@ const MAPPED: [string, number, string][] = [
   ['chat_off', 403, 'chat.offTitle'],
   ['chat_read_only', 403, 'errors.chatReadOnly'],
   ['plan_required', 403, 'errors.planRequired'],
+  ['classroom_consent_required', 409, 'errors.classroomConsentRequired'],
   // Client-side codes (no HTTP answer).
   ['network_error', 0, 'errors.network'],
   ['timeout', 0, 'errors.timeout'],

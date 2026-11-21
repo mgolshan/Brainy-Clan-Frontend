@@ -7,6 +7,7 @@ import { queryKeys } from '@/api/queryKeys';
 import type { Invite, Member } from '@/api/types';
 import { useIsAdmin, useMe, usePolicy } from '@/features/auth/hooks';
 import { SubscriptionCard } from '@/features/billing/SubscriptionCard';
+import { ClassroomCard } from '@/features/classroom/ClassroomCard';
 import { ChatSafetySettings } from '@/features/family/components/ChatSafetySettings';
 import { useDeleteInvite, useFamily, useInvites } from '@/features/family/hooks';
 import { invalidateWorlds } from '@/features/worlds/hooks';
@@ -138,6 +139,7 @@ export function FamilyScreen() {
           icon={info.tier === 'free' ? undefined : 'star'}
         />
       }>
+      {isAdmin ? <ClassroomCard family={info} /> : null}
       <Card padding="sm">
         <ListRow
           title={t('goals.title')}

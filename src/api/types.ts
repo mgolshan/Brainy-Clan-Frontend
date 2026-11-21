@@ -49,6 +49,7 @@ export type ApiErrorCode =
   | 'referral_code_invalid'
   | 'referral_code_locked'
   | 'owner_too_young'
+  | 'classroom_consent_required'
   | 'not_found';
 
 /** Error body: `errors` only on 422. */
@@ -142,6 +143,23 @@ export interface Family {
    * is false. Optional until served (absent = `normal`); unknown values are treated as `normal`.
    */
   chat_mode?: ChatMode;
+  /**
+   * Classroom setup state (B12 step 3): set only on the `classroom` tier, else `null`. Optional
+   * until every backend serves it (absent = not a Classroom).
+   */
+  classroom?: ClassroomState | null;
+}
+
+/** Family `classroom` (B12 step 3): what the teacher has set up so far. */
+export interface ClassroomState {
+  /** The consent version a teacher of this family accepted (`null` = not yet). */
+  consent_version: string | null;
+  consent_accepted_at: string | null;
+  students_count: number;
+  /** Last time code cards were issued (`null` = never). */
+  codes_issued_at: string | null;
+  /** Start of the current season (points cleared by "new year"); `null` = no season yet. */
+  season_started_at: string | null;
 }
 
 /** Family chat mode (B12 step 2, Classroom only): `announcements` = only family admins post. */
@@ -278,6 +296,11 @@ export interface LegalDocument {
 export interface LegalInfo {
   terms: LegalDocument;
   privacy: LegalDocument;
+  /**
+   * Classroom consent statement (B12 step 3): its current version and the website page
+   * (`/legal/classroom`) with the statement and the Classroom terms. Optional until served.
+   */
+  classroom_consent?: { version: string; text_url: string };
 }
 
 /** `me.legal`: adults whose accepted versions are older than the current ones must re-accept. */
@@ -466,6 +489,44 @@ export interface UpdateAccessibilityBody {
   calm_timers?: boolean;
   theme?: ThemeKey | null;
   sound_effects?: boolean | null;
+}
+
+/**
+ * FTUE onboarding progress (B12 step 4, `docs/FTUE-CONTRACT.md`): `GET /me/onboarding`,
+ * `POST /me/onboarding/{step}`, `POST /me/onboarding/dismiss`. Older servers answer 404 (the app
+ * then hides the checklist, coach marks and sheets).
+ */
+export type OnboardingStepKey =
+  | 'welcome'
+  | 'create_family'
+  | 'pick_world'
+  | 'add_member'
+  | 'co_admin'
+  | 'first_game'
+  | 'first_goal'
+  | 'say_hi'
+  | 'welcome_family'
+  | 'avatar_world'
+  | 'family_goal'
+  | 'classroom_welcome'
+  | 'class_details'
+  | 'roster'
+  | 'code_cards'
+  | 'chat_mode'
+  | 'end_of_year'
+  | 'code_sign_in'
+  | 'tip_play'
+  | 'tip_goals'
+  | 'tip_chat'
+  | 'upgrade_family'
+  | 'upgrade_big_clan'
+  | 'upgrade_classroom';
+
+export interface Onboarding {
+  /** Every known key → `done_at` (ISO UTC) or `null`; a missing key reads as `null`. */
+  steps: Partial<Record<OnboardingStepKey, string | null>>;
+  /** When the user hid the "Getting started" checklist (`null` = shown). */
+  dismissed_at: string | null;
 }
 
 export interface MeStats {
@@ -1352,4 +1413,78 @@ export interface SendSupportMessageBody {
   app_version: string;
   platform: Platform;
   device?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Classroom tools (B12 step 3)
+// ---------------------------------------------------------------------------
+
+/** `POST /family/classroom/consent` (admin, classroom) → `{ data: Family }`; stale version → 422. */
+export interface ClassroomConsentBody {
+  version: string;
+}
+
+/** One student of `POST /family/classroom/roster`; `birth_year` overrides the class year. */
+export interface RosterStudentInput {
+  nickname: string;
+  birth_year?: number;
+}
+
+/** `POST /family/classroom/roster` (admin): 1–35 students → 201 `{ data: Member[] }`. */
+export interface RosterBody {
+  /** The year most of the class was born. */
+  birth_year: number;
+  students: RosterStudentInput[];
+}
+
+/** `POST /family/classroom/sign-in-codes` (admin); no `member_ids` = every non-admin member. */
+export interface ClassroomCodesBody {
+  member_ids?: number[];
+}
+
+/** One printed code card. The code is secret: never put it in a URL or a log. */
+export interface ClassroomCodeCard {
+  member_id: number;
+  nickname: string;
+  avatar: string | null;
+  code: string;
+  expires_at: string;
+}
+
+export type ClassroomSummaryPeriod = 'season' | 'all';
+
+/** One row of `GET /family/classroom/summary`. */
+export interface ClassroomSummaryRow {
+  member_id: number;
+  nickname: string;
+  role: MemberRole;
+  points: number;
+  games: number;
+  /** `null` when the member has not answered anything yet. */
+  accuracy_percent: number | null;
+  current_streak: number;
+  longest_streak: number;
+  last_played_at: string | null;
+}
+
+/** `GET /family/classroom/summary?period=season|all` (admin). */
+export interface ClassroomSummary {
+  generated_at: string;
+  season_started_at: string | null;
+  rows: ClassroomSummaryRow[];
+}
+
+/** What `POST /family/classroom/new-year` clears; at least one must be true. */
+export interface NewYearClear {
+  students: boolean;
+  points: boolean;
+  chat: boolean;
+  goals: boolean;
+}
+
+/** `POST /family/classroom/new-year` (admin) → `{ data: Family }`. */
+export interface NewYearBody {
+  /** Must equal the class (family) name, ignoring case and surrounding spaces. */
+  confirm_name: string;
+  clear: NewYearClear;
 }

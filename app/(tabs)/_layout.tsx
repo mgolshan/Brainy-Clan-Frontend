@@ -8,6 +8,7 @@ import { useMe } from '@/features/auth/hooks';
 import { useChatBadge } from '@/features/chat/hooks';
 import { badgeLabel } from '@/features/chat/messages';
 import { chatTabVisible } from '@/features/chat/modes';
+import { UpgradeWatcher } from '@/features/onboarding/components/UpgradeWatcher';
 import { WorldUnlockWatcher } from '@/features/worlds/WorldUnlockSheet';
 import { useTheme } from '@/ui';
 
@@ -99,6 +100,8 @@ export default function TabsLayout() {
       </Tabs>
       {/* "New world unlocked!" once per world, only while the tabs are on screen. */}
       <WorldUnlockWatcher />
+      {/* FTUE: "what's new for you" once after a plan upgrade (admins). */}
+      <UpgradeWatcher />
     </>
   );
 }

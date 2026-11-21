@@ -5,6 +5,7 @@ import type { GoalPlan, Policy } from '@/api/types';
 import { useIsAdmin, useMe, usePolicy } from '@/features/auth/hooks';
 import { GoalCard } from '@/features/goals/components/GoalCard';
 import { useGoals } from '@/features/goals/hooks';
+import { CoachMark } from '@/features/onboarding/components/CoachMark';
 import {
   Appear,
   Button,
@@ -63,6 +64,7 @@ export function GoalsScreen() {
       back
       onRefresh={() => void goals.refetch()}
       refreshing={goals.isRefetching}>
+      <CoachMark tip="tip_goals" />
       {goals.isPending ? (
         <Loading fill={false} />
       ) : goals.isError ? (

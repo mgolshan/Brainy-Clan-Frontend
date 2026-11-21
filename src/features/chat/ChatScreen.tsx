@@ -68,6 +68,7 @@ import {
 } from '@/features/chat/outbox';
 import { useFamily, useUpdateMember } from '@/features/family/hooks';
 import { openHelp } from '@/features/help/HelpLink';
+import { CoachMark } from '@/features/onboarding/components/CoachMark';
 import { canPurchasePlan } from '@/features/worlds/catalog';
 import { errorMessage } from '@/lib/errorMessage';
 import {
@@ -520,6 +521,9 @@ function ChatRoom({ memberId }: { memberId: number }) {
   return (
     <ChatFrame footer={<ChatFooter state={footerState} classroom={classroom} onSend={send} />}>
       <Header retentionDays={retentionDays} />
+      <View style={{ paddingHorizontal: theme.spacing.lg }}>
+        <CoachMark tip="tip_chat" />
+      </View>
       {history.isPending ? (
         <Loading />
       ) : history.isError && messages.length === 0 ? (

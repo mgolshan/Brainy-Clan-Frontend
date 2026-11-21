@@ -153,3 +153,29 @@ export function buildUpdateBody(
     reward_text: reward ? reward : null,
   };
 }
+
+/** Ready-made first goals the FTUE checklist opens (`/goals/new?template=`). */
+export type GoalTemplate = 'pizza' | 'class';
+
+export function isGoalTemplate(value: unknown): value is GoalTemplate {
+  return value === 'pizza' || value === 'class';
+}
+
+/**
+ * A template's starting form: everyone, all categories, a weekly team goal. `labels` are the
+ * localized name and reward (the wizard still lets the admin change everything).
+ */
+export function templateForm(
+  template: GoalTemplate,
+  labels: { name: string; reward: string },
+): GoalFormState {
+  return {
+    ...NEW_GOAL_FORM,
+    name: labels.name,
+    reward: labels.reward,
+    allCategories: true,
+    categoryIds: [],
+    everyone: true,
+    target: template === 'class' ? '200' : '100',
+  };
+}

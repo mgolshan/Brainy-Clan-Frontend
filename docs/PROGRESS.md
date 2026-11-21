@@ -23,6 +23,8 @@ Milestones are defined in `docs/PLAN.md`.
 | B12 Plans (app, step 1)           | Built 2026-11-20 (checks green; typed against the B12 contract, backend built in parallel; purchases need a dev build + store accounts)                             | Plan picker (Family / Big Clan / Classroom), per-tier offerings, store plan change, tier labels, "paid plan" wording                                                                           |
 | B12 Chat safety (app, step 2)     | Built 2026-11-20 (checks green; typed against the B12 step 2 contract, backend built in parallel)                                                                   | Profanity filter switch, Classroom chat modes (normal / announcements / off), "Some words were hidden", mode 403s                                                                              |
 | B12 Adult seats (app, step 3a)    | Built 2026-11-20 (checks green; typed against the B12 step 3 "Adult seats" contract, backend built in parallel)                                                     | `max_adults`, `adult_limit_reached` on invites, admin role switch (adults only)                                                                                                                |
+| B12 Classroom tools (app, step 3) | Built 2026-11-21 (checks green; typed against the B12 step 3 contract, backend built in parallel; not run against a server yet)                                     | Teacher hub, consent, roster paste, code cards (web print), class summary + CSV, new-year wizard                                                                                               |
+| B12 FTUE (app, step 4)            | Built 2026-11-21 (typed against `docs/FTUE-CONTRACT.md`, written by the app agent; backend built in parallel; not run against a server yet)                         | Home "Getting started" checklist per flow (owner / member / teacher / student), welcome sheets, coach marks on Play / Goals / Chat, "what's new" after an upgrade                              |
 | Owner age rules (app)             | Built 2026-11-20 (checks green; typed against the `owner_too_young` / `min_owner_age` contract, backend built in parallel)                                          | Family owner 16+ (create family), Classroom owner 18+ (paywall), sign-up copy 16+                                                                                                              |
 
 ## Next up
@@ -345,6 +347,72 @@ AdMob setup", `npx eas-cli@latest build --profile development`, `npm run start:d
    VoiceOver / TalkBack (each card is a radio with its full description; a too-small card is
    announced as disabled).
 
+### B12 step 4 - FTUE "Getting started" (backend B12 step 4, `docs/FTUE-CONTRACT.md`)
+
+1. **Older server** (no `/me/onboarding`, 404): Home, Play, Goals and Chat look exactly as before
+   (no card, no tips, no sheets, no error).
+2. **Owner, new family** (free / family): Home opens the welcome sheet (play together, family
+   goals, safe chat); "Let's go" or "Skip" closes it for good (`POST /me/onboarding/welcome`). The
+   card "Getting started · 2 of 7 done" shows the next step; "See all 7 steps" lists them. Tap
+   each: Pick your world → Profile (marked at once), Add your first member → Invite, Play a
+   first quick game → Play, Set a first goal → goal wizard pre-filled "Pizza Friday", everyone,
+   all categories, Say hi → Chat. Derived steps tick after coming back to Home (refetch on focus).
+   Big Clan adds "Invite another adult as co-admin".
+3. **Invited member** (child / teen / adult / senior): "Welcome to {family}!" (kids: short titles
+   and emoji, no hints; seniors: a text-size hint), then avatar and world, first game, family goal.
+4. **Teacher** (classroom admin): Classroom welcome, then statement → `/classroom/consent`, class
+   list → `/classroom/roster` (locked until the statement), sign-in cards → `/classroom/codes`
+   (locked until students), chat mode sheet (filter + modes, "Use Announcements only"), first
+   class goal (wizard pre-filled "Class challenge"), end-of-year explainer ("Open Classroom
+   tools"). "Invite a co-teacher" shows as Optional and doesn't count.
+5. **Student**: Sign in with your card (already ticked), avatar, first game, class goal; "Say hi"
+   only in normal chat mode.
+6. **Celebration**: all required steps done → "You're all set! 🎉" with the world's confetti (none
+   with reduced motion or calm worlds); Close → `POST /me/onboarding/dismiss`. "Hide" dismisses
+   early; tips still show.
+7. **Coach marks**: first visit of Play, Goals, Chat shows one tip card (posted at once,
+   `tip_play` / `tip_goals` / `tip_chat`); "Got it" hides it; never again, also on a second
+   device. Offline: the tip still never repeats in the same run.
+8. **Upgrade**: as an admin, move the family from free to family (or family → big_clan): back on
+   the tabs, "What's new for you" once (Show me → goals / invite / classroom). A downgrade never
+   shows it; a plan bought before the welcome is covered by the welcome.
+9. French: every string above, plurals (1 / 2 steps, members, students).
+
+### B12 step 3 - Classroom tools (backend B12 step 3)
+
+Needs a family on the `classroom` tier (its `classroom` object non-null), signed in as an admin.
+
+1. Family tab: a **Classroom tools** card at the top (teachers only; members and other tiers
+   never see it) names the next step. It opens `/classroom`: students / cards / season numbers,
+   the three setup steps (later ones locked until the earlier ones are done) and the tools.
+2. **Consent**: the statement, "Version …", "Read the full statement…" (opens `text_url`, `?lang=fr`
+   in French), tick + Confirm → `POST /family/classroom/consent { version }`, then back. With a
+   stale version (422) the statement is re-read with "The statement was just updated…". Make
+   any classroom call return 409 `classroom_consent_required` (e.g. a new consent version on the
+   server): the app opens the consent screen once and the hub shows the "statement was updated"
+   banner.
+3. **Roster**: type the class year, paste three lines `1. Ava`, `Noah`, `- Mia` → "Add these
+   names" (markers dropped, duplicates skipped); edit rows, override a year, remove rows. Hints:
+   41 characters, same nickname twice, a nickname already in the family, 36 students, more than
+   the seats left (plan members minus members and pending invites). Server 422s
+   `students.N.nickname` show on row N+1, `birth_year` on the class year, 403
+   `member_limit_reached` names the seats left. Success → "N students added" → Make sign-in
+   cards.
+4. **Code cards**: all students (no `member_ids`) or a selection → grid of cards (avatar,
+   nickname, code, "Use by …", how to sign in). Web: "Print or save as PDF" prints only the cards
+   (hidden iframe, no URL). Phones: share as text / copy all (no `expo-print`). Codes vanish on
+   leaving the screen. 11th issue in an hour → "Cards can be made 10 times per hour…" (minutes
+   when `Retry-After` is sent). The network tab shows no code in any URL.
+5. **Summary**: This season / All time toggle (`?period=`), rows with points, games, % correct,
+   streaks, last played; teachers have a badge. Download CSV → web download
+   `brainy-clan-<class>-<period>-<date>.csv` / share sheet on phones (Bearer header, no token in
+   the URL). Web: Print or save as PDF.
+6. **New school year**: step 1 pick flags (Continue disabled with none), step 2 "What will happen"
+   (cleared / stays, points → new season and "history isn't erased") + Download CSV, step 3 type
+   the class name (any case, spaces trimmed) → red button. A 422 on `confirm_name` → "The class
+   name doesn't match". Afterwards members, leaderboard, goals and chat are re-read.
+7. French: every screen above, plurals (1 / 2 students).
+
 ### B12 step 3a - adult seats and admin roles (backend B12 step 3)
 
 1. Classroom family (`policy.limits.max_adults: 2`) with the teacher + one adult (or one pending
@@ -437,6 +505,51 @@ themes (light/dark).
   splash (blue `#1D6FD8`, dark `#10233F`). `npx expo-doctor` 21/21; `npx expo config --type public`.
 
 ## Log
+
+### 2026-11-21 FTUE (B12 step 4, app)
+
+Contract: `docs/FTUE-CONTRACT.md` (new, written here because PLAN left the JSON open; the backend
+agent follows it): `GET /me/onboarding`, `POST /me/onboarding/{step}`, `POST
+/me/onboarding/dismiss`, all returning `{ steps: { key: done_at|null }, dismissed_at }`; manual vs
+server-derived step keys; flows chosen by the app from `/me`. Not run against a server yet.
+
+- Types `Onboarding`, `OnboardingStepKey`; query key `onboarding` (under `me`).
+- `src/features/onboarding/` (new): pure `flows.ts` (flow per tier/role/ownership, copy variant
+  from the age band, ordered steps, deep links / sheets, locks, checklist progress, welcome /
+  upgrade / tip visibility, label ids), `state.ts` (tolerant parsing, optimistic updates, 404
+  check), `hooks.ts` (query = `null` on 404, optimistic mark/dismiss, per-run "shown" store),
+  components `GettingStartedCard` (Home), `WelcomeSheet`, `ClassroomSheets` (chat mode reuses
+  `ChatSafetySettings`; end of year), `CoachMark` (Play / Goals / Chat), `UpgradeWatcher` (tabs).
+- Goal wizard accepts `?template=pizza|class` (`templateForm` in `goalForm.ts`).
+- Judgment calls: no "grade" field exists in the API, so "class details" = class name + consent
+  screen; the welcome also marks the current paid tier's "what's new"; the upgrade sheet is for
+  admins only and never on a downgrade; dismiss hides only the checklist and welcome.
+- Tests: `onboarding/__tests__/` (flows, state, hooks with a QueryClient; 47 new). 1220 tests
+  green; typecheck, lint, format, web export OK.
+
+### 2026-11-21 Classroom tools (B12 step 3, app)
+
+Contract: API.md "Classroom tools (B12 step 3)" (consent, setup state, roster, code cards, class
+summary, new year). Built against it while the backend agent builds the server; not run against
+a server yet. Adult seats (step 3a) were already done.
+
+- Types: Family `classroom?: ClassroomState | null`, `GET /legal` `classroom_consent?`, roster /
+  codes / summary / new-year bodies and results, error code `classroom_consent_required`
+  (`errorMessage`, en + fr). Query key `classroomSummary(period)` under `family`.
+- `src/features/classroom/` (new): pure `model.ts` (teacher check, consent current, setup
+  steps), `roster.ts` (paste parsing, hints, body, 422 row mapping, seats left), `summary.ts`
+  (period, paths, CSV file name), `newYear.ts` (flags, "what will happen", name check, steps),
+  `printDocs.ts` (escaped printable HTML for cards and summary, text fallback), `errors.ts`
+  (429 minutes, consent / new-year 422s), `api.ts` (CSV through the client), `hooks.ts`
+  (mutations refresh `family` + `me`; new year also chat / goals; any 409 consent →
+  `/classroom/consent` once), `print.ts` / `print.web.ts`, `ClassroomCard` on the Family tab,
+  six screens under `app/classroom/`.
+- `expo-print` is **not** installed and was not added: web prints from a hidden `srcdoc` iframe
+  (the browser offers "Save as PDF"); phones share / copy the codes as text and share the CSV.
+  If PDFs on phones are wanted, `npx expo install expo-print` and swap `print.ts`.
+- `saveExportFile` takes an optional file type (CSV) for the summary download.
+- Tests: `classroom/__tests__/` (model, roster, summary + CSV fetch, newYear, errors + consent
+  redirect, printDocs), `errorMessage`. 1173 tests green; typecheck, lint, format, web export OK.
 
 ### 2026-11-20 Owner age rules: family owner 16+, Classroom owner 18+ (app)
 
