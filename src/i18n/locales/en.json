@@ -325,8 +325,10 @@
     "createAccount": "I'm a parent — create account",
     "signIn": "Sign in",
     "joinWithCode": "Join with invite code",
-    "joinHint": "Kids and family members: ask the parent who set up Brainy Clan for your code.",
-    "haveSignInCode": "I have a sign-in code"
+    "joinHint": "Kids, students and family members: ask the parent or teacher who set up Brainy Clan for your code.",
+    "haveSignInCode": "I have a sign-in code",
+    "createClass": "I'm a teacher — create a class",
+    "createClassHint": "Create a teacher account and set up your class."
   },
   "login": {
     "title": "Welcome back",
@@ -344,7 +346,14 @@
     "birthHint": "Accounts are for people aged 16 and over. We only use this to set up the right experience.",
     "submit": "Create account",
     "haveAccount": "Already have an account? Sign in",
-    "codeToggle": "Have a code?"
+    "codeToggle": "Have a code?",
+    "teacherTitle": "Create your teacher account",
+    "teacherSubtitle": "You'll set up your class right after.",
+    "teacherNamePlaceholder": "e.g. Ms. Rivera",
+    "teacherBirthHint": "Teacher accounts are for people aged {{age}} and over. We only use this to set up the right experience.",
+    "teacherTooYoungTitle": "A class needs a teacher aged {{age}} or over",
+    "teacherTooYoungBody": "The Classroom plan is for adults aged {{age}} and over. You can create a family account instead.",
+    "continueAsFamily": "Continue as a family"
   },
   "join": {
     "title": "Join your family",
@@ -388,7 +397,14 @@
     "countryCode": "Country code (2 letters)",
     "submit": "Create family",
     "tooYoungTitle": "You can't create a family yet",
-    "tooYoungBody": "You need to be at least {{age}} to create a family. Ask a parent or another adult to create it and invite you."
+    "tooYoungBody": "You need to be at least {{age}} to create a family. Ask a parent or another adult to create it and invite you.",
+    "classTitle": "Create your class",
+    "classSubtitle": "Hi {{name}}! Name your class to get started.",
+    "defaultClassName": "{{name}}'s class",
+    "className": "Class name",
+    "classNamePlaceholder": "e.g. Grade 4B",
+    "classNameHint": "Your students see this name. You can change it later.",
+    "classSubmit": "Create class"
   },
   "countries": {
     "CA": "Canada",
@@ -1894,5 +1910,13 @@
       "showMe": "Show me",
       "later": "Later"
     }
+  },
+  "classroomSetup": {
+    "title": "Finish setting up your class",
+    "body": "Choose the Classroom plan to add your students, print their sign-in cards and use the class tools.",
+    "bodyNoStore": "Choose the Classroom plan in the Brainy Clan app for iPhone or Android to add your students and use the class tools.",
+    "choose": "Choose the Classroom plan",
+    "dismiss": "Not now",
+    "dismissA11y": "Hide the class setup card"
   }
 }

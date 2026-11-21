@@ -26,6 +26,7 @@ Milestones are defined in `docs/PLAN.md`.
 | B12 Classroom tools (app, step 3) | Built 2026-11-21 (checks green; typed against the B12 step 3 contract, backend built in parallel; not run against a server yet)                                     | Teacher hub, consent, roster paste, code cards (web print), class summary + CSV, new-year wizard                                                                                               |
 | B12 FTUE (app, step 4)            | Built 2026-11-21 (typed against `docs/FTUE-CONTRACT.md`, written by the app agent; backend built in parallel; not run against a server yet)                         | Home "Getting started" checklist per flow (owner / member / teacher / student), welcome sheets, coach marks on Play / Goals / Chat, "what's new" after an upgrade                              |
 | Owner age rules (app)             | Built 2026-11-20 (checks green; typed against the `owner_too_young` / `min_owner_age` contract, backend built in parallel)                                          | Family owner 16+ (create family), Classroom owner 18+ (paywall), sign-up copy 16+                                                                                                              |
+| Two sign-up doors (app)           | Built 2026-11-21 (checks green; app-only, no server contract change; not run against a server yet)                                                                  | Welcome "I'm a parent" / "I'm a teacher", teacher framing + 18+ hint on register, class name on create-family, Classroom paywall preselect, Home "Finish setting up your class" card           |
 
 ## Next up
 
@@ -105,6 +106,12 @@ Milestones are defined in `docs/PLAN.md`.
    contract (then a FlashList screen like goal history), or show the newest few + "Show all".
 
 ## Known issues and notes
+
+- **One login = one family or class (accepted for launch, 2026-11-21).** An account belongs to
+  exactly one family; a teacher who is also a parent can't run their class and their own family
+  from the same login (`POST /families` / joining answers 409 `already_in_family`). They need a
+  second account (another email) for the other one. Not mentioned in the app; revisit if
+  teachers ask for it (needs a backend change: several memberships per user + a switcher).
 
 - Type a `t` parameter as `TFunction` (from `i18next`), not `ReturnType<typeof useTranslation>['t']`:
   with the typed keys the latter hits TS2589 ("excessively deep") once the locale grows.
@@ -347,6 +354,31 @@ AdMob setup", `npx eas-cli@latest build --profile development`, `npm run start:d
    VoiceOver / TalkBack (each card is a radio with its full description; a too-small card is
    announced as disabled).
 
+### Two sign-up doors: parent or teacher (any backend with B12)
+
+1. **Welcome**: "I'm a parent — create account" (primary), "I'm a teacher — create a class"
+   (outline, under it), Sign in, social buttons, "Join with invite code", "I have a sign-in code",
+   and the note "Kids, students and family members: ask the parent or teacher…". "Theme preview"
+   shows only in development (`__DEV__`); a release / `expo export` build has no link.
+2. **Parent door**: register and create-family look as before (family name, 🏡). After "Create
+   family" → Home with the owner checklist; no Classroom card.
+3. **Teacher door**: register says "Create your teacher account / You'll set up your class right
+   after", name placeholder "e.g. Ms. Rivera", birth hint "aged 18 and over". Enter a birth year
+   making you 16–17: a notice "A class needs a teacher aged 18 or over" + "Continue as a family"
+   (switches the screen to the parent framing); "Create account" stays disabled until then.
+4. Teacher, 18+: create the account (or use Google / Apple from the register screen: the intent
+   rides along). Kill and reopen the app on create-family: it still says "Create your class",
+   "Class name", "e.g. Grade 4B", help "Your students see this name…", "Create class".
+5. After "Create class": in a dev build with RevenueCat the plan picker opens once with
+   **Classroom selected**. Close it → Home shows "Finish setting up your class" (Choose the
+   Classroom plan / Not now) above the owner checklist. On web / Expo Go the paywall is skipped
+   and the card says to choose the plan in the iPhone / Android app. "Not now" hides it for good;
+   buying Classroom removes it (tier `classroom`; the teacher checklist takes over).
+6. "Already have an account? Sign in", Sign in / Join / sign-in code / social from the welcome
+   screen, and signing out all drop the teacher intent (no class framing on another account).
+7. French: every string above; VoiceOver / TalkBack read the teacher button hint and the notice;
+   with reduced motion the card appears without animation.
+
 ### B12 step 4 - FTUE "Getting started" (backend B12 step 4, `docs/FTUE-CONTRACT.md`)
 
 1. **Older server** (no `/me/onboarding`, 404): Home, Play, Goals and Chat look exactly as before
@@ -505,6 +537,40 @@ themes (light/dark).
   splash (blue `#1D6FD8`, dark `#10233F`). `npx expo-doctor` 21/21; `npx expo config --type public`.
 
 ## Log
+
+### 2026-11-21 One sign-up, two doors (parent / teacher, app)
+
+Moe approved "one sign-up, two doors" on the welcome screen. App-only; the server contract is
+unchanged (`docs/FTUE-CONTRACT.md` untouched: the teacher still starts as a free family owner
+and gets the owner flow until the tier is Classroom).
+
+- `src/features/onboarding/signupIntent.ts` (new): `family | classroom` intent, carried as the
+  register route param `?intent=` **and** a persisted zustand store (AsyncStorage
+  `brainyclan.signup-intent`, like the referral code) so it survives register → create-family,
+  social sign-up and an app restart. Stages `signup → paywall → finish`; pure `parseIntent`,
+  `resolveIntent`, `signupHref`, `homeIntentAction`. Cleared when used (family intent after
+  `POST /families`; classroom once the tier is Classroom or the card is dismissed), on sign in /
+  join / code / social from the welcome screen, "Already have an account?", and sign-out.
+- Welcome: teacher door (outline button under the parent's primary one), footer note covers
+  students and teachers, Theme preview stays `__DEV__`-only (it already was).
+- Register: teacher title / subtitle / placeholder / "18 and over" hint (`GET /pricing`
+  `min_owner_age` wins, catalog fallback); a known birth date under it shows a notice with
+  "Continue as a family" and blocks submit for the teacher intent only. `SocialSignIn` gained
+  `onStart` (register keeps the intent, welcome drops it).
+- Create-family: class name label / placeholder / help / submit / 🏫; suggested "{name}'s class"
+  follows the intent until the user types; a teacher known to be under 18 gets the same notice
+  ("Continue as a family" or sign out). The create-family mutation moves the intent to `paywall`
+  before `me` changes (it runs even after the screen is gone).
+- Paywall: `?plan=<tier>` preselects a tier (`preselectedTier`; blocked tiers still fall back).
+- Home: `ClassroomSetupCard` opens `/family-plan?plan=classroom` once (only where the store can
+  sell and the user is an adult admin), then shows "Finish setting up your class" (dismissible)
+  until the tier is Classroom.
+- Known limit documented above: one login = one family or class (409 `already_in_family`).
+- Tests: `onboarding/__tests__/signupIntent.test.tsx` (intent parsing, persistence + rehydrate,
+  clearing, create-family mutation → paywall stage, home actions, paywall preselect, Classroom
+  age gate) and `signupScreens.test.tsx` (welcome doors, register framing / social intent / age
+  notice, Home card: auto-open once, dismiss, tier Classroom, no store). 1251 tests green;
+  typecheck, lint, format, web export OK.
 
 ### 2026-11-21 FTUE (B12 step 4, app)
 

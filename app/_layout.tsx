@@ -27,6 +27,7 @@ import { useLocaleSync } from '@/features/app/useLocaleSync';
 import { useChatDraft } from '@/features/chat/draft';
 import { useChatOutbox } from '@/features/chat/outbox';
 import { useMe } from '@/features/auth/hooks';
+import { useSignupIntent } from '@/features/onboarding/signupIntent';
 import { configureNotifications } from '@/features/notifications/push';
 import { useNotificationDeepLinks, usePushRegistration } from '@/features/notifications/usePush';
 import { useAnswerQueue, useAnswerQueueSync } from '@/features/play/answerQueue';
@@ -111,6 +112,7 @@ function RootNavigator() {
     useChatOutbox.getState().clear();
     useChatDraft.getState().clear();
     clearSupportDraft();
+    useSignupIntent.getState().clear();
   }, [token]);
 
   const navTheme = useMemo(() => {

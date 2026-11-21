@@ -343,8 +343,10 @@
     "createAccount": "Je suis parent — créer un compte",
     "signIn": "Se connecter",
     "joinWithCode": "Rejoindre avec un code",
-    "joinHint": "Enfants et membres de la famille : demandez votre code au parent qui a configuré Brainy Clan.",
-    "haveSignInCode": "J'ai un code de connexion"
+    "joinHint": "Enfants, élèves et membres de la famille : demandez votre code au parent ou à l’enseignant qui a configuré Brainy Clan.",
+    "haveSignInCode": "J'ai un code de connexion",
+    "createClass": "Je suis enseignant — créer une classe",
+    "createClassHint": "Créer un compte enseignant et configurer votre classe."
   },
   "login": {
     "title": "Bon retour",
@@ -362,7 +364,14 @@
     "birthHint": "Les comptes sont réservés aux personnes de 16 ans ou plus. Nous l'utilisons seulement pour adapter l'expérience.",
     "submit": "Créer le compte",
     "haveAccount": "Déjà un compte ? Se connecter",
-    "codeToggle": "Vous avez un code ?"
+    "codeToggle": "Vous avez un code ?",
+    "teacherTitle": "Créer votre compte enseignant",
+    "teacherSubtitle": "Vous configurerez votre classe juste après.",
+    "teacherNamePlaceholder": "ex. Mme Rivera",
+    "teacherBirthHint": "Les comptes enseignants sont réservés aux personnes de {{age}} ans ou plus. Nous l'utilisons seulement pour adapter l'expérience.",
+    "teacherTooYoungTitle": "Une classe demande un enseignant de {{age}} ans ou plus",
+    "teacherTooYoungBody": "Le forfait Classe est réservé aux adultes de {{age}} ans ou plus. Vous pouvez créer un compte famille à la place.",
+    "continueAsFamily": "Continuer en famille"
   },
   "join": {
     "title": "Rejoins ta famille",
@@ -406,7 +415,14 @@
     "countryCode": "Code du pays (2 lettres)",
     "submit": "Créer la famille",
     "tooYoungTitle": "Vous ne pouvez pas encore créer de famille",
-    "tooYoungBody": "Vous devez avoir au moins {{age}} ans pour créer une famille. Demandez à un parent ou à un autre adulte de la créer et de vous inviter."
+    "tooYoungBody": "Vous devez avoir au moins {{age}} ans pour créer une famille. Demandez à un parent ou à un autre adulte de la créer et de vous inviter.",
+    "classTitle": "Créer votre classe",
+    "classSubtitle": "Bonjour {{name}} ! Donnez un nom à votre classe pour commencer.",
+    "defaultClassName": "Classe de {{name}}",
+    "className": "Nom de la classe",
+    "classNamePlaceholder": "ex. CM1 B",
+    "classNameHint": "Vos élèves voient ce nom. Vous pourrez le modifier plus tard.",
+    "classSubmit": "Créer la classe"
   },
   "countries": {
     "CA": "Canada",
@@ -1976,5 +1992,13 @@
       "showMe": "Voir",
       "later": "Plus tard"
     }
+  },
+  "classroomSetup": {
+    "title": "Terminez la configuration de votre classe",
+    "body": "Choisissez le forfait Classe pour ajouter vos élèves, imprimer leurs cartes de connexion et utiliser les outils de classe.",
+    "bodyNoStore": "Choisissez le forfait Classe dans l’app Brainy Clan pour iPhone ou Android pour ajouter vos élèves et utiliser les outils de classe.",
+    "choose": "Choisir le forfait Classe",
+    "dismiss": "Plus tard",
+    "dismissA11y": "Masquer la carte de configuration de la classe"
   }
 }

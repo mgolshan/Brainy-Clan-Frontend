@@ -4,8 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text as RNText, View } from 'react-native';
 
 import { useMe, useSignOut } from '@/features/auth/hooks';
+import { usePricingTiers } from '@/features/billing/hooks';
+import { classroomAgeMissed } from '@/features/billing/plans';
 import { useCreateFamily } from '@/features/family/hooks';
-import { createFamilyMinAgeMissed } from '@/lib/age';
+import { startSignup, useSignupIntent } from '@/features/onboarding/signupIntent';
+import { createFamilyMinAgeMissed, knownAge } from '@/lib/age';
 import { formErrors } from '@/lib/formErrors';
 import { Button, Card, Chip, EmptyState, Screen, Text, TextField, useTheme } from '@/ui';
 
@@ -23,6 +26,10 @@ function defaultCountry(): string {
  * First step after sign-up: create the family (`POST /families`); the caller becomes admin and
  * owner. Owners must be 16+: when the user's birth data (from `me`, no extra request) says
  * younger, or the server answers 403 `owner_too_young`, the form is replaced by an explanation.
+ * With the teacher sign-up intent (`useSignupIntent`) it asks for a class name instead (same
+ * request; the family starts on Free and the paywall opens next with Classroom selected). A
+ * teacher known to be under the Classroom owner age gets an explanation and "continue as a
+ * family" instead.
  */
 export function CreateFamilyScreen() {
   const { t } = useTranslation();
@@ -30,15 +37,53 @@ export function CreateFamilyScreen() {
   const me = useMe().data;
   const create = useCreateFamily();
   const signOut = useSignOut();
-  const [name, setName] = useState(
-    me?.user.display_name ? t('createFamily.defaultName', { name: me.user.display_name }) : '',
-  );
+  const teacher = useSignupIntent((s) => s.intent === 'classroom');
+  const pricing = usePricingTiers(teacher);
+  // The suggested name follows the intent (it can load from storage after the first render)
+  // until the user types their own.
+  const [typedName, setName] = useState<string | null>(null);
+  const suggested = me?.user.display_name
+    ? t(teacher ? 'createFamily.defaultClassName' : 'createFamily.defaultName', {
+        name: me.user.display_name,
+      })
+    : '';
+  const name = typedName ?? suggested;
   const [timezone, setTimezone] = useState(defaultTimezone);
   const [country, setCountry] = useState(defaultCountry);
   const errors = formErrors(create.error, t, ['name', 'timezone', 'country_code']);
 
   const ready = name.trim() && timezone.trim() && /^[A-Z]{2}$/.test(country);
   const minAgeMissed = createFamilyMinAgeMissed(me?.user, me?.policy.age, create.error);
+
+  const teacherAgeMissed =
+    teacher && minAgeMissed === null
+      ? classroomAgeMissed(knownAge(me?.user, me?.policy.age), pricing.data)
+      : null;
+
+  if (teacherAgeMissed !== null) {
+    return (
+      <Screen title={t('createFamily.classTitle')}>
+        <Card padding="lg">
+          <EmptyState
+            title={t('register.teacherTooYoungTitle', { age: teacherAgeMissed })}
+            body={t('register.teacherTooYoungBody', { age: teacherAgeMissed })}
+            icon="school-outline"
+          />
+        </Card>
+        <Button
+          title={t('register.continueAsFamily')}
+          icon="people-outline"
+          onPress={() => startSignup('family')}
+        />
+        <Button
+          title={t('profile.signOut')}
+          variant="ghost"
+          loading={signOut.isPending}
+          onPress={() => signOut.mutate()}
+        />
+      </Screen>
+    );
+  }
 
   if (minAgeMissed !== null) {
     return (
@@ -62,17 +107,22 @@ export function CreateFamilyScreen() {
 
   return (
     <Screen
-      title={t('createFamily.title')}
-      subtitle={t('createFamily.subtitle', { name: me?.user.display_name ?? '' })}>
-      <View style={styles.center}>
-        <RNText style={styles.emoji}>{theme.emojiIcons ? '🏡' : '🏠'}</RNText>
+      title={teacher ? t('createFamily.classTitle') : t('createFamily.title')}
+      subtitle={t(teacher ? 'createFamily.classSubtitle' : 'createFamily.subtitle', {
+        name: me?.user.display_name ?? '',
+      })}>
+      <View style={styles.center} accessibilityElementsHidden importantForAccessibility="no">
+        <RNText style={styles.emoji}>{teacher ? '🏫' : theme.emojiIcons ? '🏡' : '🏠'}</RNText>
       </View>
       <Card style={{ gap: 14 }} padding="lg">
         <TextField
-          label={t('createFamily.name')}
+          label={teacher ? t('createFamily.className') : t('createFamily.name')}
           value={name}
           onChangeText={setName}
-          placeholder={t('createFamily.namePlaceholder')}
+          placeholder={
+            teacher ? t('createFamily.classNamePlaceholder') : t('createFamily.namePlaceholder')
+          }
+          hint={teacher ? t('createFamily.classNameHint') : undefined}
           error={errors.field('name')}
         />
         <TextField
@@ -114,8 +164,8 @@ export function CreateFamilyScreen() {
         />
         {errors.general ? <Text tone="danger">{errors.general}</Text> : null}
         <Button
-          title={t('createFamily.submit')}
-          icon="home-outline"
+          title={teacher ? t('createFamily.classSubmit') : t('createFamily.submit')}
+          icon={teacher ? 'school-outline' : 'home-outline'}
           size="lg"
           loading={create.isPending}
           disabled={!ready}

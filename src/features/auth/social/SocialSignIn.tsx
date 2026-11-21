@@ -41,6 +41,11 @@ export function OrDivider() {
 interface SocialSignInProps {
   /** Where the "or" separator goes relative to the buttons. */
   divider?: 'top' | 'bottom' | 'none';
+  /**
+   * Called on a provider tap, before anything else (e.g. the register screen keeps its sign-up
+   * intent, the welcome screen drops a stale one).
+   */
+  onStart?: () => void;
 }
 
 /**
@@ -50,7 +55,7 @@ interface SocialSignInProps {
  * Success signs in like `/auth/login` (the root guard routes on). Renders nothing when no
  * provider is available on this build/platform.
  */
-export function SocialSignIn({ divider = 'none' }: SocialSignInProps) {
+export function SocialSignIn({ divider = 'none', onStart }: SocialSignInProps) {
   const { t } = useTranslation();
   const providers = useSocialProviders();
   const signIn = useSocialSignIn();
@@ -70,6 +75,7 @@ export function SocialSignIn({ divider = 'none' }: SocialSignInProps) {
   const errors = formErrors(incomplete ? null : signIn.error, t, BIRTH_FIELDS);
 
   const start = (source: ProviderTokenSource) => {
+    onStart?.();
     setProviderError(null);
     signIn.reset();
     setBusy(source.provider);

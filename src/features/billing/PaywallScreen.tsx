@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import type { TFunction } from 'i18next';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -32,6 +32,7 @@ import {
   planMembers,
   planMinOwnerAge,
   planStudents,
+  preselectedTier,
 } from '@/features/billing/plans';
 import { canChangePlanHere, planSource } from '@/features/billing/source';
 import { store } from '@/features/billing/store';
@@ -529,7 +530,10 @@ export function PaywallScreen() {
       )
     : null;
   const blocked = ownerBlockedTiers(currentTier, ownerAge, pricing.data);
-  const [chosenTier, setChosenTier] = useState<PaidTier | null>(null);
+  // `?plan=classroom` (teacher sign-up) opens with that tier selected; blocked tiers still fall
+  // back to the default.
+  const params = useLocalSearchParams<{ plan?: string | string[] }>();
+  const [chosenTier, setChosenTier] = useState<PaidTier | null>(() => preselectedTier(params.plan));
   const tier =
     chosenTier && !blocked.has(chosenTier)
       ? chosenTier

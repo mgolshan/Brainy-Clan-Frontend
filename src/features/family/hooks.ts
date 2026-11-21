@@ -21,6 +21,7 @@ import type {
 } from '@/api/types';
 import { useIsAdmin } from '@/features/auth/hooks';
 import { applyPendingReferral } from '@/features/billing/referral';
+import { signupIntentAfterFamilyCreated } from '@/features/onboarding/signupIntent';
 import { recoverFromWorldLocked } from '@/features/worlds/hooks';
 
 /** `GET /family`: family + members. */
@@ -75,6 +76,9 @@ export function useCreateFamily() {
     mutationFn: async (body: CreateFamilyBody) =>
       (await api.post<Envelope<Family>>('/families', body)).data,
     onSuccess: async (family) => {
+      // Sign-up intent: a teacher goes on to the Classroom paywall, a parent's intent is used up.
+      // Before `me` changes: that switches the screen to Home, which reads the new stage.
+      signupIntentAfterFamilyCreated();
       // Membership + policy (tier) changed: reload them from the source of truth.
       client.setQueryData<MePayload>(queryKeys.me, (prev) => (prev ? { ...prev, family } : prev));
       // The family exists now: send the referral code typed at sign-up (once; never throws).

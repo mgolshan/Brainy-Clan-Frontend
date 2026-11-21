@@ -174,3 +174,25 @@ export function offeringForTier<T>(
 ): T | null {
   return offerings.all[tier] ?? (tier === 'family' ? offerings.current : null);
 }
+
+/**
+ * The tier the paywall opens with when a screen asks for one (`/family-plan?plan=classroom`,
+ * e.g. right after a teacher created their class). Null for a missing or unknown value; the
+ * picker still skips a tier the owner is too young for.
+ */
+export function preselectedTier(param: unknown): PaidTier | null {
+  const value = Array.isArray(param) ? param[0] : param;
+  return isPaidTier(value) ? value : null;
+}
+
+/**
+ * The Classroom minimum owner age the user is known to miss (teacher sign-up), else null. Unknown
+ * age → null: the server decides (403 `owner_too_young` when buying Classroom).
+ */
+export function classroomAgeMissed(
+  age: number | null,
+  pricingTiers?: readonly PricingTier[] | null,
+): number | null {
+  const min = planMinOwnerAge('classroom', pricingTiers);
+  return isOwnerTooYoung(min, age) ? min : null;
+}

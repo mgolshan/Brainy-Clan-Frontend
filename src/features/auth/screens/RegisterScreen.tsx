@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -10,11 +10,15 @@ import {
   normalizeReferralCode,
   useReferralStore,
 } from '@/features/billing/referral';
+import { usePricingTiers } from '@/features/billing/hooks';
+import { classroomAgeMissed, planMinOwnerAge } from '@/features/billing/plans';
 import { AcceptTerms } from '@/features/legal/components';
 import { SocialSignIn } from '@/features/auth/social/SocialSignIn';
+import { resolveIntent, startSignup, useSignupIntent } from '@/features/onboarding/signupIntent';
 import i18n from '@/i18n';
+import { MIN_FAMILY_OWNER_AGE, ageFromBirth } from '@/lib/age';
 import { formErrors } from '@/lib/formErrors';
-import { Button, Card, Screen, Text, TextField } from '@/ui';
+import { Button, Card, Screen, Text, TextField, useTheme } from '@/ui';
 
 const FIELDS = [
   'display_name',
@@ -26,12 +30,22 @@ const FIELDS = [
 ] as const;
 
 /**
- * Parent sign-up (`POST /auth/register`). The server decides whether the age qualifies for an
- * adult account and answers 422 otherwise; the app does no age math.
+ * Sign-up (`POST /auth/register`) for both welcome doors: a parent (family) or a teacher
+ * (classroom; `?intent=classroom`, also kept in `useSignupIntent` so it survives to the
+ * create-family step and social sign-up). The server decides whether the age qualifies for an
+ * adult account and answers 422 otherwise. With the teacher intent, a birth date under the
+ * Classroom owner minimum (18; `GET /pricing` wins) is explained up front with a way to continue
+ * as a family instead; the server still decides when the plan is bought.
  */
 export function RegisterScreen() {
   const { t } = useTranslation();
+  const theme = useTheme();
   const register = useRegister();
+  const params = useLocalSearchParams<{ intent?: string | string[] }>();
+  const storedIntent = useSignupIntent((s) => s.intent);
+  const intent = resolveIntent(params.intent, storedIntent);
+  const teacher = intent === 'classroom';
+  const pricing = usePricingTiers(teacher);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -51,11 +65,27 @@ export function RegisterScreen() {
   };
   const errors = formErrors(register.error, t, FIELDS);
 
+  const age = year.length === 4 && month !== null ? ageFromBirth(Number(year), month) : null;
+  const teacherAgeMissed = teacher ? classroomAgeMissed(age, pricing.data) : null;
+  const classroomMinAge = planMinOwnerAge('classroom', pricing.data);
+
   const ready =
-    name.trim() && email.trim() && password.length > 0 && year.length === 4 && month && accepted;
+    name.trim() &&
+    email.trim() &&
+    password.length > 0 &&
+    year.length === 4 &&
+    month &&
+    accepted &&
+    teacherAgeMissed === null;
+
+  const continueAsFamily = () => {
+    startSignup('family');
+    router.setParams({ intent: 'family' });
+  };
 
   const submit = () => {
     if (!ready || month === null) return;
+    startSignup(intent);
     register.mutate({
       display_name: name.trim(),
       email: email.trim(),
@@ -68,8 +98,11 @@ export function RegisterScreen() {
   };
 
   return (
-    <Screen title={t('register.title')} subtitle={t('register.subtitle')} back>
-      <SocialSignIn divider="bottom" />
+    <Screen
+      title={teacher ? t('register.teacherTitle') : t('register.title')}
+      subtitle={teacher ? t('register.teacherSubtitle') : t('register.subtitle')}
+      back>
+      <SocialSignIn divider="bottom" onStart={() => startSignup(intent)} />
       <Card style={{ gap: 14 }} padding="lg">
         <TextField
           label={t('forms.displayName')}
@@ -77,7 +110,9 @@ export function RegisterScreen() {
           onChangeText={setName}
           autoComplete="name"
           textContentType="name"
-          placeholder={t('register.namePlaceholder')}
+          placeholder={
+            teacher ? t('register.teacherNamePlaceholder') : t('register.namePlaceholder')
+          }
           error={errors.field('display_name')}
         />
         <TextField
@@ -107,9 +142,30 @@ export function RegisterScreen() {
           onMonthChange={setMonth}
           yearError={errors.field('birth_year')}
           monthError={errors.field('birth_month')}
-          hint={t('register.birthHint')}
+          hint={
+            teacher
+              ? t('register.teacherBirthHint', { age: classroomMinAge ?? MIN_FAMILY_OWNER_AGE })
+              : t('register.birthHint')
+          }
           yearPlaceholder="1988"
         />
+        {teacherAgeMissed !== null ? (
+          <Card variant="tinted" tint={theme.colors.warning} style={{ gap: theme.spacing.sm }}>
+            <Text weight="bold" accessibilityRole="header">
+              {t('register.teacherTooYoungTitle', { age: teacherAgeMissed })}
+            </Text>
+            <Text accessibilityLiveRegion="polite">
+              {t('register.teacherTooYoungBody', { age: teacherAgeMissed })}
+            </Text>
+            <Button
+              title={t('register.continueAsFamily')}
+              icon="people-outline"
+              variant="outline"
+              size="sm"
+              onPress={continueAsFamily}
+            />
+          </Card>
+        ) : null}
         {codeOpen ? (
           <TextField
             label={t('billing.referral.label')}
@@ -153,8 +209,10 @@ export function RegisterScreen() {
         title={t('register.haveAccount')}
         variant="ghost"
         onPress={() => {
-          // Signing in to an existing account: the code typed here isn't for that family.
+          // Signing in to an existing account: the code typed here isn't for that family, and
+          // the sign-up intent isn't either.
           setPendingCode(null);
+          useSignupIntent.getState().clear();
           router.replace('/login');
         }}
       />

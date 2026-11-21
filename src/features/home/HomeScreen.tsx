@@ -9,6 +9,7 @@ import { useLeaderboard } from '@/features/family/hooks';
 import { GoalCard } from '@/features/goals/components/GoalCard';
 import { pickMainGoal, useGoals } from '@/features/goals/hooks';
 import { useCurrentSession } from '@/features/play/api';
+import { ClassroomSetupCard } from '@/features/onboarding/components/ClassroomSetupCard';
 import { GettingStartedCard } from '@/features/onboarding/components/GettingStartedCard';
 import { ResumeGameCard } from '@/features/play/components/ResumeGameCard';
 import { useMeStats } from '@/features/profile/hooks';
@@ -106,6 +107,9 @@ export function HomeScreen() {
           ) : null}
         </View>
       </View>
+
+      {/* Teacher sign-up: "Finish setting up your class" (opens the Classroom paywall once). */}
+      <ClassroomSetupCard />
 
       {/* FTUE "Getting started" (hidden on older servers, while loading, and once dismissed). */}
       <GettingStartedCard />

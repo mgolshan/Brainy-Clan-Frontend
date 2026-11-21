@@ -3,14 +3,17 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text as RNText, View } from 'react-native';
 
 import { SocialSignIn } from '@/features/auth/social/SocialSignIn';
+import { type SignupIntent, signupHref, useSignupIntent } from '@/features/onboarding/signupIntent';
 import { useAppStatus } from '@/store/appStatus';
 import { Appear, Button, Card, Screen, Text, useTheme, withAlpha } from '@/ui';
 
 const HERO = ['🦉', '🦊', '🐼', '🦁'];
 
 /**
- * Signed-out entry: create an account (parent), sign in (email or Google/Facebook), or join with
- * an invite / sign-in code.
+ * Signed-out entry. "One sign-up, two doors": a parent creates a family, a teacher creates a
+ * class (same account and register screen; the intent rides along, see `signupIntent.ts`). Or
+ * sign in (email or Apple/Google/Facebook), or join with an invite / sign-in code. Those last
+ * ones drop any stale sign-up intent.
  */
 export function WelcomeScreen() {
   const { t } = useTranslation();
@@ -18,6 +21,16 @@ export function WelcomeScreen() {
   const c = theme.colors;
   const accountDeleted = useAppStatus((s) => s.accountDeleted);
   const setAccountDeleted = useAppStatus((s) => s.setAccountDeleted);
+  const chooseIntent = useSignupIntent((s) => s.choose);
+  const clearIntent = useSignupIntent((s) => s.clear);
+  const signUp = (intent: SignupIntent) => {
+    chooseIntent(intent);
+    router.push(signupHref(intent));
+  };
+  const go = (path: '/login' | '/join' | '/code') => {
+    clearIntent();
+    router.push(path);
+  };
 
   return (
     <Screen contentStyle={styles.content}>
@@ -70,32 +83,40 @@ export function WelcomeScreen() {
           title={t('welcome.createAccount')}
           icon="person-add-outline"
           size="lg"
-          onPress={() => router.push('/register')}
+          onPress={() => signUp('family')}
+        />
+        <Button
+          title={t('welcome.createClass')}
+          variant="outline"
+          icon="school-outline"
+          accessibilityHint={t('welcome.createClassHint')}
+          onPress={() => signUp('classroom')}
         />
         <Button
           title={t('welcome.signIn')}
           variant="outline"
           icon="log-in-outline"
-          onPress={() => router.push('/login')}
+          onPress={() => go('/login')}
         />
-        <SocialSignIn divider="top" />
+        <SocialSignIn divider="top" onStart={clearIntent} />
         <Button
           title={t('welcome.joinWithCode')}
           variant="secondary"
           icon="key-outline"
-          onPress={() => router.push('/join')}
+          onPress={() => go('/join')}
         />
         <Button
           title={t('welcome.haveSignInCode')}
           variant="ghost"
           icon="phone-portrait-outline"
-          onPress={() => router.push('/code')}
+          onPress={() => go('/code')}
         />
         <Text variant="caption" tone="muted" align="center">
           {t('welcome.joinHint')}
         </Text>
       </Card>
 
+      {/* Dev-only theme preview (the /dev routes are guarded by __DEV__ too). */}
       {__DEV__ ? (
         <Button
           title={t('dev.themesTitle')}
