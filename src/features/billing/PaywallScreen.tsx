@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Platform, View } from 'react-native';
 
-import type { FamilyTier, Subscription } from '@/api/types';
-import { useIsAdmin, usePolicy } from '@/features/auth/hooks';
+import type { FamilyTier, PricingTier, Subscription } from '@/api/types';
+import { useIsAdmin, useMe } from '@/features/auth/hooks';
 import {
   OfferCodeButton,
   PendingReferralNotice,
@@ -16,6 +16,7 @@ import {
   useManageSubscription,
   usePaywallActions,
   usePaywallPackages,
+  usePricingTiers,
   useSubscription,
   useWebCheckoutLink,
 } from '@/features/billing/hooks';
@@ -25,8 +26,11 @@ import {
   type PaidTier,
   RECOMMENDED_TIER,
   defaultTier,
+  familyOwnerAge,
+  isOwnerTooYoung,
   isTooSmall,
   planMembers,
+  planMinOwnerAge,
   planStudents,
 } from '@/features/billing/plans';
 import { canChangePlanHere, planSource } from '@/features/billing/source';
@@ -228,6 +232,8 @@ interface TierChoice {
   recommended: boolean;
   /** The family already has more members than this tier allows (not selectable). */
   tooSmall: boolean;
+  /** The tier's minimum owner age when the family owner is younger (not selectable), else null. */
+  ownerTooYoung: number | null;
 }
 
 /** The plan cards: name, who it's for, member limit, one highlight (display catalog). */
@@ -245,7 +251,8 @@ function TierOption({
   const { t } = useTranslation();
   const theme = useTheme();
   const c = theme.colors;
-  const { tier, members, seats, current, recommended, tooSmall } = choice;
+  const { tier, members, seats, current, recommended, tooSmall, ownerTooYoung } = choice;
+  const disabled = tooSmall || ownerTooYoung !== null;
   const name = tierLabel(t, tier);
   const bestFor = seats
     ? t('billing.plans.bestFor.classroom', seats)
@@ -258,7 +265,9 @@ function TierOption({
       ? t('billing.plans.recommended')
       : null;
   const tooSmallText = tooSmall ? t('billing.plans.tooSmall', { count: memberCount }) : null;
-  const label = [name, status, bestFor, membersLine, highlight, tooSmallText]
+  const tooYoungText =
+    ownerTooYoung !== null ? t('billing.plans.ownerTooYoung', { age: ownerTooYoung }) : null;
+  const label = [name, status, bestFor, membersLine, highlight, tooSmallText, tooYoungText]
     .filter(Boolean)
     .join(', ');
 
@@ -266,10 +275,10 @@ function TierOption({
     <PressableScale
       onPress={onSelect}
       haptic
-      disabled={tooSmall}
+      disabled={disabled}
       accessibilityRole="radio"
       accessibilityLabel={label}
-      accessibilityState={{ checked: selected, disabled: tooSmall }}
+      accessibilityState={{ checked: selected, disabled }}
       style={{
         flexDirection: 'row',
         alignItems: 'flex-start',
@@ -280,7 +289,7 @@ function TierOption({
         borderWidth: selected ? 2 : theme.borderWidth,
         borderColor: selected ? c.primary : c.border,
         backgroundColor: selected ? c.primarySoft : c.surface,
-        opacity: tooSmall ? 0.6 : 1,
+        opacity: disabled ? 0.6 : 1,
       }}>
       <Icon
         name={selected ? 'radio-button-on' : 'radio-button-off'}
@@ -321,9 +330,33 @@ function TierOption({
             {tooSmallText}
           </Text>
         ) : null}
+        {tooYoungText ? (
+          <Text variant="caption" weight="bold" tone="warning">
+            {tooYoungText}
+          </Text>
+        ) : null}
       </View>
     </PressableScale>
   );
+}
+
+/**
+ * Tiers the family owner is too young for (`GET /pricing` `min_owner_age`, else the catalog).
+ * The family's own tier is never blocked (another billing period of it stays possible).
+ */
+function ownerBlockedTiers(
+  currentTier: FamilyTier,
+  ownerAge: number | null,
+  pricing: readonly PricingTier[] | null | undefined,
+): Map<PaidTier, number> {
+  const blocked = new Map<PaidTier, number>();
+  for (const plan of PLAN_CATALOG) {
+    const min = planMinOwnerAge(plan.tier, pricing);
+    if (plan.tier !== currentTier && min !== null && isOwnerTooYoung(min, ownerAge)) {
+      blocked.set(plan.tier, min);
+    }
+  }
+  return blocked;
 }
 
 /** The three paid plans for the picker (sizes: the server's limit for the current tier). */
@@ -332,6 +365,7 @@ function tierChoices(
   currentMaxMembers: number | undefined,
   memberCount: number,
   hasPaidPlan: boolean,
+  blocked: ReadonlyMap<PaidTier, number>,
 ): TierChoice[] {
   const current =
     currentMaxMembers !== undefined ? { tier: currentTier, maxMembers: currentMaxMembers } : null;
@@ -347,6 +381,7 @@ function tierChoices(
       recommended: !hasPaidPlan && plan.tier === RECOMMENDED_TIER,
       // The family's own plan stays selectable (another billing period) even when over its size.
       tooSmall: !isCurrent && isTooSmall(members, memberCount),
+      ownerTooYoung: blocked.get(plan.tier) ?? null,
     };
   });
 }
@@ -473,7 +508,8 @@ function ResultView({ result }: { result: FinalResult }) {
 export function PaywallScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
-  const policy = usePolicy();
+  const me = useMe().data;
+  const policy = me?.policy;
   const isAdmin = useIsAdmin();
   const subscription = useSubscription();
   const family = useFamily();
@@ -481,14 +517,31 @@ export function PaywallScreen() {
   const appUserId = sub?.revenuecat_app_user_id;
   const currentTier: FamilyTier = sub?.tier ?? policy?.tier ?? 'free';
   const memberCount = family.data?.family.member_count ?? family.data?.members.length ?? 0;
+  const allowed = !!policy && policy.purchases_allowed && !policy.is_child && isAdmin;
+  // Classroom needs an owner aged 18+ (server: 403 `owner_too_young`). The purchaser is an
+  // admin, not always the owner: the owner's age comes from data already loaded.
+  const pricing = usePricingTiers(allowed && store.available);
+  const ownerAge = me
+    ? familyOwnerAge(
+        { user: me.user, policyAge: policy?.age },
+        family.data?.family ?? me.family,
+        family.data?.members,
+      )
+    : null;
+  const blocked = ownerBlockedTiers(currentTier, ownerAge, pricing.data);
   const [chosenTier, setChosenTier] = useState<PaidTier | null>(null);
-  const tier = chosenTier ?? defaultTier(currentTier, memberCount);
+  const tier =
+    chosenTier && !blocked.has(chosenTier)
+      ? chosenTier
+      : defaultTier(currentTier, memberCount, [...blocked.keys()]);
   const packages = usePaywallPackages(appUserId, tier);
   const { run, step } = usePaywallActions(appUserId);
   const source = sub ? planSource(sub) : 'none';
-  const allowed = !!policy && policy.purchases_allowed && !policy.is_child && isAdmin;
   // Only asks the server when this family could buy (no running plan); `link_allowed` decides.
-  const webLink = useWebCheckoutLink(allowed && !!sub && source === 'none', tier);
+  const webLink = useWebCheckoutLink(
+    allowed && !!sub && source === 'none' && !blocked.has(tier),
+    tier,
+  );
   const storeErrorText = useStoreErrorText();
   const [chosen, setChosen] = useState<string | null>(null);
   const legal = useLegal().data;
@@ -543,7 +596,14 @@ export function PaywallScreen() {
   // (`EXPO_PUBLIC_TERMS_URL` / `EXPO_PUBLIC_PRIVACY_URL`, default https://brainyclan.com/…).
   const openTerms = () => openLegalPage(legal?.terms ? legal.terms.url : TERMS_URL);
   const openPrivacy = () => openLegalPage(legal?.privacy ? legal.privacy.url : PRIVACY_URL);
-  const choices = tierChoices(currentTier, policy.limits.max_members, memberCount, changing);
+  const choices = tierChoices(
+    currentTier,
+    policy.limits.max_members,
+    memberCount,
+    changing,
+    blocked,
+  );
+  const tierBlocked = blocked.has(tier);
   const list = packages.data ?? [];
   const currentProduct = changing ? sub.product_id : null;
   const selected = selectedPackage(list, chosen, currentProduct);
@@ -648,7 +708,7 @@ export function PaywallScreen() {
           selected && run.mutate({ type: 'buy', packageId: selected.id, tier, currentTier, change })
         }
         loading={step === 'buying' || step === 'activating'}
-        disabled={!selected || busy}
+        disabled={!selected || busy || tierBlocked}
       />
       {changing ? null : (
         <Button

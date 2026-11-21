@@ -58,7 +58,9 @@
     "subscriptionExists": "Your family already has a paid plan, so there is nothing to buy here.",
     "webCheckoutUnavailable": "Buying on the web isn’t available right now.",
     "chatReadOnly": "Only admins can post in this chat right now.",
-    "planRequired": "This needs a different plan."
+    "planRequired": "This needs a different plan.",
+    "ownerTooYoung": "You need to be at least {{age}} to create a family.",
+    "ownerTooYoungClassroom": "A Classroom needs a teacher aged 18 or over."
   },
   "update": {
     "title": "Time for an update",
@@ -338,7 +340,7 @@
     "subtitle": "You'll set up your family right after.",
     "namePlaceholder": "e.g. Mom",
     "passwordHint": "At least 8 characters.",
-    "birthHint": "Parent accounts are for adults. We only use this to set up the right experience.",
+    "birthHint": "Accounts are for people aged 16 and over. We only use this to set up the right experience.",
     "submit": "Create account",
     "haveAccount": "Already have an account? Sign in",
     "codeToggle": "Have a code?"
@@ -383,7 +385,9 @@
     "timezoneHint": "Daily goals end at midnight in this time zone.",
     "country": "Country",
     "countryCode": "Country code (2 letters)",
-    "submit": "Create family"
+    "submit": "Create family",
+    "tooYoungTitle": "You can't create a family yet",
+    "tooYoungBody": "You need to be at least {{age}} to create a family. Ask a parent or another adult to create it and invite you."
   },
   "countries": {
     "CA": "Canada",
@@ -1024,7 +1028,7 @@
     "or": "or",
     "failed": "{{provider}} sign-in didn't work. Please try again.",
     "birthTitle": "Tell us your birth year and month",
-    "birthBody": "One last step to create your account with {{provider}}. Accounts with Apple, Google or Facebook are for adults; we only use this to set up the right experience.",
+    "birthBody": "One last step to create your account with {{provider}}. Accounts with Apple, Google or Facebook are for people aged 16 and over; we only use this to set up the right experience.",
     "continue": "Create account",
     "cancel": "Cancel",
     "devFake": "Dev: buttons use a fake {{provider}} token (EXPO_PUBLIC_SOCIAL_FAKE)."
@@ -1180,7 +1184,8 @@
       "members_one": "Up to {{count}} member",
       "members_other": "Up to {{count}} members",
       "tooSmall_one": "Too small for your {{count}} member",
-      "tooSmall_other": "Too small for your {{count}} members"
+      "tooSmall_other": "Too small for your {{count}} members",
+      "ownerTooYoung": "Needs a family owner aged {{age}} or over"
     }
   },
   "notifications": {

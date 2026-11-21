@@ -9,17 +9,46 @@ import type {
   Envelope,
   FamilyTier,
   ManageLink,
+  Pricing,
+  PricingTier,
   Subscription,
   WebCheckoutAvailability,
 } from '@/api/types';
 import { useIsAdmin, usePolicy } from '@/features/auth/hooks';
-import { type PaidTier, type PlanChangeKind, planChangeKind } from '@/features/billing/plans';
+import {
+  type PaidTier,
+  type PlanChangeKind,
+  planChangeKind,
+  pricingTiers,
+} from '@/features/billing/plans';
 import { submitReferralCode } from '@/features/billing/referral';
 import { STORE_MANAGE_URLS, webCheckoutUrl } from '@/features/billing/source';
 import { store } from '@/features/billing/store';
 import { type PlanChange, StoreError } from '@/features/billing/storeTypes';
 import { openInAppBrowser } from '@/features/legal/hooks';
 import { invalidateWorlds } from '@/features/worlds/hooks';
+
+/**
+ * `GET /pricing` tiers (public). The paywall only reads each tier's `min_owner_age` from it (the
+ * prices shown are the store's); null when the backend serves an older shape or the request
+ * fails, and the plan catalog's value is used instead.
+ */
+export function usePricingTiers(enabled: boolean) {
+  return useQuery({
+    queryKey: queryKeys.pricing,
+    queryFn: async ({ signal }): Promise<PricingTier[] | null> => {
+      try {
+        return pricingTiers((await api.get<Envelope<Pricing>>('/pricing', { signal })).data);
+      } catch (error) {
+        if (error instanceof ApiError && !error.isNetworkError) return null;
+        throw error;
+      }
+    },
+    enabled,
+    staleTime: 60 * 60_000,
+    retry: false,
+  });
+}
 
 /**
  * `GET /family/subscription` (admins only, never for children).

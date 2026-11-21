@@ -4,16 +4,21 @@ import {
   RECOMMENDED_TIER,
   defaultTier,
   entitledTier,
+  familyOwnerAge,
+  isOwnerTooYoung,
   isPaidTier,
   isTooSmall,
   offeringForTier,
   planChangeKind,
   planMembers,
+  planMinOwnerAge,
   planStudents,
+  pricingTiers,
   tierRank,
 } from '@/features/billing/plans';
 import en from '@/i18n/locales/en.json';
 import fr from '@/i18n/locales/fr.json';
+import type { PricingTier } from '@/api/types';
 import { tierLabel } from '@/lib/labels';
 
 describe('plan catalog (display only)', () => {
@@ -154,5 +159,86 @@ describe('offeringForTier', () => {
     expect(offeringForTier({ all: {}, current }, 'family')).toBe(current);
     expect(offeringForTier({ all: {}, current }, 'classroom')).toBeNull();
     expect(offeringForTier({ all: {}, current: null }, 'family')).toBeNull();
+  });
+});
+
+describe('owner age (Classroom needs an owner aged 18+)', () => {
+  const NOW = new Date(2026, 10, 20);
+  const tier = (id: string, min?: number | null): PricingTier => ({
+    id,
+    members: 6,
+    plans: [],
+    ...(min === undefined ? {} : { min_owner_age: min }),
+  });
+
+  it('reads min_owner_age from pricing when served, else the catalog (18 for Classroom)', () => {
+    expect(planMinOwnerAge('classroom')).toBe(18);
+    expect(planMinOwnerAge('family')).toBeNull();
+    expect(planMinOwnerAge('big_clan', null)).toBeNull();
+    expect(planMinOwnerAge('classroom', [tier('classroom', 21)])).toBe(21);
+    expect(planMinOwnerAge('classroom', [tier('classroom', null)])).toBeNull();
+    // Older backend: the field is absent → catalog.
+    expect(planMinOwnerAge('classroom', [tier('classroom')])).toBe(18);
+    expect(planMinOwnerAge('classroom', [tier('family', 30)])).toBe(18);
+    expect(planMinOwnerAge('big_clan', [tier('big_clan', 16)])).toBe(16);
+  });
+
+  it('reads tiers only from the B12 pricing shape', () => {
+    expect(pricingTiers({ currency: 'USD', tiers: [tier('family', null)] })).toHaveLength(1);
+    expect(pricingTiers({ currency: 'USD' })).toBeNull();
+    expect(pricingTiers({ currency: 'USD', tiers: 'x' as never })).toBeNull();
+    expect(pricingTiers(null)).toBeNull();
+  });
+
+  it('blocks only a known owner younger than the minimum', () => {
+    expect(isOwnerTooYoung(18, 17)).toBe(true);
+    expect(isOwnerTooYoung(18, 18)).toBe(false);
+    expect(isOwnerTooYoung(18, null)).toBe(false);
+    expect(isOwnerTooYoung(null, 10)).toBe(false);
+  });
+
+  it("uses the signed-in owner's birth data, then the policy age", () => {
+    const family = { owner_user_id: 1 };
+    expect(
+      familyOwnerAge(
+        { user: { id: 1, birth_year: 2009, birth_month: 12 }, policyAge: 30 },
+        family,
+        [],
+        NOW,
+      ),
+    ).toBe(16);
+    expect(
+      familyOwnerAge(
+        { user: { id: 1, birth_year: null, birth_month: null }, policyAge: 30 },
+        family,
+        undefined,
+        NOW,
+      ),
+    ).toBe(30);
+  });
+
+  it("uses the owner's member row when another admin is buying", () => {
+    const me = { user: { id: 2, birth_year: 1980, birth_month: 1 }, policyAge: 46 };
+    const members = [
+      { user_id: 2, birth_year: 1980, birth_month: 1 },
+      { user_id: 1, birth_year: 2009, birth_month: 6 },
+    ];
+    expect(familyOwnerAge(me, { owner_user_id: 1 }, members, NOW)).toBe(17);
+    expect(familyOwnerAge(me, { owner_user_id: 1 }, undefined, NOW)).toBeNull();
+    expect(familyOwnerAge(me, { owner_user_id: 9 }, members, NOW)).toBeNull();
+    expect(familyOwnerAge(me, null, members, NOW)).toBeNull();
+  });
+
+  it('skips blocked tiers in the default choice', () => {
+    expect(defaultTier('free', 13, ['classroom'])).toBe('big_clan');
+    expect(defaultTier('free', 2, ['classroom'])).toBe('family');
+    expect(defaultTier('free', 7, ['classroom'])).toBe('big_clan');
+    // The current tier is kept (another billing period stays possible).
+    expect(defaultTier('classroom', 20, ['classroom'])).toBe('classroom');
+  });
+
+  it('has the short reason in every locale', () => {
+    expect(en.billing.plans.ownerTooYoung).toContain('{{age}}');
+    expect(fr.billing.plans.ownerTooYoung).toContain('{{age}}');
   });
 });

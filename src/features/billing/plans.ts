@@ -1,4 +1,5 @@
-import type { FamilyTier } from '@/api/types';
+import type { Family, FamilyTier, Member, Pricing, PricingTier, User } from '@/api/types';
+import { isUnderAge, knownAge } from '@/lib/age';
 
 /**
  * Plan tiers (backend PLAN B12, API.md "Plans and tiers"): Free, Family, Big Clan, Classroom.
@@ -20,13 +21,18 @@ export interface PlanInfo {
   members: number;
   /** Adult seats when the tier caps adults (Classroom: teacher + co-teacher), else null. */
   adults: number | null;
+  /**
+   * Minimum age of the family owner (Classroom: 18), else null. Fallback only: `GET /pricing`
+   * tier `min_owner_age` wins when served; the server answers 403 `owner_too_young` anyway.
+   */
+  minOwnerAge: number | null;
 }
 
 /** The plan catalog, cheapest first (= rank order `family` < `big_clan` < `classroom`). */
 export const PLAN_CATALOG: readonly PlanInfo[] = [
-  { tier: 'family', members: 6, adults: null },
-  { tier: 'big_clan', members: 12, adults: null },
-  { tier: 'classroom', members: 37, adults: 2 },
+  { tier: 'family', members: 6, adults: null, minOwnerAge: null },
+  { tier: 'big_clan', members: 12, adults: null, minOwnerAge: null },
+  { tier: 'classroom', members: 37, adults: 2, minOwnerAge: 18 },
 ];
 
 /** The plan the picker suggests to a family without a paid plan. */
@@ -81,16 +87,65 @@ export function entitledTier(activeEntitlementIds: Iterable<string>): PaidTier |
   return best;
 }
 
+/** The `tiers[]` of a `GET /pricing` body; null for an older shape (no `tiers`) or junk. */
+export function pricingTiers(pricing: Pricing | null | undefined): PricingTier[] | null {
+  const tiers = pricing?.tiers;
+  return Array.isArray(tiers) ? tiers : null;
+}
+
+/**
+ * Minimum owner age of a tier: the `GET /pricing` tier's `min_owner_age` when that field is
+ * served (null there = no minimum), else the display catalog.
+ */
+export function planMinOwnerAge(
+  tier: PaidTier,
+  pricingTiers?: readonly PricingTier[] | null,
+): number | null {
+  const served = pricingTiers?.find((p) => p.id === tier);
+  if (served && served.min_owner_age !== undefined) return served.min_owner_age;
+  return planInfo(tier).minOwnerAge;
+}
+
+/** The owner is known to be younger than the tier's minimum (unknown age → not blocked). */
+export function isOwnerTooYoung(minOwnerAge: number | null, ownerAge: number | null): boolean {
+  return minOwnerAge !== null && isUnderAge(ownerAge, minOwnerAge);
+}
+
+/**
+ * Age of the family owner from data already loaded: the signed-in user's birth data (then the
+ * server's policy `age`) when they own the family, else the owner's member row (admins see
+ * birth data). Null when unknown.
+ */
+export function familyOwnerAge(
+  me: { user: Pick<User, 'id' | 'birth_year' | 'birth_month'>; policyAge?: number | null },
+  family: Pick<Family, 'owner_user_id'> | null | undefined,
+  members: readonly Pick<Member, 'user_id' | 'birth_year' | 'birth_month'>[] | undefined,
+  now?: Date,
+): number | null {
+  if (!family) return null;
+  if (family.owner_user_id === me.user.id) return knownAge(me.user, me.policyAge, now);
+  const owner = members?.find((m) => m.user_id === family.owner_user_id);
+  return owner ? knownAge(owner, null, now) : null;
+}
+
 /**
  * The tier selected when the paywall opens: the family's current paid tier, else the
  * recommended one if big enough, else the smallest plan that fits (the biggest as last resort).
+ * `blocked` tiers (owner too young) are skipped unless nothing else is left.
  */
-export function defaultTier(currentTier: FamilyTier, memberCount: number): PaidTier {
+export function defaultTier(
+  currentTier: FamilyTier,
+  memberCount: number,
+  blocked: readonly PaidTier[] = [],
+): PaidTier {
   if (isPaidTier(currentTier)) return currentTier;
-  const fits = (p: PlanInfo) => !isTooSmall(p.members, memberCount);
+  const open = (p: PlanInfo) => !blocked.includes(p.tier);
+  const fits = (p: PlanInfo) => open(p) && !isTooSmall(p.members, memberCount);
   const recommended = planInfo(RECOMMENDED_TIER);
   if (fits(recommended)) return recommended.tier;
-  return (PLAN_CATALOG.find(fits) ?? PLAN_CATALOG[PLAN_CATALOG.length - 1]).tier;
+  const lastResort =
+    [...PLAN_CATALOG].reverse().find(open) ?? PLAN_CATALOG[PLAN_CATALOG.length - 1];
+  return (PLAN_CATALOG.find(fits) ?? lastResort).tier;
 }
 
 /**

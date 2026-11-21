@@ -23,6 +23,7 @@ Milestones are defined in `docs/PLAN.md`.
 | B12 Plans (app, step 1)           | Built 2026-11-20 (checks green; typed against the B12 contract, backend built in parallel; purchases need a dev build + store accounts)                             | Plan picker (Family / Big Clan / Classroom), per-tier offerings, store plan change, tier labels, "paid plan" wording                                                                           |
 | B12 Chat safety (app, step 2)     | Built 2026-11-20 (checks green; typed against the B12 step 2 contract, backend built in parallel)                                                                   | Profanity filter switch, Classroom chat modes (normal / announcements / off), "Some words were hidden", mode 403s                                                                              |
 | B12 Adult seats (app, step 3a)    | Built 2026-11-20 (checks green; typed against the B12 step 3 "Adult seats" contract, backend built in parallel)                                                     | `max_adults`, `adult_limit_reached` on invites, admin role switch (adults only)                                                                                                                |
+| Owner age rules (app)             | Built 2026-11-20 (checks green; typed against the `owner_too_young` / `min_owner_age` contract, backend built in parallel)                                          | Family owner 16+ (create family), Classroom owner 18+ (paywall), sign-up copy 16+                                                                                                              |
 
 ## Next up
 
@@ -436,6 +437,37 @@ themes (light/dark).
   splash (blue `#1D6FD8`, dark `#10233F`). `npx expo-doctor` 21/21; `npx expo config --type public`.
 
 ## Log
+
+### 2026-11-20 Owner age rules: family owner 16+, Classroom owner 18+ (app)
+
+Product rules from Moe; contract (backend built in parallel): 403 `owner_too_young` with
+`min_age` (16 on `POST /families`, 18 for a Classroom checkout / plan change), `GET /pricing`
+tiers `min_owner_age` (18 for classroom, else null).
+
+- Types: error code `owner_too_young`, `ApiErrorBody.min_age`; `Pricing` / `PricingTier` /
+  `PricingPlan` (`min_owner_age?: number | null`, optional so old responses parse).
+- `src/lib/age.ts` (new, pure, tested): `ageFromBirth` (same rule as backend
+  `PolicyResolver::age`: year difference, minus one before the birth month, unknown month =
+  January; the app had no age math before), `knownAge` (birth data, then policy `age`),
+  `isUnderAge` (unknown age never blocks), `ownerTooYoungMinAge`, `createFamilyMinAgeMissed`,
+  `MIN_FAMILY_OWNER_AGE = 16`. A deliberate exception to "no age thresholds in the client":
+  only for explaining before the server's 403, the server stays the referee.
+- `errorMessage`: `owner_too_young` → "You need to be at least {{age}} to create a family." or,
+  for `min_age` ≥ 18, "A Classroom needs a teacher aged 18 or over." (en + fr).
+- Create family: the user's birth data from `me` (no extra request) under 16, or a server
+  `owner_too_young`, replaces the form with an explanation + Sign out.
+- Paywall: Classroom card disabled for owners under 18 ("Needs a family owner aged 18 or
+  over"), next to the existing "too small" rule; the default tier skips it; the buy button and
+  the web link are off for a blocked tier; the family's current tier is never blocked. Minimum
+  from `GET /pricing` (`usePricingTiers`, public, cached 1 h; older shape / error → catalog
+  `minOwnerAge`, 18 for Classroom). Owner age: the signed-in user when they own the family
+  (birth data, then policy `age`), else the owner's member row from `GET /family` (admins see
+  birth data); unknown → not blocked.
+- Sign-up: the app has no client-side age check (`/auth/register` and social sign-up send birth
+  year + month; the server answers 422 below its self-registration threshold). Only the copy
+  said "for adults": `register.birthHint` and `social.birthBody` now say 16 and over (en + fr).
+- Tests: `lib/__tests__/age.test.ts` (new), `errorMessage`, `billing/plans` (owner age, pricing
+  shape, default tier). 1115 tests green; typecheck, lint, format, web export OK.
 
 ### 2026-11-20 Adult seats and admin roles (B12 step 3 "Adult seats", app)
 

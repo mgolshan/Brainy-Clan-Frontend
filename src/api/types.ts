@@ -48,6 +48,7 @@ export type ApiErrorCode =
   | 'web_checkout_unavailable'
   | 'referral_code_invalid'
   | 'referral_code_locked'
+  | 'owner_too_young'
   | 'not_found';
 
 /** Error body: `errors` only on 422. */
@@ -57,6 +58,11 @@ export interface ApiErrorBody {
   errors?: Record<string, string[]>;
   /** `login_locked` (429): seconds until sign-in may be tried again (also the `Retry-After` header). */
   retry_after?: number;
+  /**
+   * `owner_too_young` (403): the minimum owner age that was missed (16 to create a family, 18
+   * for a Classroom plan).
+   */
+  min_age?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -1074,6 +1080,38 @@ export interface Leaderboard {
 export type SubscriptionStatus = 'active' | 'grace' | 'expired' | 'none' | (string & {});
 /** `paddle`: bought on the website (Paddle web checkout, B10). */
 export type SubscriptionStore = 'app_store' | 'play_store' | 'stripe' | 'paddle' | (string & {});
+
+/** One billing period of a tier in `GET /pricing` (public; the website's price list). */
+export interface PricingPlan {
+  id: string;
+  price: string;
+  per_month?: string | null;
+  saving_percent?: number | null;
+  trial_days?: number | null;
+  highlighted?: boolean;
+}
+
+/** One tier of `GET /pricing` (B12: `tiers[]` in rank order). */
+export interface PricingTier {
+  id: FamilyTier;
+  /** That tier's `limits.max_members`. */
+  members: number;
+  highlighted?: boolean;
+  /** False when web checkout isn't configured for the tier. */
+  available?: boolean;
+  /**
+   * Minimum age of the family owner for this tier (18 for `classroom`, null otherwise).
+   * Optional until every backend serves it.
+   */
+  min_owner_age?: number | null;
+  plans: PricingPlan[];
+}
+
+/** `GET /pricing` (public). Older backends answer `plans[]` without `tiers`. */
+export interface Pricing {
+  currency: string;
+  tiers?: PricingTier[];
+}
 
 /** `GET /family/subscription` (admin). The tier comes only from RevenueCat webhooks. */
 export interface Subscription {

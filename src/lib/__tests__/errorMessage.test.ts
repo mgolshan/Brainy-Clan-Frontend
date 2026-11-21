@@ -65,6 +65,23 @@ describe('errorMessage', () => {
     expect(hasKey(key)).toBe(true);
   });
 
+  it('maps owner_too_young with its min_age (family 16, Classroom 18)', () => {
+    const tArgs = ((key: string, opts?: { age?: number }) =>
+      opts?.age !== undefined ? `${key}:${opts.age}` : key) as unknown as TFunction;
+    const tooYoung = (body: unknown) => new ApiError(403, 'Too young', 'owner_too_young', body);
+    expect(errorMessage(tooYoung({ message: 'x', min_age: 16 }), tArgs)).toBe(
+      'errors.ownerTooYoung:16',
+    );
+    expect(errorMessage(tooYoung({ message: 'x', min_age: 18 }), tArgs)).toBe(
+      'errors.ownerTooYoungClassroom',
+    );
+    // No number in the body: the family rule (16).
+    expect(errorMessage(tooYoung({ message: 'x' }), tArgs)).toBe('errors.ownerTooYoung:16');
+    expect(hasKey('errors.ownerTooYoung')).toBe(true);
+    expect(hasKey('errors.ownerTooYoungClassroom')).toBe(true);
+    expect(en.errors.ownerTooYoung).toContain('{{age}}');
+  });
+
   it('shows the first field message of a validation error (already localized by Laravel)', () => {
     const error = err(422, 'validation_failed', {
       email: ['The email has already been taken.', 'Second message'],

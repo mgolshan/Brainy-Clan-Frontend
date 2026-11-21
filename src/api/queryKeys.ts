@@ -17,6 +17,8 @@ export const queryKeys = {
   invitePreview: (birthYear: number, birthMonth: number) =>
     ['invite-preview', birthYear, birthMonth] as const,
   subscription: ['family', 'subscription'] as const,
+  /** `GET /pricing` (public price list; the paywall reads only each tier's `min_owner_age`). */
+  pricing: ['pricing'] as const,
   /** Storefront + `GET /family/web-checkout/availability` (admin): the in-app web link, if any. */
   webCheckout: (tier: string) => ['family', 'web-checkout', tier] as const,
   /** `GET /family/members/{member}/worlds` (admin): that member's world catalog. */

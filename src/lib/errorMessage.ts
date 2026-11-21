@@ -1,6 +1,10 @@
 import type { TFunction } from 'i18next';
 
 import { ApiError } from '@/api/client';
+import { MIN_FAMILY_OWNER_AGE, ownerTooYoungMinAge } from '@/lib/age';
+
+/** Minimum owner age of a Classroom plan; a `min_age` this high means "Classroom" in the text. */
+const CLASSROOM_OWNER_AGE = 18;
 
 /**
  * User-facing message for any error. Contract error codes map to translated strings;
@@ -77,6 +81,13 @@ export function errorMessage(error: unknown, t: TFunction): string {
       return t('errors.chatReadOnly');
     case 'plan_required':
       return t('errors.planRequired');
+    case 'owner_too_young': {
+      // 16 to create a family, 18 for a Classroom plan (`min_age` in the body).
+      const age = ownerTooYoungMinAge(error) ?? MIN_FAMILY_OWNER_AGE;
+      return age >= CLASSROOM_OWNER_AGE
+        ? t('errors.ownerTooYoungClassroom')
+        : t('errors.ownerTooYoung', { age });
+    }
     case 'login_locked':
       // Screens with a sign-in form show a live countdown instead (`useLockout`).
       return t('errors.loginLocked');

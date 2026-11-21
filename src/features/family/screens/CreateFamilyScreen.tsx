@@ -5,8 +5,9 @@ import { StyleSheet, Text as RNText, View } from 'react-native';
 
 import { useMe, useSignOut } from '@/features/auth/hooks';
 import { useCreateFamily } from '@/features/family/hooks';
+import { createFamilyMinAgeMissed } from '@/lib/age';
 import { formErrors } from '@/lib/formErrors';
-import { Button, Card, Chip, Screen, Text, TextField, useTheme } from '@/ui';
+import { Button, Card, Chip, EmptyState, Screen, Text, TextField, useTheme } from '@/ui';
 
 const QUICK_COUNTRIES = ['CA', 'US', 'FR', 'GB', 'BE', 'CH'] as const;
 
@@ -18,7 +19,11 @@ function defaultCountry(): string {
   return (getLocales()[0]?.regionCode ?? 'CA').toUpperCase();
 }
 
-/** First step after sign-up: create the family (`POST /families`); the caller becomes admin. */
+/**
+ * First step after sign-up: create the family (`POST /families`); the caller becomes admin and
+ * owner. Owners must be 16+: when the user's birth data (from `me`, no extra request) says
+ * younger, or the server answers 403 `owner_too_young`, the form is replaced by an explanation.
+ */
 export function CreateFamilyScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -33,6 +38,27 @@ export function CreateFamilyScreen() {
   const errors = formErrors(create.error, t, ['name', 'timezone', 'country_code']);
 
   const ready = name.trim() && timezone.trim() && /^[A-Z]{2}$/.test(country);
+  const minAgeMissed = createFamilyMinAgeMissed(me?.user, me?.policy.age, create.error);
+
+  if (minAgeMissed !== null) {
+    return (
+      <Screen title={t('createFamily.title')}>
+        <Card padding="lg">
+          <EmptyState
+            title={t('createFamily.tooYoungTitle')}
+            body={t('createFamily.tooYoungBody', { age: minAgeMissed })}
+            icon="people-outline"
+          />
+        </Card>
+        <Button
+          title={t('profile.signOut')}
+          variant="outline"
+          loading={signOut.isPending}
+          onPress={() => signOut.mutate()}
+        />
+      </Screen>
+    );
+  }
 
   return (
     <Screen
