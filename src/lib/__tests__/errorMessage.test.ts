@@ -66,20 +66,20 @@ describe('errorMessage', () => {
     expect(hasKey(key)).toBe(true);
   });
 
-  it('maps owner_too_young with its min_age (family 16, Classroom 18)', () => {
+  it('maps owner_too_young to one message with the server min_age (fallback 18)', () => {
     const tArgs = ((key: string, opts?: { age?: number }) =>
       opts?.age !== undefined ? `${key}:${opts.age}` : key) as unknown as TFunction;
     const tooYoung = (body: unknown) => new ApiError(403, 'Too young', 'owner_too_young', body);
-    expect(errorMessage(tooYoung({ message: 'x', min_age: 16 }), tArgs)).toBe(
-      'errors.ownerTooYoung:16',
-    );
     expect(errorMessage(tooYoung({ message: 'x', min_age: 18 }), tArgs)).toBe(
-      'errors.ownerTooYoungClassroom',
+      'errors.ownerTooYoung:18',
     );
-    // No number in the body: the family rule (16).
-    expect(errorMessage(tooYoung({ message: 'x' }), tArgs)).toBe('errors.ownerTooYoung:16');
+    expect(errorMessage(tooYoung({ message: 'x', min_age: 21 }), tArgs)).toBe(
+      'errors.ownerTooYoung:21',
+    );
+    // No number in the body: the 18 rule.
+    expect(errorMessage(tooYoung({ message: 'x' }), tArgs)).toBe('errors.ownerTooYoung:18');
     expect(hasKey('errors.ownerTooYoung')).toBe(true);
-    expect(hasKey('errors.ownerTooYoungClassroom')).toBe(true);
+    expect(hasKey('errors.ownerTooYoungClassroom')).toBe(false);
     expect(en.errors.ownerTooYoung).toContain('{{age}}');
   });
 

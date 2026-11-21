@@ -68,19 +68,25 @@ describe('ownerTooYoungMinAge', () => {
   });
 });
 
-describe('createFamilyMinAgeMissed', () => {
-  it('blocks a user known to be under 16 before they try', () => {
-    expect(MIN_FAMILY_OWNER_AGE).toBe(16);
-    expect(createFamilyMinAgeMissed({ birth_year: 2010, birth_month: 12 }, null, null, NOW)).toBe(
-      16,
+describe('createFamilyMinAgeMissed (18 for every plan)', () => {
+  it('blocks a user known to be under 18 before they try', () => {
+    expect(MIN_FAMILY_OWNER_AGE).toBe(18);
+    // 17, birthday next month.
+    expect(createFamilyMinAgeMissed({ birth_year: 2008, birth_month: 12 }, null, null, NOW)).toBe(
+      18,
     );
-    expect(createFamilyMinAgeMissed({}, 15, null, NOW)).toBe(16);
+    expect(createFamilyMinAgeMissed({ birth_year: 2010, birth_month: 1 }, null, null, NOW)).toBe(
+      18,
+    );
+    expect(createFamilyMinAgeMissed({}, 17, null, NOW)).toBe(18);
   });
 
-  it('lets 16+ and unknown ages try (the server decides)', () => {
+  it('lets 18+ and unknown ages try (the server decides)', () => {
+    // 18 this month.
     expect(
-      createFamilyMinAgeMissed({ birth_year: 2010, birth_month: 11 }, null, null, NOW),
+      createFamilyMinAgeMissed({ birth_year: 2008, birth_month: 11 }, null, null, NOW),
     ).toBeNull();
+    expect(createFamilyMinAgeMissed({}, 18, null, NOW)).toBeNull();
     expect(
       createFamilyMinAgeMissed({ birth_year: 1988, birth_month: 3 }, 38, null, NOW),
     ).toBeNull();
@@ -89,10 +95,11 @@ describe('createFamilyMinAgeMissed', () => {
 
   it('follows the server answer when it says too young', () => {
     const adult = { birth_year: 1988, birth_month: 3 };
-    expect(createFamilyMinAgeMissed(adult, 38, tooYoung({ message: 'x', min_age: 16 }), NOW)).toBe(
-      16,
+    expect(createFamilyMinAgeMissed(adult, 38, tooYoung({ message: 'x', min_age: 18 }), NOW)).toBe(
+      18,
     );
-    expect(createFamilyMinAgeMissed(adult, 38, tooYoung({ message: 'x' }), NOW)).toBe(16);
+    // No number in the body: the 18 rule.
+    expect(createFamilyMinAgeMissed(adult, 38, tooYoung({ message: 'x' }), NOW)).toBe(18);
     expect(
       createFamilyMinAgeMissed(adult, 38, new ApiError(422, 'x', 'validation_failed'), NOW),
     ).toBeNull();

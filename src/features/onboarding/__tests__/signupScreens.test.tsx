@@ -5,6 +5,7 @@ import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 
 import { RegisterScreen } from '@/features/auth/screens/RegisterScreen';
 import { WelcomeScreen } from '@/features/auth/screens/WelcomeScreen';
+import { CreateFamilyScreen } from '@/features/family/screens/CreateFamilyScreen';
 import { ClassroomSetupCard } from '@/features/onboarding/components/ClassroomSetupCard';
 import { useSignupIntent } from '@/features/onboarding/signupIntent';
 import { Button, ThemeProvider } from '@/ui';
@@ -76,6 +77,10 @@ const mockMe: { value: unknown } = { value: undefined };
 jest.mock('@/features/auth/hooks', () => ({
   useRegister: () => ({ mutate: jest.fn(), isPending: false, error: null }),
   useMe: () => ({ data: mockMe.value }),
+  useSignOut: () => ({ mutate: jest.fn(), isPending: false }),
+}));
+jest.mock('@/features/family/hooks', () => ({
+  useCreateFamily: () => ({ mutate: jest.fn(), isPending: false, error: null }),
 }));
 const mockStore = { available: true };
 jest.mock('@/features/billing/store', () => ({
@@ -197,18 +202,37 @@ describe('RegisterScreen', () => {
     expect(intentState().intent).toBe('classroom');
   });
 
-  it('explains the Classroom age and offers to continue as a family when under 18', () => {
-    mockParams.value = { intent: 'classroom' };
+  it.each(['classroom', 'family'])(
+    'explains the 18 rule to a 17-year-old (%s door) and points to the Join screen',
+    (intent) => {
+      mockParams.value = { intent };
+      intentState().choose(intent as 'classroom' | 'family');
+      const tree = render(<RegisterScreen />);
+      act(() => {
+        mockBirth.year?.(String(new Date().getFullYear() - 17));
+        mockBirth.month?.(1);
+      });
+      const text = texts(tree);
+      expect(text).toContain('register.tooYoungTitle {"age":18}');
+      expect(text).toContain('register.tooYoungBody');
+      expect(button(tree, 'register.submit').props.disabled).toBe(true);
+      // A family needs 18 too: no "continue as a family" any more.
+      expect(text).not.toContain('register.continueAsFamily');
+      press(tree, 'register.joinWithCode');
+      expect(router.replace).toHaveBeenCalledWith('/join');
+      expect(intentState().intent).toBeNull();
+    },
+  );
+
+  it.each(['classroom', 'family'])('shows no age notice at 18 (%s door)', (intent) => {
+    mockParams.value = { intent };
     const tree = render(<RegisterScreen />);
     act(() => {
-      mockBirth.year?.(String(new Date().getFullYear() - 17));
+      // 18 since January.
+      mockBirth.year?.(String(new Date().getFullYear() - 18));
       mockBirth.month?.(1);
     });
-    expect(texts(tree)).toContain('register.teacherTooYoungBody {"age":18}');
-    expect(button(tree, 'register.submit').props.disabled).toBe(true);
-    press(tree, 'register.continueAsFamily');
-    expect(intentState().intent).toBe('family');
-    expect(router.setParams).toHaveBeenCalledWith({ intent: 'family' });
+    expect(texts(tree)).not.toContain('register.tooYoungTitle');
   });
 
   it('shows no age notice for an adult teacher', () => {
@@ -218,7 +242,38 @@ describe('RegisterScreen', () => {
       mockBirth.year?.('1988');
       mockBirth.month?.(4);
     });
-    expect(texts(tree)).not.toContain('register.teacherTooYoungBody');
+    expect(texts(tree)).not.toContain('register.tooYoungTitle');
+  });
+});
+
+describe('CreateFamilyScreen age gate (18 for every plan)', () => {
+  const meAged = (birthYear: number) => ({
+    user: { id: 1, display_name: 'Sam', birth_year: birthYear, birth_month: 1 },
+    policy: { age: null },
+  });
+  const year = new Date().getFullYear();
+
+  it.each(['family', 'classroom'] as const)(
+    'replaces the form for a 17-year-old (%s intent), keeps Sign out',
+    (intent) => {
+      intentState().choose(intent);
+      mockMe.value = meAged(year - 17);
+      const tree = render(<CreateFamilyScreen />);
+      const text = texts(tree);
+      expect(text).toContain('createFamily.tooYoungTitle');
+      expect(text).toContain('createFamily.tooYoungBody {"age":18}');
+      expect(button(tree, 'profile.signOut')).toBeDefined();
+      expect(button(tree, 'createFamily.submit')).toBeUndefined();
+      expect(button(tree, 'createFamily.classSubmit')).toBeUndefined();
+      expect(button(tree, 'register.continueAsFamily')).toBeUndefined();
+    },
+  );
+
+  it('shows the form at 18', () => {
+    mockMe.value = meAged(year - 18);
+    const tree = render(<CreateFamilyScreen />);
+    expect(texts(tree)).not.toContain('createFamily.tooYoungTitle');
+    expect(button(tree, 'createFamily.submit')).toBeDefined();
   });
 });
 

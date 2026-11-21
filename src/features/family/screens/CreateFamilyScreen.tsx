@@ -4,11 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text as RNText, View } from 'react-native';
 
 import { useMe, useSignOut } from '@/features/auth/hooks';
-import { usePricingTiers } from '@/features/billing/hooks';
-import { classroomAgeMissed } from '@/features/billing/plans';
 import { useCreateFamily } from '@/features/family/hooks';
-import { startSignup, useSignupIntent } from '@/features/onboarding/signupIntent';
-import { createFamilyMinAgeMissed, knownAge } from '@/lib/age';
+import { useSignupIntent } from '@/features/onboarding/signupIntent';
+import { createFamilyMinAgeMissed } from '@/lib/age';
 import { formErrors } from '@/lib/formErrors';
 import { Button, Card, Chip, EmptyState, Screen, Text, TextField, useTheme } from '@/ui';
 
@@ -24,12 +22,11 @@ function defaultCountry(): string {
 
 /**
  * First step after sign-up: create the family (`POST /families`); the caller becomes admin and
- * owner. Owners must be 16+: when the user's birth data (from `me`, no extra request) says
- * younger, or the server answers 403 `owner_too_young`, the form is replaced by an explanation.
- * With the teacher sign-up intent (`useSignupIntent`) it asks for a class name instead (same
- * request; the family starts on Free and the paywall opens next with Classroom selected). A
- * teacher known to be under the Classroom owner age gets an explanation and "continue as a
- * family" instead.
+ * owner. Owners must be 18+ (every plan): when the user's birth data (from `me`, no extra
+ * request) says younger, or the server answers 403 `owner_too_young`, the form is replaced by an
+ * explanation (ask a parent or teacher for an invite code) and Sign out. With the teacher
+ * sign-up intent (`useSignupIntent`) it asks for a class name instead (same request; the family
+ * starts on Free and the paywall opens next with Classroom selected).
  */
 export function CreateFamilyScreen() {
   const { t } = useTranslation();
@@ -38,7 +35,6 @@ export function CreateFamilyScreen() {
   const create = useCreateFamily();
   const signOut = useSignOut();
   const teacher = useSignupIntent((s) => s.intent === 'classroom');
-  const pricing = usePricingTiers(teacher);
   // The suggested name follows the intent (it can load from storage after the first render)
   // until the user types their own.
   const [typedName, setName] = useState<string | null>(null);
@@ -55,39 +51,9 @@ export function CreateFamilyScreen() {
   const ready = name.trim() && timezone.trim() && /^[A-Z]{2}$/.test(country);
   const minAgeMissed = createFamilyMinAgeMissed(me?.user, me?.policy.age, create.error);
 
-  const teacherAgeMissed =
-    teacher && minAgeMissed === null
-      ? classroomAgeMissed(knownAge(me?.user, me?.policy.age), pricing.data)
-      : null;
-
-  if (teacherAgeMissed !== null) {
-    return (
-      <Screen title={t('createFamily.classTitle')}>
-        <Card padding="lg">
-          <EmptyState
-            title={t('register.teacherTooYoungTitle', { age: teacherAgeMissed })}
-            body={t('register.teacherTooYoungBody', { age: teacherAgeMissed })}
-            icon="school-outline"
-          />
-        </Card>
-        <Button
-          title={t('register.continueAsFamily')}
-          icon="people-outline"
-          onPress={() => startSignup('family')}
-        />
-        <Button
-          title={t('profile.signOut')}
-          variant="ghost"
-          loading={signOut.isPending}
-          onPress={() => signOut.mutate()}
-        />
-      </Screen>
-    );
-  }
-
   if (minAgeMissed !== null) {
     return (
-      <Screen title={t('createFamily.title')}>
+      <Screen title={teacher ? t('createFamily.classTitle') : t('createFamily.title')}>
         <Card padding="lg">
           <EmptyState
             title={t('createFamily.tooYoungTitle')}

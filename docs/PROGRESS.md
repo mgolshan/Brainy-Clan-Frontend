@@ -25,7 +25,7 @@ Milestones are defined in `docs/PLAN.md`.
 | B12 Adult seats (app, step 3a)    | Built 2026-11-20 (checks green; typed against the B12 step 3 "Adult seats" contract, backend built in parallel)                                                     | `max_adults`, `adult_limit_reached` on invites, admin role switch (adults only)                                                                                                                |
 | B12 Classroom tools (app, step 3) | Built 2026-11-21 (checks green; typed against the B12 step 3 contract, backend built in parallel; not run against a server yet)                                     | Teacher hub, consent, roster paste, code cards (web print), class summary + CSV, new-year wizard                                                                                               |
 | B12 FTUE (app, step 4)            | Built 2026-11-21 (typed against `docs/FTUE-CONTRACT.md`, written by the app agent; backend built in parallel; not run against a server yet)                         | Home "Getting started" checklist per flow (owner / member / teacher / student), welcome sheets, coach marks on Play / Goals / Chat, "what's new" after an upgrade                              |
-| Owner age rules (app)             | Built 2026-11-20 (checks green; typed against the `owner_too_young` / `min_owner_age` contract, backend built in parallel)                                          | Family owner 16+ (create family), Classroom owner 18+ (paywall), sign-up copy 16+                                                                                                              |
+| Owner age rules (app)             | Built 2026-11-20 (checks green; typed against the `owner_too_young` / `min_owner_age` contract, backend built in parallel)                                          | Family owner 16+ (create family), Classroom owner 18+ (paywall), sign-up copy 16+; 2026-11-21: one 18 rule for every plan                                                                      |
 | Two sign-up doors (app)           | Built 2026-11-21 (checks green; app-only, no server contract change; not run against a server yet)                                                                  | Welcome "I'm a parent" / "I'm a teacher", teacher framing + 18+ hint on register, class name on create-family, Classroom paywall preselect, Home "Finish setting up your class" card           |
 
 ## Next up
@@ -537,6 +537,23 @@ themes (light/dark).
   splash (blue `#1D6FD8`, dark `#10233F`). `npx expo-doctor` 21/21; `npx expo config --type public`.
 
 ## Log
+
+### 2026-11-21 One age rule: 18 for every plan (app)
+
+- Moe's decision: self sign-up and creating a family or a class (any plan) need 18+ (backend
+  `family.owner_min_age` 16 → 18; 403 `owner_too_young` with `min_age` unchanged). Kids and teens
+  join with an invite code.
+- `MIN_FAMILY_OWNER_AGE` = 18 (`src/lib/age.ts`). Register / social birth hints say "18 and over".
+- Register (both doors): a birth date under 18 (teacher door: the served Classroom
+  `min_owner_age` when higher) shows "Accounts are for adults aged 18 and over / Kids and teens
+  join with an invite code from a parent or teacher" with "I have an invite code" → `/join`
+  (clears the intent and pending referral code); submit stays disabled. "Continue as a family"
+  removed.
+- Create family: one too-young screen (18; ask a parent or teacher for an invite code, then sign
+  out and join) with Sign out; the teacher-only branch (and its pricing fetch) removed.
+- `errors.ownerTooYoung`: one message with the server `min_age` (fallback 18);
+  `errors.ownerTooYoungClassroom` removed.
+- Tests: 17 rejected / 18 accepted (age, register both doors, create family both intents).
 
 ### 2026-11-21 FTUE: server flow / steps and "show the checklist again" (app)
 

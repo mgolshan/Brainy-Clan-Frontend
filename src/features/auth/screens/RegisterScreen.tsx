@@ -16,7 +16,7 @@ import { AcceptTerms } from '@/features/legal/components';
 import { SocialSignIn } from '@/features/auth/social/SocialSignIn';
 import { resolveIntent, startSignup, useSignupIntent } from '@/features/onboarding/signupIntent';
 import i18n from '@/i18n';
-import { MIN_FAMILY_OWNER_AGE, ageFromBirth } from '@/lib/age';
+import { MIN_FAMILY_OWNER_AGE, ageFromBirth, isUnderAge } from '@/lib/age';
 import { formErrors } from '@/lib/formErrors';
 import { Button, Card, Screen, Text, TextField, useTheme } from '@/ui';
 
@@ -32,10 +32,10 @@ const FIELDS = [
 /**
  * Sign-up (`POST /auth/register`) for both welcome doors: a parent (family) or a teacher
  * (classroom; `?intent=classroom`, also kept in `useSignupIntent` so it survives to the
- * create-family step and social sign-up). The server decides whether the age qualifies for an
- * adult account and answers 422 otherwise. With the teacher intent, a birth date under the
- * Classroom owner minimum (18; `GET /pricing` wins) is explained up front with a way to continue
- * as a family instead; the server still decides when the plan is bought.
+ * create-family step and social sign-up). Accounts are for people aged 18 and over, for both
+ * doors: a birth date under that (with the teacher intent, the Classroom owner minimum when
+ * `GET /pricing` serves one) is explained up front with a way to the Join screen, since kids and
+ * teens join with an invite code. The server still decides (422 / 403 `owner_too_young`).
  */
 export function RegisterScreen() {
   const { t } = useTranslation();
@@ -66,8 +66,10 @@ export function RegisterScreen() {
   const errors = formErrors(register.error, t, FIELDS);
 
   const age = year.length === 4 && month !== null ? ageFromBirth(Number(year), month) : null;
-  const teacherAgeMissed = teacher ? classroomAgeMissed(age, pricing.data) : null;
   const classroomMinAge = planMinOwnerAge('classroom', pricing.data);
+  const ageMissed =
+    (teacher ? classroomAgeMissed(age, pricing.data) : null) ??
+    (isUnderAge(age, MIN_FAMILY_OWNER_AGE) ? MIN_FAMILY_OWNER_AGE : null);
 
   const ready =
     name.trim() &&
@@ -76,11 +78,13 @@ export function RegisterScreen() {
     year.length === 4 &&
     month &&
     accepted &&
-    teacherAgeMissed === null;
+    ageMissed === null;
 
-  const continueAsFamily = () => {
-    startSignup('family');
-    router.setParams({ intent: 'family' });
+  // Too young to sign up: join a family or class with an invite code instead.
+  const joinWithCode = () => {
+    setPendingCode(null);
+    useSignupIntent.getState().clear();
+    router.replace('/join');
   };
 
   const submit = () => {
@@ -149,20 +153,18 @@ export function RegisterScreen() {
           }
           yearPlaceholder="1988"
         />
-        {teacherAgeMissed !== null ? (
+        {ageMissed !== null ? (
           <Card variant="tinted" tint={theme.colors.warning} style={{ gap: theme.spacing.sm }}>
             <Text weight="bold" accessibilityRole="header">
-              {t('register.teacherTooYoungTitle', { age: teacherAgeMissed })}
+              {t('register.tooYoungTitle', { age: ageMissed })}
             </Text>
-            <Text accessibilityLiveRegion="polite">
-              {t('register.teacherTooYoungBody', { age: teacherAgeMissed })}
-            </Text>
+            <Text accessibilityLiveRegion="polite">{t('register.tooYoungBody')}</Text>
             <Button
-              title={t('register.continueAsFamily')}
-              icon="people-outline"
+              title={t('register.joinWithCode')}
+              icon="key-outline"
               variant="outline"
               size="sm"
-              onPress={continueAsFamily}
+              onPress={joinWithCode}
             />
           </Card>
         ) : null}

@@ -345,7 +345,7 @@ describe('stepAction (deep links)', () => {
     expect(stepLabelId('family_goal', 'student', 'standard')).toBe('classGoalSeen');
     expect(stepLabelId('family_goal', 'member', 'kid')).toBe('familyGoalKid');
     expect(stepLabelId('avatar_world', 'student', 'kid')).toBe('avatarKid');
-    // Owners are adults or teens 16+: never the kid copy.
+    // Owners are adults (18+): never the kid copy.
     expect(stepLabelId('first_game', 'owner', 'kid')).toBe('firstGame');
   });
 });

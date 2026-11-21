@@ -1,13 +1,13 @@
 import { ApiError } from '@/api/client';
 
 /**
- * Owner age rules (product rules; the server is the referee and answers 403 `owner_too_young`
- * with `min_age`). The app only uses these to explain *before* the user tries:
- * - creating a family (becoming its owner) needs 16+;
- * - a Classroom plan needs its owner to be 18+ (`GET /pricing` tier `min_owner_age` wins when
- *   served; see `src/features/billing/plans.ts`).
+ * Owner age rule (product rule; the server is the referee and answers 403 `owner_too_young`
+ * with `min_age`): self sign-up and creating a family or a class (any plan) need 18+. Kids and
+ * teens join with an invite code. The app only uses this to explain *before* the user tries
+ * (a Classroom plan's `GET /pricing` `min_owner_age` wins when served; see
+ * `src/features/billing/plans.ts`).
  */
-export const MIN_FAMILY_OWNER_AGE = 16;
+export const MIN_FAMILY_OWNER_AGE = 18;
 
 /**
  * Age in whole years from birth year + month, the same way the backend computes it
@@ -51,7 +51,7 @@ export function ownerTooYoungMinAge(error: unknown): number | null {
 /**
  * Create-family gate: the minimum age the user misses, or null when they may try. A server
  * `owner_too_young` answer wins (its `min_age`); otherwise the signed-in user's birth data
- * (then policy `age`) is checked against 16. Unknown age → null (the server decides).
+ * (then policy `age`) is checked against 18. Unknown age → null (the server decides).
  */
 export function createFamilyMinAgeMissed(
   user: { birth_year?: number | null; birth_month?: number | null } | null | undefined,

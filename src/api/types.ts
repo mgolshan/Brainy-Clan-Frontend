@@ -60,8 +60,8 @@ export interface ApiErrorBody {
   /** `login_locked` (429): seconds until sign-in may be tried again (also the `Retry-After` header). */
   retry_after?: number;
   /**
-   * `owner_too_young` (403): the minimum owner age that was missed (16 to create a family, 18
-   * for a Classroom plan).
+   * `owner_too_young` (403): the minimum owner age that was missed (18 to create a family or
+   * own a Classroom plan).
    */
   min_age?: number;
 }

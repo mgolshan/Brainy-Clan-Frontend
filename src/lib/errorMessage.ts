@@ -3,9 +3,6 @@ import type { TFunction } from 'i18next';
 import { ApiError } from '@/api/client';
 import { MIN_FAMILY_OWNER_AGE, ownerTooYoungMinAge } from '@/lib/age';
 
-/** Minimum owner age of a Classroom plan; a `min_age` this high means "Classroom" in the text. */
-const CLASSROOM_OWNER_AGE = 18;
-
 /**
  * User-facing message for any error. Contract error codes map to translated strings;
  * validation errors fall back to the first field message from the server (already localized
@@ -84,13 +81,11 @@ export function errorMessage(error: unknown, t: TFunction): string {
     case 'classroom_consent_required':
       // Classroom hooks also open the consent screen (`features/classroom/errors.ts`).
       return t('errors.classroomConsentRequired');
-    case 'owner_too_young': {
-      // 16 to create a family, 18 for a Classroom plan (`min_age` in the body).
-      const age = ownerTooYoungMinAge(error) ?? MIN_FAMILY_OWNER_AGE;
-      return age >= CLASSROOM_OWNER_AGE
-        ? t('errors.ownerTooYoungClassroom')
-        : t('errors.ownerTooYoung', { age });
-    }
+    case 'owner_too_young':
+      // One rule for every plan (18); the server's `min_age` wins.
+      return t('errors.ownerTooYoung', {
+        age: ownerTooYoungMinAge(error) ?? MIN_FAMILY_OWNER_AGE,
+      });
     case 'login_locked':
       // Screens with a sign-in form show a live countdown instead (`useLockout`).
       return t('errors.loginLocked');
